@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { format } from 'date-fns';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { PageHeader } from '@/components/ui/page-header';
@@ -16,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useMembers, useMemberPoints } from '@/hooks/useMembers';
 import { useAuth } from '@/contexts/AuthContext';
 import { exportToCSV } from '@/lib/csv';
+import { GrantPointsDialog } from '@/components/points/GrantPointsDialog';
 
 const categories = ['chapter', 'rush', 'fundraising', 'service', 'brotherhood', 'professionalism', 'dei'] as const;
 
@@ -79,12 +79,15 @@ export default function PointsPage() {
   return (
     <AppLayout>
       <PageHeader title="Points" description="Your chapter points breakdown">
-        {isAdminOrOfficer && (
-          <Button variant="outline" size="sm" onClick={handleExport} className="gap-2">
-            <Download className="h-4 w-4" />
-            Export CSV
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {isAdminOrOfficer && <GrantPointsDialog />}
+          {isAdminOrOfficer && (
+            <Button variant="outline" size="sm" onClick={handleExport} className="gap-2">
+              <Download className="h-4 w-4" />
+              Export CSV
+            </Button>
+          )}
+        </div>
       </PageHeader>
 
       <div className="space-y-6">

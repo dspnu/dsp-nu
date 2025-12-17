@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThumbsUp, ThumbsDown, Minus, Trash2 } from 'lucide-react';
 import { useCastVote, useToggleVoting, useDeleteCandidate } from '@/hooks/useEOP';
 import { EditCandidateButton } from './EOPCandidateForm';
@@ -19,7 +20,14 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-type EOPCandidate = Tables<'eop_candidates'>;
+type EOPCandidate = Tables<'eop_candidates'> & {
+  picture_url?: string | null;
+  video_score?: number | null;
+  interview_score?: number | null;
+  r1_pu?: string | null;
+  r2_pu?: string | null;
+  tu_td?: number | null;
+};
 type VoteType = Enums<'eop_vote'>;
 
 interface EOPCandidateCardProps {
@@ -47,21 +55,60 @@ export function EOPCandidateCard({ candidate, myVote, voteCounts, isOfficer }: E
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div>
-            <CardTitle className="text-lg">
-              {candidate.first_name} {candidate.last_name}
-            </CardTitle>
-            {candidate.email && (
-              <p className="text-sm text-muted-foreground mt-1">{candidate.email}</p>
+        <div className="flex items-start gap-4">
+          <Avatar className="h-16 w-16">
+            <AvatarImage src={candidate.picture_url || ''} />
+            <AvatarFallback className="bg-primary/10 text-primary text-lg">
+              {candidate.first_name?.[0]}{candidate.last_name?.[0]}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            <div className="flex items-start justify-between">
+              <CardTitle className="text-lg">
+                {candidate.first_name} {candidate.last_name}
+              </CardTitle>
+              <Badge variant={candidate.voting_open ? 'default' : 'secondary'}>
+                {candidate.voting_open ? 'Voting Open' : 'Voting Closed'}
+              </Badge>
+            </div>
+            {/* Scores Summary */}
+            {isOfficer && (
+              <div className="flex gap-3 mt-2 text-sm">
+                {candidate.video_score != null && (
+                  <span className="text-muted-foreground">Video: <span className="font-medium text-foreground">{candidate.video_score}</span></span>
+                )}
+                {candidate.interview_score != null && (
+                  <span className="text-muted-foreground">Interview: <span className="font-medium text-foreground">{candidate.interview_score}</span></span>
+                )}
+                {candidate.tu_td != null && candidate.tu_td !== 0 && (
+                  <span className={candidate.tu_td > 0 ? 'text-emerald-600' : 'text-red-600'}>
+                    TU/TD: {candidate.tu_td > 0 ? '+' : ''}{candidate.tu_td}
+                  </span>
+                )}
+              </div>
             )}
           </div>
-          <Badge variant={candidate.voting_open ? 'default' : 'secondary'}>
-            {candidate.voting_open ? 'Voting Open' : 'Voting Closed'}
-          </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* PU Notes for Officers */}
+        {isOfficer && (candidate.r1_pu || candidate.r2_pu) && (
+          <div className="space-y-2 text-sm">
+            {candidate.r1_pu && (
+              <div>
+                <span className="font-medium text-muted-foreground">R1 PU:</span>
+                <p className="mt-1">{candidate.r1_pu}</p>
+              </div>
+            )}
+            {candidate.r2_pu && (
+              <div>
+                <span className="font-medium text-muted-foreground">R2 PU:</span>
+                <p className="mt-1">{candidate.r2_pu}</p>
+              </div>
+            )}
+          </div>
+        )}
+
         {candidate.notes && (
           <p className="text-sm text-muted-foreground">{candidate.notes}</p>
         )}

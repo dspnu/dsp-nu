@@ -3,11 +3,19 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
-import { Mail, Phone, GraduationCap, Linkedin, MapPin, Users, Heart } from 'lucide-react';
+import { CategoryBadge } from '@/components/ui/category-badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Mail, Phone, GraduationCap, Linkedin, MapPin, Users, Heart, Award, Clock, DollarSign, CheckCircle, XCircle } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
-import { useMembers } from '@/hooks/useMembers';
+import { useMembers, useMemberPoints } from '@/hooks/useMembers';
+import { useServiceHours } from '@/hooks/useServiceHours';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 type Profile = Tables<'profiles'>;
+
+const categories = ['chapter', 'rush', 'fundraising', 'service', 'brotherhood', 'professionalism', 'dei'] as const;
 
 interface MemberProfileDialogProps {
   member: Profile | null;
@@ -17,6 +25,28 @@ interface MemberProfileDialogProps {
 
 export function MemberProfileDialog({ member, open, onOpenChange }: MemberProfileDialogProps) {
   const { data: members } = useMembers();
+  const { user, isAdminOrOfficer } = useAuth();
+  
+  // Check if current user can see detailed info (admin/officer or own profile)
+  const canViewDetails = isAdminOrOfficer || user?.id === member?.user_id;
+  
+  const { data: memberPoints } = useMemberPoints(member?.user_id ?? '');
+  const { data: serviceHours } = useServiceHours(member?.user_id);
+  
+  // Fetch dues for this member
+  const { data: dues } = useQuery({
+    queryKey: ['member-dues', member?.user_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('dues_payments')
+        .select('*')
+        .eq('user_id', member!.user_id)
+        .order('paid_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!member?.user_id && canViewDetails,
+  });
   
   if (!member) return null;
 
@@ -30,6 +60,23 @@ export function MemberProfileDialog({ member, open, onOpenChange }: MemberProfil
 
   const bigMember = members?.find(m => m.id === extendedProfile.big);
   const littleMember = members?.find(m => m.id === extendedProfile.little);
+  
+  // Calculate points totals
+  const totalPoints = memberPoints?.reduce((sum, p) => sum + p.points, 0) ?? 0;
+  const pointsByCategory = memberPoints?.reduce((acc, p) => {
+    acc[p.category] = (acc[p.category] || 0) + p.points;
+    return acc;
+  }, {} as Record<string, number>) ?? {};
+  
+  // Calculate service hours
+  const totalServiceHours = serviceHours?.reduce((sum, h) => sum + Number(h.hours), 0) ?? 0;
+  const verifiedServiceHours = serviceHours?.filter(h => h.verified).reduce((sum, h) => sum + Number(h.hours), 0) ?? 0;
+  
+  // Check current semester dues
+  const currentSemester = new Date().getMonth() < 6 ? 'Spring' : 'Fall';
+  const currentYear = new Date().getFullYear();
+  const semesterKey = `${currentSemester} ${currentYear}`;
+  const hasPaidDues = dues?.some(d => d.semester === semesterKey);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -152,6 +199,66 @@ export function MemberProfileDialog({ member, open, onOpenChange }: MemberProfil
                     {committee}
                   </Badge>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Points, Dues, Service Hours - Only visible to admin/officer or profile owner */}
+          {canViewDetails && (
+            <div className="space-y-4">
+              {/* Points Summary */}
+              <Card className="border-primary/20 bg-primary/5">
+                <CardContent className="pt-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Award className="h-5 w-5 text-primary" />
+                    <h3 className="font-semibold">Points</h3>
+                    <Badge variant="secondary" className="ml-auto">{totalPoints} total</Badge>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {categories.slice(0, 4).map(cat => (
+                      <div key={cat} className="text-center">
+                        <CategoryBadge category={cat} />
+                        <div className="text-sm font-medium mt-1">{pointsByCategory[cat] || 0}</div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Dues & Service Hours */}
+              <div className="grid grid-cols-2 gap-3">
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Dues</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {hasPaidDues ? (
+                        <>
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                          <span className="text-sm text-green-600">Paid</span>
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="h-4 w-4 text-destructive" />
+                          <span className="text-sm text-destructive">Unpaid</span>
+                        </>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="pt-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Service</span>
+                    </div>
+                    <div className="text-lg font-bold">{verifiedServiceHours}h</div>
+                    <div className="text-xs text-muted-foreground">{totalServiceHours}h logged</div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           )}

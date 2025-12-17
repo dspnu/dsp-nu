@@ -212,10 +212,16 @@ export type Database = {
           email: string | null
           first_name: string
           id: string
+          interview_score: number | null
           last_name: string
           notes: string | null
           phone: string | null
+          picture_url: string | null
+          r1_pu: string | null
+          r2_pu: string | null
+          tu_td: number | null
           updated_at: string
+          video_score: number | null
           voting_open: boolean
         }
         Insert: {
@@ -224,10 +230,16 @@ export type Database = {
           email?: string | null
           first_name: string
           id?: string
+          interview_score?: number | null
           last_name: string
           notes?: string | null
           phone?: string | null
+          picture_url?: string | null
+          r1_pu?: string | null
+          r2_pu?: string | null
+          tu_td?: number | null
           updated_at?: string
+          video_score?: number | null
           voting_open?: boolean
         }
         Update: {
@@ -236,10 +248,16 @@ export type Database = {
           email?: string | null
           first_name?: string
           id?: string
+          interview_score?: number | null
           last_name?: string
           notes?: string | null
           phone?: string | null
+          picture_url?: string | null
+          r1_pu?: string | null
+          r2_pu?: string | null
+          tu_td?: number | null
           updated_at?: string
+          video_score?: number | null
           voting_open?: boolean
         }
         Relationships: []
@@ -600,6 +618,42 @@ export type Database = {
           title?: string
           updated_at?: string
           uploaded_by?: string | null
+        }
+        Relationships: []
+      }
+      service_hours: {
+        Row: {
+          created_at: string
+          description: string
+          hours: number
+          id: string
+          service_date: string
+          updated_at: string
+          user_id: string
+          verified: boolean
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          hours: number
+          id?: string
+          service_date: string
+          updated_at?: string
+          user_id: string
+          verified?: boolean
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          hours?: number
+          id?: string
+          service_date?: string
+          updated_at?: string
+          user_id?: string
+          verified?: boolean
+          verified_by?: string | null
         }
         Relationships: []
       }

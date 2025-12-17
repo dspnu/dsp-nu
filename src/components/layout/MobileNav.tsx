@@ -16,7 +16,6 @@ const mainNavItems = [
 ];
 
 const moreNavItems = [
-  { label: 'Attendance', path: '/attendance' },
   { label: 'Job Board', path: '/jobs' },
   { label: 'Alumni', path: '/alumni' },
   { label: 'Resources', path: '/resources' },
