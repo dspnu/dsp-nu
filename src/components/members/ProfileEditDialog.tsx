@@ -284,14 +284,17 @@ export function ProfileEditDialog({ profile, trigger }: ProfileEditDialogProps) 
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Big</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                    <Select 
+                      onValueChange={(val) => field.onChange(val === '__none__' ? '' : val)} 
+                      value={field.value || '__none__'}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select Big" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">None</SelectItem>
+                        <SelectItem value="__none__">None</SelectItem>
                         {otherMembers.map(m => (
                           <SelectItem key={m.id} value={m.id}>
                             {m.first_name} {m.last_name}
@@ -309,14 +312,17 @@ export function ProfileEditDialog({ profile, trigger }: ProfileEditDialogProps) 
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Little</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                    <Select 
+                      onValueChange={(val) => field.onChange(val === '__none__' ? '' : val)} 
+                      value={field.value || '__none__'}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select Little" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">None</SelectItem>
+                        <SelectItem value="__none__">None</SelectItem>
                         {otherMembers.map(m => (
                           <SelectItem key={m.id} value={m.id}>
                             {m.first_name} {m.last_name}
