@@ -19,6 +19,7 @@ import SettingsPage from "./pages/SettingsPage";
 import HelpPage from "./pages/HelpPage";
 import ServiceHoursPage from "./pages/ServiceHoursPage";
 import DuesPage from "./pages/DuesPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/eop" element={<EOPPage />} />
             <Route path="/service-hours" element={<ServiceHoursPage />} />
             <Route path="/dues" element={<DuesPage />} />
+            <Route path="/admin" element={<AdminDashboardPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/help" element={<HelpPage />} />
             <Route path="*" element={<NotFound />} />

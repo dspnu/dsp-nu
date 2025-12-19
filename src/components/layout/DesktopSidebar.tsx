@@ -4,34 +4,45 @@ import {
   Users,
   Calendar,
   Award,
+  Clock,
   Briefcase,
   GraduationCap,
-  FolderOpen,
   Coffee,
+  LayoutDashboard,
   Vote,
   Settings,
   HelpCircle,
   LogOut,
-  Clock,
-  DollarSign,
+  ChevronDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { useState } from 'react';
 
-const navItems = [
+const coreNavItems = [
   { icon: Home, label: 'Home', path: '/' },
   { icon: Users, label: 'Members', path: '/members' },
   { icon: Calendar, label: 'Events', path: '/events' },
   { icon: Award, label: 'Points', path: '/points' },
   { icon: Clock, label: 'Service Hours', path: '/service-hours' },
-  { icon: DollarSign, label: 'Dues', path: '/dues', adminOnly: true },
-  { icon: Briefcase, label: 'Job Board', path: '/jobs' },
+];
+
+const networkNavItems = [
   { icon: GraduationCap, label: 'Alumni', path: '/alumni' },
-  { icon: FolderOpen, label: 'Resources', path: '/resources' },
+  { icon: Briefcase, label: 'Job Board', path: '/jobs' },
   { icon: Coffee, label: 'Coffee Chats', path: '/coffee-chats' },
+];
+
+const adminNavItems = [
+  { icon: LayoutDashboard, label: 'Admin Dashboard', path: '/admin' },
   { icon: Vote, label: 'EOP Voting', path: '/eop' },
 ];
 
@@ -43,12 +54,33 @@ const bottomItems = [
 export function DesktopSidebar() {
   const location = useLocation();
   const { profile, signOut, isAdminOrOfficer } = useAuth();
+  const [networkOpen, setNetworkOpen] = useState(true);
+  const [adminOpen, setAdminOpen] = useState(true);
 
   const initials = profile
     ? `${profile.first_name?.[0] || ''}${profile.last_name?.[0] || ''}`
     : '';
 
-  const filteredNavItems = navItems.filter(item => !item.adminOnly || isAdminOrOfficer);
+  const isNetworkActive = networkNavItems.some(item => location.pathname === item.path);
+  const isAdminActive = adminNavItems.some(item => location.pathname === item.path);
+
+  const NavItem = ({ icon: Icon, label, path }: { icon: any; label: string; path: string }) => {
+    const isActive = location.pathname === path;
+    return (
+      <Link
+        to={path}
+        className={cn(
+          'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
+          isActive
+            ? 'bg-primary text-primary-foreground shadow-purple'
+            : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+        )}
+      >
+        <Icon className="h-5 w-5" />
+        {label}
+      </Link>
+    );
+  };
 
   return (
     <aside className="hidden md:flex flex-col w-64 h-screen bg-card border-r border-border fixed left-0 top-0">
@@ -69,48 +101,53 @@ export function DesktopSidebar() {
 
       {/* Main Navigation */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {filteredNavItems.map(({ icon: Icon, label, path }) => {
-          const isActive = location.pathname === path;
-          return (
-            <Link
-              key={path}
-              to={path}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
-                isActive
-                  ? 'bg-primary text-primary-foreground shadow-purple'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-              )}
-            >
-              <Icon className="h-5 w-5" />
-              {label}
-            </Link>
-          );
-        })}
+        {/* Core Items */}
+        {coreNavItems.map((item) => (
+          <NavItem key={item.path} {...item} />
+        ))}
+
+        {/* Network Section */}
+        <Collapsible open={networkOpen} onOpenChange={setNetworkOpen} className="mt-4">
+          <CollapsibleTrigger className={cn(
+            'flex items-center justify-between w-full px-3 py-2 text-xs font-semibold uppercase tracking-wider rounded-lg transition-colors',
+            isNetworkActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+          )}>
+            Network
+            <ChevronDown className={cn('h-4 w-4 transition-transform', networkOpen && 'rotate-180')} />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-1 mt-1">
+            {networkNavItems.map((item) => (
+              <NavItem key={item.path} {...item} />
+            ))}
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Admin Section - Only for admins/officers */}
+        {isAdminOrOfficer && (
+          <Collapsible open={adminOpen} onOpenChange={setAdminOpen} className="mt-4">
+            <CollapsibleTrigger className={cn(
+              'flex items-center justify-between w-full px-3 py-2 text-xs font-semibold uppercase tracking-wider rounded-lg transition-colors',
+              isAdminActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+            )}>
+              Admin
+              <ChevronDown className={cn('h-4 w-4 transition-transform', adminOpen && 'rotate-180')} />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-1 mt-1">
+              {adminNavItems.map((item) => (
+                <NavItem key={item.path} {...item} />
+              ))}
+            </CollapsibleContent>
+          </Collapsible>
+        )}
       </nav>
 
       <Separator />
 
       {/* Bottom Navigation */}
       <div className="p-4 space-y-1">
-        {bottomItems.map(({ icon: Icon, label, path }) => {
-          const isActive = location.pathname === path;
-          return (
-            <Link
-              key={path}
-              to={path}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
-                isActive
-                  ? 'bg-primary text-primary-foreground shadow-purple'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-              )}
-            >
-              <Icon className="h-5 w-5" />
-              {label}
-            </Link>
-          );
-        })}
+        {bottomItems.map((item) => (
+          <NavItem key={item.path} {...item} />
+        ))}
       </div>
 
       <Separator />
