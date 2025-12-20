@@ -79,7 +79,7 @@ export default function DevelopmentPage() {
   // Coffee chat stats
   const confirmedCount = myChats?.filter(c => c.status === 'confirmed').length || 0;
   const pendingCount = myChats?.filter(c => c.status === 'pending').length || 0;
-  const totalRequired = 10;
+  const totalRequired = 50;
 
   const pendingConfirmations = myChats?.filter(
     c => c.status === 'pending' && c.partner_id === user?.id
