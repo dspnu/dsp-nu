@@ -14,6 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { EventForm } from '@/components/events/EventForm';
 import { EventCard } from '@/components/events/EventCard';
 import { CalendarView } from '@/components/events/CalendarView';
+import { EventDetailDialog } from '@/components/events/EventDetailDialog';
 import { QRCodeDisplay } from '@/components/attendance/QRCodeDisplay';
 import { QRScanner } from '@/components/attendance/QRScanner';
 import { AttendanceList } from '@/components/attendance/AttendanceList';
@@ -27,10 +28,11 @@ type Event = Tables<'events'>;
 export default function EventsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState('');
-  const [view, setView] = useState<'list' | 'calendar'>('list');
+  const [view, setView] = useState<'list' | 'calendar'>('calendar');
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [showScanner, setShowScanner] = useState(false);
   const [showAttendance, setShowAttendance] = useState(false);
+  const [showEventDetail, setShowEventDetail] = useState(false);
   
   const { data: events, isLoading } = useEvents();
   const { user, isAdminOrOfficer } = useAuth();
@@ -136,7 +138,10 @@ export default function EventsPage() {
         ) : view === 'calendar' ? (
           <CalendarView
             events={filteredEvents}
-            onEventClick={(event) => setSelectedEvent(event)}
+            onEventClick={(event) => {
+              setSelectedEvent(event);
+              setShowEventDetail(true);
+            }}
           />
         ) : (
           <Tabs defaultValue="upcoming" className="w-full">
@@ -191,6 +196,20 @@ export default function EventsPage() {
           </Tabs>
         )}
       </div>
+
+      {/* Event Detail Dialog */}
+      <EventDetailDialog
+        event={selectedEvent}
+        open={showEventDetail}
+        onOpenChange={(open) => {
+          setShowEventDetail(open);
+          if (!open) setSelectedEvent(null);
+        }}
+        onOpenAttendance={() => {
+          setShowEventDetail(false);
+          setShowAttendance(true);
+        }}
+      />
 
       {/* QR Scanner Dialog */}
       <Dialog open={showScanner} onOpenChange={setShowScanner}>

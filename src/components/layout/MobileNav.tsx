@@ -1,60 +1,22 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Users, Calendar, Award, MoreHorizontal } from 'lucide-react';
+import { Home, Users, Calendar, TrendingUp, Building } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/contexts/AuthContext';
 
-const mainNavItems = [
+const navItems = [
   { icon: Home, label: 'Home', path: '/' },
-  { icon: Users, label: 'Members', path: '/members' },
+  { icon: Users, label: 'People', path: '/people' },
   { icon: Calendar, label: 'Events', path: '/events' },
-  { icon: Award, label: 'Points', path: '/points' },
-];
-
-const coreMoreItems = [
-  { label: 'Service Hours', path: '/service-hours' },
-];
-
-const networkItems = [
-  { label: 'Alumni', path: '/alumni' },
-  { label: 'Job Board', path: '/jobs' },
-  { label: 'Coffee Chats', path: '/coffee-chats' },
-];
-
-const adminItems = [
-  { label: 'Admin Dashboard', path: '/admin' },
-  { label: 'EOP Voting', path: '/eop' },
-];
-
-const settingsItems = [
-  { label: 'Settings', path: '/settings' },
-  { label: 'Help', path: '/help' },
+  { icon: TrendingUp, label: 'Development', path: '/development' },
+  { icon: Building, label: 'Chapter', path: '/chapter' },
 ];
 
 export function MobileNav() {
   const location = useLocation();
-  const { isAdminOrOfficer } = useAuth();
-  
-  const allMoreItems = [
-    ...coreMoreItems,
-    ...networkItems,
-    ...(isAdminOrOfficer ? adminItems : []),
-    ...settingsItems,
-  ];
-  
-  const isMoreActive = allMoreItems.some(item => location.pathname === item.path);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border pb-safe md:hidden">
       <div className="flex items-center justify-around h-16">
-        {mainNavItems.map(({ icon: Icon, label, path }) => {
+        {navItems.map(({ icon: Icon, label, path }) => {
           const isActive = location.pathname === path;
           return (
             <Link
@@ -72,76 +34,6 @@ export function MobileNav() {
             </Link>
           );
         })}
-        
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className={cn(
-                'flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors',
-                isMoreActive
-                  ? 'text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <MoreHorizontal className="h-5 w-5" />
-              <span className="text-xs font-medium">More</span>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 mb-2">
-            {coreMoreItems.map(({ label, path }) => (
-              <DropdownMenuItem key={path} asChild>
-                <Link
-                  to={path}
-                  className={cn('w-full', location.pathname === path && 'bg-accent')}
-                >
-                  {label}
-                </Link>
-              </DropdownMenuItem>
-            ))}
-            
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel className="text-xs text-muted-foreground">Network</DropdownMenuLabel>
-            {networkItems.map(({ label, path }) => (
-              <DropdownMenuItem key={path} asChild>
-                <Link
-                  to={path}
-                  className={cn('w-full', location.pathname === path && 'bg-accent')}
-                >
-                  {label}
-                </Link>
-              </DropdownMenuItem>
-            ))}
-            
-            {isAdminOrOfficer && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-xs text-muted-foreground">Admin</DropdownMenuLabel>
-                {adminItems.map(({ label, path }) => (
-                  <DropdownMenuItem key={path} asChild>
-                    <Link
-                      to={path}
-                      className={cn('w-full', location.pathname === path && 'bg-accent')}
-                    >
-                      {label}
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
-              </>
-            )}
-            
-            <DropdownMenuSeparator />
-            {settingsItems.map(({ label, path }) => (
-              <DropdownMenuItem key={path} asChild>
-                <Link
-                  to={path}
-                  className={cn('w-full', location.pathname === path && 'bg-accent')}
-                >
-                  {label}
-                </Link>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
     </nav>
   );

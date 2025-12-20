@@ -264,16 +264,18 @@ export default function PeoplePage() {
                 ))}
               </SelectContent>
             </Select>
-            {isAdminOrOfficer && (
-              <div className="flex gap-2">
-                <AlumniImportDialog />
-                <AlumniForm />
-                <Button variant="outline" onClick={handleExportAlumni}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export
-                </Button>
-              </div>
-            )}
+            <div className="flex gap-2">
+              {isAdminOrOfficer && (
+                <>
+                  <AlumniImportDialog />
+                  <AlumniForm />
+                </>
+              )}
+              <Button variant="outline" onClick={handleExportAlumni}>
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+            </div>
           </div>
 
           {/* Alumni Grid */}
