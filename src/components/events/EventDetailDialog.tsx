@@ -3,9 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CategoryBadge } from '@/components/ui/category-badge';
-import { Calendar, Clock, MapPin, Users, QrCode } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { useAuth } from '@/contexts/AuthContext';
+import { EventRSVP } from './EventRSVP';
 
 type Event = Tables<'events'>;
 
@@ -17,7 +18,7 @@ interface EventDetailDialogProps {
 }
 
 export function EventDetailDialog({ event, open, onOpenChange, onOpenAttendance }: EventDetailDialogProps) {
-  const { isAdminOrOfficer } = useAuth();
+  const { isAdminOrOfficer, user } = useAuth();
 
   if (!event) return null;
 
@@ -79,6 +80,14 @@ export function EventDetailDialog({ event, open, onOpenChange, onOpenAttendance 
               <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                 {event.description}
               </p>
+            </div>
+          )}
+
+          {/* RSVP Section - For upcoming events */}
+          {!isPast && user && (
+            <div className="pt-4 border-t">
+              <h4 className="text-sm font-medium mb-3">RSVP</h4>
+              <EventRSVP eventId={event.id} />
             </div>
           )}
 

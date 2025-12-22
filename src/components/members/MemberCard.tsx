@@ -11,25 +11,30 @@ type Profile = Tables<'profiles'>;
 
 interface MemberCardProps {
   member: Profile;
+  onClick?: () => void;
 }
 
-export function MemberCard({ member }: MemberCardProps) {
+export function MemberCard({ member, onClick }: MemberCardProps) {
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardContent className="pt-6">
         <div className="flex items-start gap-4">
-          <Avatar className="h-16 w-16">
-            <AvatarImage src={member.avatar_url || ''} />
-            <AvatarFallback className="text-lg bg-primary/10 text-primary">
-              {member.first_name?.[0]}{member.last_name?.[0]}
-            </AvatarFallback>
-          </Avatar>
+          <Link to={`/people/${member.id}`}>
+            <Avatar className="h-16 w-16 hover:ring-2 hover:ring-primary transition-all">
+              <AvatarImage src={member.avatar_url || ''} />
+              <AvatarFallback className="text-lg bg-primary/10 text-primary">
+                {member.first_name?.[0]}{member.last_name?.[0]}
+              </AvatarFallback>
+            </Avatar>
+          </Link>
           <div className="flex-1 space-y-2">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h3 className="font-semibold">
-                  {member.first_name} {member.last_name}
-                </h3>
+                <Link to={`/people/${member.id}`} className="hover:underline">
+                  <h3 className="font-semibold">
+                    {member.first_name} {member.last_name}
+                  </h3>
+                </Link>
                 <StatusBadge status={member.status} />
               </div>
             </div>
