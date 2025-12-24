@@ -5,6 +5,7 @@ import {
   Calendar,
   Rocket,
   Building,
+  Vote,
   Settings,
   HelpCircle,
   LogOut,
@@ -21,6 +22,7 @@ const navItems = [
   { icon: Calendar, label: 'Events', path: '/events' },
   { icon: Rocket, label: 'Development', path: '/development' },
   { icon: Building, label: 'Chapter', path: '/chapter' },
+  { icon: Vote, label: 'EOP', path: '/eop' },
 ];
 
 const bottomItems = [

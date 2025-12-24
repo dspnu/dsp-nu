@@ -1,13 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Users, Calendar, TrendingUp, Building } from 'lucide-react';
+import { Home, Users, Calendar, Building, Vote } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { icon: Home, label: 'Home', path: '/' },
-  { icon: Users, label: 'People', path: '/people' },
   { icon: Calendar, label: 'Events', path: '/events' },
-  { icon: TrendingUp, label: 'Development', path: '/development' },
   { icon: Building, label: 'Chapter', path: '/chapter' },
+  { icon: Vote, label: 'EOP', path: '/eop' },
+  { icon: Users, label: 'People', path: '/people' },
 ];
 
 export function MobileNav() {
