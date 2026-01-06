@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -15,9 +15,9 @@ import { Badge } from '@/components/ui/badge';
 import { CategoryBadge } from '@/components/ui/category-badge';
 import { Progress } from '@/components/ui/progress';
 import { 
-  Award, Download, TrendingUp, Vote, CheckCircle, XCircle, 
+  Award, Download, TrendingUp, CheckCircle, 
   Clock, Plus, DollarSign, Shield, Trophy, Target, 
-  ChevronRight, Sparkles, Users, Calendar
+  ChevronRight, Users
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,9 +25,6 @@ import { useMembers, useMemberPoints } from '@/hooks/useMembers';
 import { useAuth } from '@/contexts/AuthContext';
 import { exportToCSV } from '@/lib/csv';
 import { GrantPointsDialog } from '@/components/points/GrantPointsDialog';
-import { useEOPCandidates, useMyVotes, useVoteCounts } from '@/hooks/useEOP';
-import { EOPCandidateForm } from '@/components/eop/EOPCandidateForm';
-import { EOPCandidateCard } from '@/components/eop/EOPCandidateCard';
 import { useServiceHours, useLogServiceHours, useAllServiceHours, useVerifyServiceHours } from '@/hooks/useServiceHours';
 import { useAllDues, useRecordDues } from '@/hooks/useDues';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -44,9 +41,6 @@ export default function ChapterPage() {
   const { user, isAdminOrOfficer } = useAuth();
   const { data: members } = useMembers();
   const { data: myPoints } = useMemberPoints(user?.id ?? '');
-  const { data: candidates } = useEOPCandidates();
-  const { data: myVotes } = useMyVotes();
-  const { data: voteCounts } = useVoteCounts();
   const { data: myHours = [] } = useServiceHours(user?.id);
   const { data: allHours = [] } = useAllServiceHours();
   const verifyHours = useVerifyServiceHours();
@@ -78,13 +72,6 @@ export default function ChapterPage() {
     },
   });
 
-  // EOP - only show if there are open voting candidates
-  const openVoting = candidates?.filter(c => c.voting_open) || [];
-  const hasActiveEOP = openVoting.length > 0;
-
-  const getMyVote = (candidateId: string) => {
-    return myVotes?.find(v => v.candidate_id === candidateId)?.vote;
-  };
 
   // Calculate totals by member
   const memberTotals = members?.map(member => {
@@ -203,12 +190,6 @@ export default function ChapterPage() {
             <Award className="h-4 w-4" />
             My Standing
           </TabsTrigger>
-          {hasActiveEOP && (
-            <TabsTrigger value="eop" className="flex-1 gap-2">
-              <Vote className="h-4 w-4" />
-              Voting
-            </TabsTrigger>
-          )}
           {isAdminOrOfficer && (
             <TabsTrigger value="admin" className="flex-1 gap-2">
               <Shield className="h-4 w-4" />
@@ -466,35 +447,6 @@ export default function ChapterPage() {
           </div>
         </TabsContent>
 
-        {/* EOP Voting Tab */}
-        {hasActiveEOP && (
-          <TabsContent value="eop" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Vote className="h-5 w-5" />
-                  Active Voting
-                </CardTitle>
-                <CardDescription>
-                  Cast your vote for EOP candidates. You've voted on {myVotes?.length || 0} of {openVoting.length} candidates.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {openVoting.map((candidate) => (
-                <EOPCandidateCard
-                  key={candidate.id}
-                  candidate={candidate}
-                  myVote={getMyVote(candidate.id)}
-                  voteCounts={isAdminOrOfficer ? voteCounts?.[candidate.id] : undefined}
-                  isOfficer={isAdminOrOfficer}
-                />
-              ))}
-            </div>
-          </TabsContent>
-        )}
-
         {/* Admin Tab - Streamlined */}
         {isAdminOrOfficer && (
           <TabsContent value="admin" className="space-y-6">
@@ -530,17 +482,6 @@ export default function ChapterPage() {
                   <div>
                     <p className="text-2xl font-bold">{allDues.length}</p>
                     <p className="text-xs text-muted-foreground">Dues Paid</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                    <Vote className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{candidates?.length || 0}</p>
-                    <p className="text-xs text-muted-foreground">EOP Candidates</p>
                   </div>
                 </CardContent>
               </Card>
@@ -621,7 +562,6 @@ export default function ChapterPage() {
                       </form>
                     </DialogContent>
                   </Dialog>
-                  <EOPCandidateForm />
                 </div>
               </CardContent>
             </Card>
