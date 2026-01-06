@@ -25,6 +25,7 @@ const candidateSchema = z.object({
   r2_pu: z.string().optional(),
   tu_td: z.coerce.number().optional().nullable(),
   notes: z.string().optional(),
+  eligible_voters: z.coerce.number().min(0).optional().nullable(),
 });
 
 type CandidateFormValues = z.infer<typeof candidateSchema>;
@@ -37,6 +38,7 @@ interface EOPCandidateFormProps {
     r1_pu?: string | null;
     r2_pu?: string | null;
     tu_td?: number | null;
+    eligible_voters?: number | null;
   };
   trigger?: React.ReactNode;
 }
@@ -62,6 +64,7 @@ export function EOPCandidateForm({ candidate, trigger }: EOPCandidateFormProps) 
       r2_pu: candidate?.r2_pu || '',
       tu_td: candidate?.tu_td ?? 0,
       notes: candidate?.notes || '',
+      eligible_voters: candidate?.eligible_voters ?? 0,
     },
   });
 
@@ -104,6 +107,7 @@ export function EOPCandidateForm({ candidate, trigger }: EOPCandidateFormProps) 
       r2_pu: values.r2_pu || null,
       tu_td: values.tu_td ?? 0,
       notes: values.notes || null,
+      eligible_voters: values.eligible_voters ?? 0,
     };
     
     if (isEditing) {
@@ -260,25 +264,46 @@ export function EOPCandidateForm({ candidate, trigger }: EOPCandidateFormProps) 
               )}
             />
 
-            {/* TU/TD */}
-            <FormField
-              control={form.control}
-              name="tu_td"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>TU/TD (+/-)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number" 
-                      {...field} 
-                      value={field.value ?? 0}
-                      onChange={e => field.onChange(Number(e.target.value))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* TU/TD and Eligible Voters */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="tu_td"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>TU/TD (+/-)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        {...field} 
+                        value={field.value ?? 0}
+                        onChange={e => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="eligible_voters"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Eligible Voters</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        min={0}
+                        {...field} 
+                        value={field.value ?? 0}
+                        onChange={e => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             {/* Notes */}
             <FormField

@@ -209,6 +209,7 @@ export type Database = {
         Row: {
           attachments: string[] | null
           created_at: string
+          eligible_voters: number | null
           email: string | null
           first_name: string
           id: string
@@ -227,6 +228,7 @@ export type Database = {
         Insert: {
           attachments?: string[] | null
           created_at?: string
+          eligible_voters?: number | null
           email?: string | null
           first_name: string
           id?: string
@@ -245,6 +247,7 @@ export type Database = {
         Update: {
           attachments?: string[] | null
           created_at?: string
+          eligible_voters?: number | null
           email?: string | null
           first_name?: string
           id?: string
