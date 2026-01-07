@@ -162,8 +162,7 @@ export default function PeoplePage() {
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="new_mem">New Member</SelectItem>
-                <SelectItem value="shiny">Shiny</SelectItem>
+                <SelectItem value="new_member">New Member</SelectItem>
                 <SelectItem value="pnm">PNM</SelectItem>
               </SelectContent>
             </Select>

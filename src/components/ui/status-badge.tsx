@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 
-type MemberStatus = 'active' | 'alumni' | 'new_mem' | 'shiny' | 'pnm';
+type MemberStatus = 'active' | 'alumni' | 'new_member' | 'pnm';
 
 interface StatusBadgeProps {
   status: MemberStatus;
@@ -16,13 +16,9 @@ const statusConfig: Record<MemberStatus, { label: string; className: string }> =
     label: 'Alumni',
     className: 'bg-primary/10 text-primary border-primary/20',
   },
-  new_mem: {
-    label: 'New Mem',
+  new_member: {
+    label: 'New Member',
     className: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-  },
-  shiny: {
-    label: 'Shiny',
-    className: 'bg-secondary/20 text-secondary-foreground border-secondary/30',
   },
   pnm: {
     label: 'PNM',

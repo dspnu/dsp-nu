@@ -737,7 +737,7 @@ export type Database = {
         | "professionalism"
         | "dei"
       job_type: "internship" | "full_time" | "part_time" | "contract"
-      member_status: "active" | "alumni" | "new_mem" | "shiny" | "pnm"
+      member_status: "active" | "alumni" | "new_member" | "pnm"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -878,7 +878,7 @@ export const Constants = {
         "dei",
       ],
       job_type: ["internship", "full_time", "part_time", "contract"],
-      member_status: ["active", "alumni", "new_mem", "shiny", "pnm"],
+      member_status: ["active", "alumni", "new_member", "pnm"],
     },
   },
 } as const

@@ -53,7 +53,7 @@ export default function DevelopmentPage() {
   const [activeFolder, setActiveFolder] = useState('all');
 
   // Coffee chat eligibility
-  const isEligible = profile?.status === 'new_mem' || profile?.status === 'shiny';
+  const isEligible = profile?.status === 'new_member';
 
   // Job filtering
   const filteredJobs = jobs?.filter(job => {
@@ -311,7 +311,7 @@ export default function DevelopmentPage() {
                   title="No coffee chats yet"
                   description={isEligible 
                     ? "Log your first coffee chat with a chapter member!"
-                    : "Coffee chat tracking is available for New Members and Shiny members."
+                    : "Coffee chat tracking is available for New Members."
                   }
                 />
               )}
