@@ -95,6 +95,29 @@ export function useDeleteCandidate() {
   });
 }
 
+export function useBulkCreateCandidates() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (candidates: EOPCandidateInsert[]) => {
+      const { data, error } = await supabase
+        .from('eop_candidates')
+        .insert(candidates)
+        .select();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['eop-candidates'] });
+      toast.success(`${data.length} PNMs imported successfully`);
+    },
+    onError: (error) => {
+      toast.error('Failed to import PNMs: ' + error.message);
+    },
+  });
+}
+
 export function useToggleVoting() {
   const queryClient = useQueryClient();
 

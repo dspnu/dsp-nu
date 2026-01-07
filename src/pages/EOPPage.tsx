@@ -12,6 +12,7 @@ import { useRealtimeCandidates, useRealtimeVoteCounts, useRealtimeReadyCounts, u
 import { useDeleteCandidate } from '@/hooks/useEOP';
 import { EOPVotingCard } from '@/components/eop/EOPVotingCard';
 import { EOPCandidateForm, EditCandidateButton } from '@/components/eop/EOPCandidateForm';
+import { EOPImportDialog } from '@/components/eop/EOPImportDialog';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function EOPPage() {
@@ -192,7 +193,10 @@ export default function EOPPage() {
                 <h2 className="text-lg font-semibold">Manage PNMs</h2>
                 <p className="text-sm text-muted-foreground">Add, edit, or remove PNM candidates</p>
               </div>
-              <EOPCandidateForm />
+              <div className="flex items-center gap-2">
+                <EOPImportDialog />
+                <EOPCandidateForm />
+              </div>
             </div>
 
             {candidates && candidates.length > 0 ? (
