@@ -24,7 +24,7 @@ import { Tables } from '@/integrations/supabase/types';
 type Profile = Tables<'profiles'>;
 
 export default function PeoplePage() {
-  const { isAdminOrOfficer, user } = useAuth();
+  const { isAdminOrOfficer, isAdmin, user } = useAuth();
   const { data: members, isLoading: membersLoading } = useMembers();
   const { data: alumni, isLoading: alumniLoading } = useAlumni();
   const { data: myProfile } = useMemberByUserId(user?.id || '');
@@ -162,6 +162,7 @@ export default function PeoplePage() {
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
                 <SelectItem value="new_member">New Member</SelectItem>
                 <SelectItem value="pnm">PNM</SelectItem>
               </SelectContent>
@@ -188,7 +189,7 @@ export default function PeoplePage() {
                   <div onClick={() => handleMemberClick(member)} className="cursor-pointer">
                     <MemberCard member={member} />
                   </div>
-                  {isAdminOrOfficer && (
+                  {isAdmin && (
                     <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <AdminPositionsDialog member={member} />
                     </div>

@@ -13,7 +13,7 @@ interface Profile {
   phone: string | null;
   graduation_year: number | null;
   major: string | null;
-  status: 'active' | 'alumni' | 'new_member' | 'pnm';
+  status: 'active' | 'alumni' | 'inactive' | 'new_member' | 'pnm';
   positions: string[];
   committees: string[];
   avatar_url: string | null;

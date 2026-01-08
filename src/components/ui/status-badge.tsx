@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 
-type MemberStatus = 'active' | 'alumni' | 'new_member' | 'pnm';
+type MemberStatus = 'active' | 'alumni' | 'inactive' | 'new_member' | 'pnm';
 
 interface StatusBadgeProps {
   status: MemberStatus;
@@ -11,6 +11,10 @@ const statusConfig: Record<MemberStatus, { label: string; className: string }> =
   active: {
     label: 'Active',
     className: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+  },
+  inactive: {
+    label: 'Inactive',
+    className: 'bg-gray-500/10 text-gray-600 border-gray-500/20',
   },
   alumni: {
     label: 'Alumni',
