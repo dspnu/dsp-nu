@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ThumbsUp, ThumbsDown, Hand, CheckCircle2, Lock, Unlock, Users, RotateCcw, RefreshCw } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Hand, CheckCircle2, Lock, Unlock, Users, RotateCcw, RefreshCw, CheckCircle, XCircle, AlertTriangle, Edit2, Check, X } from 'lucide-react';
 import { useMyVoteForCandidate, useCastVoteRealtime, useToggleReady, useToggleVotingRealtime, useClearVotes, useChangeVote } from '@/hooks/useEOPRealtime';
+import { useUpdateCandidate } from '@/hooks/useEOP';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Tables } from '@/integrations/supabase/types';
 import {
@@ -43,10 +45,30 @@ export function EOPVotingCard({
   const toggleReady = useToggleReady();
   const toggleVoting = useToggleVotingRealtime();
   const clearVotes = useClearVotes();
+  const updateCandidate = useUpdateCandidate();
 
   const [isChangingVote, setIsChangingVote] = useState(false);
+  const [isEditingEligible, setIsEditingEligible] = useState(false);
+  const [eligibleVotersInput, setEligibleVotersInput] = useState(candidate.eligible_voters?.toString() || '0');
 
   const isReady = readyCount?.userIds.includes(user?.id || '') || false;
+  
+  // Calculate approval status (80% threshold)
+  const eligibleVoters = candidate.eligible_voters || 0;
+  const yesVotes = voteCounts?.yes || 0;
+  const noVotes = voteCounts?.no || 0;
+  const totalVotes = voteCounts?.total || 0;
+  const requiredYes = eligibleVoters > 0 ? Math.ceil(eligibleVoters * 0.8) : 0;
+  const yesPercentage = eligibleVoters > 0 ? Math.round((yesVotes / eligibleVoters) * 100) : 0;
+  const isApproved = eligibleVoters > 0 && yesVotes >= requiredYes;
+  const needsMoreYes = requiredYes - yesVotes;
+
+  const handleSaveEligibleVoters = () => {
+    const value = parseInt(eligibleVotersInput) || 0;
+    updateCandidate.mutate({ id: candidate.id, eligible_voters: value }, {
+      onSuccess: () => setIsEditingEligible(false),
+    });
+  };
   const hasVoted = !!myVote;
 
   const handleVote = (vote: 'yes' | 'no') => {
@@ -230,17 +252,96 @@ export function EOPVotingCard({
         {/* VP of Chapter Operations Controls */}
         {isVPChapterOps && (
           <div className="space-y-4 pt-4 border-t">
-            {/* Vote Counts (only visible to VP) */}
+            {/* Eligible Voters Input */}
+            <div className="flex items-center justify-between bg-muted/50 rounded-lg px-4 py-3">
+              <span className="text-sm text-muted-foreground">Eligible Voters</span>
+              {isEditingEligible ? (
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min={0}
+                    value={eligibleVotersInput}
+                    onChange={(e) => setEligibleVotersInput(e.target.value)}
+                    className="w-20 h-8 text-center"
+                    autoFocus
+                  />
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 text-emerald-600"
+                    onClick={handleSaveEligibleVoters}
+                    disabled={updateCandidate.isPending}
+                  >
+                    <Check className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8"
+                    onClick={() => {
+                      setIsEditingEligible(false);
+                      setEligibleVotersInput(candidate.eligible_voters?.toString() || '0');
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsEditingEligible(true)}
+                  className="flex items-center gap-2 font-semibold hover:text-primary transition-colors"
+                >
+                  {eligibleVoters}
+                  <Edit2 className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+              )}
+            </div>
+
+            {/* Vote Counts with Percentage */}
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-emerald-600">{voteCounts?.yes || 0}</p>
+                <p className="text-2xl font-bold text-emerald-600">{yesVotes}</p>
                 <p className="text-xs text-muted-foreground font-medium">Yes Votes</p>
               </div>
               <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-red-600">{voteCounts?.no || 0}</p>
+                <p className="text-2xl font-bold text-red-600">{noVotes}</p>
                 <p className="text-xs text-muted-foreground font-medium">No Votes</p>
               </div>
             </div>
+
+            {/* Approval Status with Percentage */}
+            {eligibleVoters > 0 && (
+              <div className={`p-3 rounded-lg flex items-center justify-between ${
+                isApproved 
+                  ? 'bg-emerald-500/10 border border-emerald-500/20' 
+                  : 'bg-amber-500/10 border border-amber-500/20'
+              }`}>
+                <div className="flex items-center gap-2">
+                  {isApproved ? (
+                    <CheckCircle className="h-5 w-5 text-emerald-600" />
+                  ) : (
+                    <AlertTriangle className="h-5 w-5 text-amber-600" />
+                  )}
+                  <div>
+                    <p className={`font-semibold text-sm ${isApproved ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
+                      {isApproved ? 'Approved for Bid' : needsMoreYes > 0 ? `Need ${needsMoreYes} more Yes` : 'Pending'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {totalVotes}/{eligibleVoters} voted • {requiredYes} required (80%)
+                    </p>
+                  </div>
+                </div>
+                <div className={`text-2xl font-bold ${isApproved ? 'text-emerald-600' : 'text-amber-600'}`}>
+                  {yesPercentage}%
+                </div>
+              </div>
+            )}
+
+            {eligibleVoters === 0 && (
+              <div className="p-3 rounded-lg bg-muted/50 border border-border text-center text-sm text-muted-foreground">
+                Set eligible voters to see approval status
+              </div>
+            )}
 
             {/* Ready & Total */}
             <div className="flex items-center justify-between text-sm bg-muted/50 rounded-lg px-4 py-3">
