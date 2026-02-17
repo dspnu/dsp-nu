@@ -489,6 +489,75 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          coffee_chat_notifications: boolean
+          created_at: string
+          event_notifications: boolean
+          id: string
+          job_board_notifications: boolean
+          push_enabled: boolean
+          service_hours_notifications: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          coffee_chat_notifications?: boolean
+          created_at?: string
+          event_notifications?: boolean
+          id?: string
+          job_board_notifications?: boolean
+          push_enabled?: boolean
+          service_hours_notifications?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          coffee_chat_notifications?: boolean
+          created_at?: string
+          event_notifications?: boolean
+          id?: string
+          job_board_notifications?: boolean
+          push_enabled?: boolean
+          service_hours_notifications?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          link: string | null
+          message: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          message: string
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          message?: string
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       points_ledger: {
         Row: {
           category: Database["public"]["Enums"]["event_category"]
@@ -726,7 +795,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "officer" | "member"
-      coffee_chat_status: "pending" | "confirmed" | "rejected"
+      coffee_chat_status: "emailed" | "scheduled" | "completed"
       eop_vote: "yes" | "no" | "abstain"
       event_category:
         | "chapter"
@@ -866,7 +935,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "officer", "member"],
-      coffee_chat_status: ["pending", "confirmed", "rejected"],
+      coffee_chat_status: ["emailed", "scheduled", "completed"],
       eop_vote: ["yes", "no", "abstain"],
       event_category: [
         "chapter",
