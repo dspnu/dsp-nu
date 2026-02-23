@@ -5,9 +5,10 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Mail, CalendarCheck, CheckCircle2, Calendar, Edit2, Save, X, ArrowRight } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Mail, CalendarCheck, CheckCircle2, Calendar, Edit2, Save, X, ArrowRight, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { useUpdateCoffeeChat } from '@/hooks/useCoffeeChats';
+import { useUpdateCoffeeChat, useDeleteCoffeeChat } from '@/hooks/useCoffeeChats';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -47,6 +48,7 @@ const statusConfig = {
 export function CoffeeChatCard({ chat, partnerName, initiatorName, isOfficer }: CoffeeChatCardProps) {
   const { user } = useAuth();
   const updateChat = useUpdateCoffeeChat();
+  const deleteChat = useDeleteCoffeeChat();
   const [isEditing, setIsEditing] = useState(false);
   const [editDate, setEditDate] = useState(chat.chat_date);
   const [editNotes, setEditNotes] = useState(chat.notes || '');
@@ -57,6 +59,7 @@ export function CoffeeChatCard({ chat, partnerName, initiatorName, isOfficer }: 
 
   const isOwner = user?.id === chat.initiator_id;
   const canEdit = isOwner || isOfficer;
+  const canDelete = isOwner || isOfficer;
   const canAdvance = canEdit && config.next;
 
   const handleAdvance = () => {
@@ -74,6 +77,10 @@ export function CoffeeChatCard({ chat, partnerName, initiatorName, isOfficer }: 
     }, {
       onSuccess: () => setIsEditing(false),
     });
+  };
+
+  const handleDelete = () => {
+    deleteChat.mutate(chat.id);
   };
 
   if (isEditing) {
@@ -135,12 +142,35 @@ export function CoffeeChatCard({ chat, partnerName, initiatorName, isOfficer }: 
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <Badge className={config.color}>{config.label}</Badge>
             {canEdit && (
               <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setIsEditing(true)}>
                 <Edit2 className="h-3.5 w-3.5" />
               </Button>
+            )}
+            {canDelete && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Coffee Chat</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this coffee chat? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </div>
         </div>

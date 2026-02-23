@@ -154,3 +154,26 @@ export function useRejectCoffeeChat() {
     },
   });
 }
+
+export function useDeleteCoffeeChat() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (chatId: string) => {
+      const { error } = await supabase
+        .from('coffee_chats')
+        .delete()
+        .eq('id', chatId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coffee-chats'] });
+      queryClient.invalidateQueries({ queryKey: ['my-coffee-chats'] });
+      toast.success('Coffee chat deleted');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete: ' + error.message);
+    },
+  });
+}

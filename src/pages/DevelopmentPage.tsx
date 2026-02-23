@@ -83,7 +83,9 @@ export default function DevelopmentPage() {
   const emailedCount = myChats?.filter(c => c.status === 'emailed').length || 0;
   const totalRequired = 50;
 
-  const isVPNewMemberDev = profile?.positions?.includes('VP of New Member Development');
+  const isVPNewMemberDev = profile?.positions?.includes('VP of New Member Development') || 
+    profile?.positions?.includes('VP of Pledge Education') ||
+    profile?.positions?.includes('VP of New Member Education');
 
   const pendingConfirmations = myChats?.filter(
     c => c.status === 'emailed' && c.partner_id === user?.id

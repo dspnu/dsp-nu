@@ -22,6 +22,7 @@ const COMMON_POSITIONS = [
   'Senior Vice President',
   'VP of Chapter Operations',
   'VP of Pledge Education',
+  'VP of New Member Education',
   'VP of Professional Activities',
   'VP of Finance',
   'VP of Community Service',

@@ -136,6 +136,33 @@ export type Database = {
         }
         Relationships: []
       }
+      coffee_chat_milestones: {
+        Row: {
+          created_at: string
+          created_by: string
+          deadline: string
+          id: string
+          target_count: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          deadline: string
+          id?: string
+          target_count: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          deadline?: string
+          id?: string
+          target_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       coffee_chats: {
         Row: {
           chat_date: string
