@@ -53,7 +53,11 @@ export default function DevelopmentPage() {
   const [resourceSearch, setResourceSearch] = useState('');
   const [activeFolder, setActiveFolder] = useState('all');
 
-  const isEligible = profile?.status === 'new_member';
+  // Active members see coffee chats here; new members/VPs use PDP instead
+  const isNewMember = profile?.status === 'new_member';
+  const isVP = profile?.positions?.includes('VP of New Member Development') ||
+    profile?.positions?.includes('VP of Pledge Education') ||
+    profile?.positions?.includes('VP of New Member Education');
 
   // Job filtering
   const filteredJobs = jobs?.filter(job => {
@@ -72,12 +76,6 @@ export default function DevelopmentPage() {
     const member = members?.find(m => m.user_id === userId);
     return member ? `${member.first_name} ${member.last_name}` : 'Unknown';
   };
-
-  // Coffee chat stats for personal progress
-  const completedCount = myChats?.filter(c => c.status === 'completed').length || 0;
-  const scheduledCount = myChats?.filter(c => c.status === 'scheduled').length || 0;
-  const emailedCount = myChats?.filter(c => c.status === 'emailed').length || 0;
-  const totalRequired = 50;
 
   const pendingConfirmations = myChats?.filter(
     c => c.status === 'emailed' && c.partner_id === user?.id
@@ -217,41 +215,8 @@ export default function DevelopmentPage() {
           )}
         </TabsContent>
 
-        {/* Coffee Chats Tab — unified vertical flow */}
+        {/* Coffee Chats Tab — for active members, shows their chats + engagement table */}
         <TabsContent value="coffee-chats" className="space-y-8">
-          {/* Personal progress + log form */}
-          <div className="flex items-center justify-between">
-            <div />
-            {isEligible && <CoffeeChatForm />}
-          </div>
-
-          {isEligible && (
-            <Card className="border-primary/20">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-foreground">Your Progress</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {completedCount} of {totalRequired} completed
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-primary">
-                      {Math.round((completedCount / totalRequired) * 100)}%
-                    </div>
-                    <p className="text-xs text-muted-foreground">{emailedCount} emailed · {scheduledCount} scheduled</p>
-                  </div>
-                </div>
-                <div className="mt-3 h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-primary transition-all"
-                    style={{ width: `${Math.min((completedCount / totalRequired) * 100, 100)}%` }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
           {/* Pending Confirmations */}
           {pendingConfirmations.length > 0 && (
             <Card className="border-amber-200 dark:border-amber-800">
@@ -277,7 +242,7 @@ export default function DevelopmentPage() {
             </Card>
           )}
 
-          {/* My Chats / All Chats */}
+          {/* My Chats */}
           <section>
             <Tabs defaultValue="mine" className="space-y-4">
               <TabsList>
@@ -308,10 +273,7 @@ export default function DevelopmentPage() {
                   <EmptyState
                     icon={Coffee}
                     title="No coffee chats yet"
-                    description={isEligible 
-                      ? "Log your first coffee chat with a chapter member!"
-                      : "Coffee chat tracking is available for New Members."
-                    }
+                    description="Coffee chats you've been invited to will appear here."
                   />
                 )}
               </TabsContent>
@@ -342,7 +304,7 @@ export default function DevelopmentPage() {
             </Tabs>
           </section>
 
-          {/* Dashboard sections inline — visible to all, admin sections gated inside */}
+          {/* Active Member Engagement table — visible to all */}
           <CoffeeChatDashboard />
         </TabsContent>
 

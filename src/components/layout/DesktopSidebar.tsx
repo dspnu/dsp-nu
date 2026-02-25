@@ -6,6 +6,7 @@ import {
   Rocket,
   Building,
   Vote,
+  GraduationCap,
   Settings,
   HelpCircle,
 } from 'lucide-react';
@@ -15,23 +16,30 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 
-const navItems = [
-  { icon: Home, label: 'Home', path: '/' },
-  { icon: Users, label: 'People', path: '/people' },
-  { icon: Calendar, label: 'Events', path: '/events' },
-  { icon: Rocket, label: 'Development', path: '/development' },
-  { icon: Building, label: 'Chapter', path: '/chapter' },
-  { icon: Vote, label: 'EOP', path: '/eop' },
-];
-
-const bottomItems = [
-  { icon: Settings, label: 'Settings', path: '/settings' },
-  { icon: HelpCircle, label: 'Help', path: '/help' },
-];
-
 export function DesktopSidebar() {
   const location = useLocation();
   const { profile } = useAuth();
+
+  const isNewMember = profile?.status === 'new_member';
+  const isVP = profile?.positions?.includes('VP of New Member Development') ||
+    profile?.positions?.includes('VP of Pledge Education') ||
+    profile?.positions?.includes('VP of New Member Education');
+  const showPDP = isNewMember || isVP;
+
+  const navItems = [
+    { icon: Home, label: 'Home', path: '/' },
+    { icon: Users, label: 'People', path: '/people' },
+    { icon: Calendar, label: 'Events', path: '/events' },
+    { icon: Rocket, label: 'Development', path: '/development' },
+    ...(showPDP ? [{ icon: GraduationCap, label: 'PDP', path: '/pdp' }] : []),
+    { icon: Building, label: 'Chapter', path: '/chapter' },
+    { icon: Vote, label: 'EOP', path: '/eop' },
+  ];
+
+  const bottomItems = [
+    { icon: Settings, label: 'Settings', path: '/settings' },
+    { icon: HelpCircle, label: 'Help', path: '/help' },
+  ];
 
   const initials = profile
     ? `${profile.first_name?.[0] || ''}${profile.last_name?.[0] || ''}`
