@@ -13,7 +13,10 @@ export function PDPProgressCard() {
   const { data: mySubmissions } = useMySubmissions();
 
   const isNewMember = profile?.status === 'new_member';
-  if (!isNewMember) return null;
+  const isVP = profile?.positions?.some(p =>
+    ['VP of Pledge Education', 'VP of New Member Development', 'VP of New Member Education'].includes(p)
+  );
+  if (!isNewMember && !isVP) return null;
 
   const total = assignments?.length || 0;
   const completed = mySubmissions?.filter(s => s.status === 'complete').length || 0;

@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, ClipboardList, Calendar, Trash2, CheckCircle2, XCircle, Clock, Send, MessageSquare, CalendarPlus, Upload, Paperclip, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { format, isPast, differenceInDays } from 'date-fns';
@@ -216,6 +217,9 @@ function AssignmentCard({ assignment, isVP, isNewMember, mySubmission, allSubmis
                 <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30 shrink-0" />
               )}
               <h4 className="font-semibold text-foreground text-sm">{assignment.title}</h4>
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                {assignment.submission_type === 'text' ? 'Text' : assignment.submission_type === 'file' ? 'File' : 'Text + File'}
+              </Badge>
             </div>
             {assignment.description && (
               <p className="text-xs text-muted-foreground ml-6">{assignment.description}</p>
@@ -269,45 +273,48 @@ function AssignmentCard({ assignment, isVP, isNewMember, mySubmission, allSubmis
                     <DialogTitle>Submit: {assignment.title}</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
-                    <Textarea
-                      placeholder="Your response..."
-                      value={content}
-                      onChange={e => setContent(e.target.value)}
-                      rows={4}
-                    />
-                    {/* File upload */}
-                    <div>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        multiple
-                        accept="image/*,.pdf,.doc,.docx,.txt"
-                        className="hidden"
-                        onChange={handleFileSelect}
+                    {(assignment.submission_type === 'text' || assignment.submission_type === 'both') && (
+                      <Textarea
+                        placeholder="Your response..."
+                        value={content}
+                        onChange={e => setContent(e.target.value)}
+                        rows={4}
                       />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="w-full"
-                      >
-                        <Paperclip className="h-3.5 w-3.5 mr-1.5" />
-                        Attach Files
-                      </Button>
-                      {files.length > 0 && (
-                        <div className="mt-2 space-y-1">
-                          {files.map((f, i) => (
-                            <div key={i} className="flex items-center justify-between text-xs bg-muted rounded px-2 py-1">
-                              <span className="truncate">{f.name}</span>
-                              <button onClick={() => removeFile(i)} className="text-muted-foreground hover:text-foreground ml-2">
-                                <X className="h-3 w-3" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    )}
+                    {(assignment.submission_type === 'file' || assignment.submission_type === 'both') && (
+                      <div>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          multiple
+                          accept="image/*,.pdf,.doc,.docx,.txt"
+                          className="hidden"
+                          onChange={handleFileSelect}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="w-full"
+                        >
+                          <Paperclip className="h-3.5 w-3.5 mr-1.5" />
+                          Attach Files
+                        </Button>
+                        {files.length > 0 && (
+                          <div className="mt-2 space-y-1">
+                            {files.map((f, i) => (
+                              <div key={i} className="flex items-center justify-between text-xs bg-muted rounded px-2 py-1">
+                                <span className="truncate">{f.name}</span>
+                                <button onClick={() => removeFile(i)} className="text-muted-foreground hover:text-foreground ml-2">
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                     <div className="flex justify-end gap-2">
                       <Button variant="outline" onClick={() => setSubmitOpen(false)}>Cancel</Button>
                       <Button onClick={handleSubmit} disabled={submitAssignment.isPending || uploading}>
@@ -360,12 +367,13 @@ export function PDPAssignments({ isVP, isNewMember }: Props) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [submissionType, setSubmissionType] = useState<'text' | 'file' | 'both'>('text');
 
   const handleCreate = () => {
     if (!title || !dueDate) return;
     createAssignment.mutate(
-      { title, description: description || undefined, due_date: new Date(dueDate).toISOString() },
-      { onSuccess: () => { setTitle(''); setDescription(''); setDueDate(''); setCreateOpen(false); } }
+      { title, description: description || undefined, due_date: new Date(dueDate).toISOString(), submission_type: submissionType },
+      { onSuccess: () => { setTitle(''); setDescription(''); setDueDate(''); setSubmissionType('text'); setCreateOpen(false); } }
     );
   };
 
@@ -416,6 +424,19 @@ export function PDPAssignments({ isVP, isNewMember }: Props) {
                 <div>
                   <label className="text-sm font-medium">Due Date</label>
                   <Input type="datetime-local" value={dueDate} onChange={e => setDueDate(e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Submission Type</label>
+                  <Select value={submissionType} onValueChange={(v) => setSubmissionType(v as 'text' | 'file' | 'both')}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="text">Text Only</SelectItem>
+                      <SelectItem value="file">File Upload Only</SelectItem>
+                      <SelectItem value="both">Text + File Upload</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>

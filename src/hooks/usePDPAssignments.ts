@@ -8,6 +8,7 @@ export interface PDPAssignment {
   title: string;
   description: string | null;
   due_date: string;
+  submission_type: 'text' | 'file' | 'both';
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -50,7 +51,7 @@ export function useCreateAssignment() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async (vals: { title: string; description?: string; due_date: string }) => {
+    mutationFn: async (vals: { title: string; description?: string; due_date: string; submission_type?: 'text' | 'file' | 'both' }) => {
       const { error } = await supabase.from('pdp_assignments').insert({
         ...vals,
         created_by: user!.id,
