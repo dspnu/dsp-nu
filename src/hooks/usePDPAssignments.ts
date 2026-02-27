@@ -56,6 +56,23 @@ export function useCreateAssignment() {
         created_by: user!.id,
       });
       if (error) throw error;
+
+      // Notify all new members about the new assignment
+      const { data: newMembers } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('status', 'new_member');
+
+      if (newMembers && newMembers.length > 0) {
+        const notifications = newMembers.map(m => ({
+          user_id: m.user_id,
+          title: 'New PDP Assignment',
+          message: `"${vals.title}" has been assigned. Due ${new Date(vals.due_date).toLocaleDateString()}.`,
+          type: 'pdp',
+          link: '/pdp',
+        }));
+        await supabase.from('notifications').insert(notifications);
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['pdp-assignments'] });
@@ -138,6 +155,31 @@ export function useUpdateSubmissionStatus() {
     mutationFn: async ({ id, status }: { id: string; status: 'complete' | 'incomplete' }) => {
       const { error } = await supabase.from('pdp_submissions').update({ status }).eq('id', id);
       if (error) throw error;
+
+      // Get submission to find the user and assignment
+      const { data: submission } = await supabase
+        .from('pdp_submissions')
+        .select('user_id, assignment_id')
+        .eq('id', id)
+        .single();
+
+      if (submission) {
+        const { data: assignment } = await supabase
+          .from('pdp_assignments')
+          .select('title')
+          .eq('id', submission.assignment_id)
+          .single();
+
+        await supabase.from('notifications').insert({
+          user_id: submission.user_id,
+          title: status === 'complete' ? 'Assignment Approved' : 'Assignment Needs Revision',
+          message: status === 'complete'
+            ? `Your submission for "${assignment?.title || 'an assignment'}" has been marked complete.`
+            : `Your submission for "${assignment?.title || 'an assignment'}" needs revision.`,
+          type: 'pdp',
+          link: '/pdp',
+        });
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['pdp-submissions'] });

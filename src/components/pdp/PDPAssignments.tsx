@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Progress } from '@/components/ui/progress';
-import { Plus, ClipboardList, Calendar, Trash2, CheckCircle2, XCircle, Clock, Send, MessageSquare, CalendarPlus } from 'lucide-react';
+import { Plus, ClipboardList, Calendar, Trash2, CheckCircle2, XCircle, Clock, Send, MessageSquare, CalendarPlus, Upload, Paperclip, X } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { format, isPast, differenceInDays } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMembers } from '@/hooks/useMembers';
@@ -149,16 +150,52 @@ function AssignmentCard({ assignment, isVP, isNewMember, mySubmission, allSubmis
   const [expanded, setExpanded] = useState(false);
   const [submitOpen, setSubmitOpen] = useState(false);
   const [content, setContent] = useState(mySubmission?.content || '');
+  const [files, setFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const submitAssignment = useSubmitAssignment();
+  const { user } = useAuth();
 
   const overdue = isPast(new Date(assignment.due_date));
   const daysLeft = differenceInDays(new Date(assignment.due_date), new Date());
 
-  const handleSubmit = () => {
-    submitAssignment.mutate(
-      { assignment_id: assignment.id, content: content || undefined },
-      { onSuccess: () => setSubmitOpen(false) }
-    );
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(e.target.files || []);
+    setFiles(prev => [...prev, ...selected]);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async () => {
+    setUploading(true);
+    try {
+      let fileUrls: string[] = [];
+      if (files.length > 0) {
+        for (const file of files) {
+          const ext = file.name.split('.').pop();
+          const path = `${user!.id}/${assignment.id}/${Date.now()}-${file.name}`;
+          const { error: uploadError } = await supabase.storage
+            .from('pdp-submissions')
+            .upload(path, file);
+          if (uploadError) throw uploadError;
+          const { data: urlData } = supabase.storage
+            .from('pdp-submissions')
+            .getPublicUrl(path);
+          fileUrls.push(urlData.publicUrl);
+        }
+      }
+      submitAssignment.mutate(
+        { assignment_id: assignment.id, content: content || undefined, file_urls: fileUrls.length > 0 ? fileUrls : undefined },
+        { onSuccess: () => { setSubmitOpen(false); setFiles([]); setContent(''); } }
+      );
+    } catch (err: any) {
+      console.error('Upload error:', err);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const submittedCount = allSubmissions?.length || 0;
@@ -238,13 +275,43 @@ function AssignmentCard({ assignment, isVP, isNewMember, mySubmission, allSubmis
                       onChange={e => setContent(e.target.value)}
                       rows={4}
                     />
-                    <p className="text-xs text-muted-foreground">
-                      File uploads coming soon. Use text for now.
-                    </p>
+                    {/* File upload */}
+                    <div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        accept="image/*,.pdf,.doc,.docx,.txt"
+                        className="hidden"
+                        onChange={handleFileSelect}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-full"
+                      >
+                        <Paperclip className="h-3.5 w-3.5 mr-1.5" />
+                        Attach Files
+                      </Button>
+                      {files.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          {files.map((f, i) => (
+                            <div key={i} className="flex items-center justify-between text-xs bg-muted rounded px-2 py-1">
+                              <span className="truncate">{f.name}</span>
+                              <button onClick={() => removeFile(i)} className="text-muted-foreground hover:text-foreground ml-2">
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                     <div className="flex justify-end gap-2">
                       <Button variant="outline" onClick={() => setSubmitOpen(false)}>Cancel</Button>
-                      <Button onClick={handleSubmit} disabled={submitAssignment.isPending}>
-                        {submitAssignment.isPending ? 'Submitting...' : 'Submit'}
+                      <Button onClick={handleSubmit} disabled={submitAssignment.isPending || uploading}>
+                        {uploading ? 'Uploading...' : submitAssignment.isPending ? 'Submitting...' : 'Submit'}
                       </Button>
                     </div>
                   </div>
