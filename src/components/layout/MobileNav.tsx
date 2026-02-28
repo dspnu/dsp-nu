@@ -2,10 +2,12 @@ import { Link, useLocation } from 'react-router-dom';
 import { Home, Users, Calendar, Building, Vote, GraduationCap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useChapterSetting } from '@/hooks/useChapterSettings';
 
 export function MobileNav() {
   const location = useLocation();
   const { profile } = useAuth();
+  const { data: eopVisible } = useChapterSetting('eop_visible');
 
   const isNewMember = profile?.status === 'new_member';
   const isVP = profile?.positions?.includes('VP of New Member Development') ||
@@ -18,8 +20,8 @@ export function MobileNav() {
     { icon: Calendar, label: 'Events', path: '/events' },
     ...(showPDP ? [{ icon: GraduationCap, label: 'PDP', path: '/pdp' }] : []),
     { icon: Building, label: 'Chapter', path: '/chapter' },
-    { icon: Vote, label: 'EOP', path: '/eop' },
-    ...(!showPDP ? [{ icon: Users, label: 'People', path: '/people' }] : []),
+    ...(eopVisible ? [{ icon: Vote, label: 'EOP', path: '/eop' }] : []),
+    ...(!showPDP && !eopVisible ? [{ icon: Users, label: 'People', path: '/people' }] : []),
   ];
 
   return (

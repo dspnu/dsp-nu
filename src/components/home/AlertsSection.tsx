@@ -49,7 +49,7 @@ export function AlertsSection() {
         )}
         
         {pendingCoffeeChats.length > 0 && (
-          <Link to="/development" className="block">
+          <Link to="/chapter" className="block">
             <div className="flex items-center gap-3 p-3 rounded-lg border border-category-brotherhood/20 bg-category-brotherhood/5 hover:bg-category-brotherhood/10 active:scale-[0.98] transition-all">
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-category-brotherhood/10 flex items-center justify-center">
                 <Coffee className="h-4 w-4 text-category-brotherhood" />

@@ -18,6 +18,7 @@ interface Profile {
   committees: string[];
   avatar_url: string | null;
   linkedin_url: string | null;
+  family: string | null;
 }
 
 interface AuthContextType {

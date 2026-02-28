@@ -11,7 +11,6 @@ import HomePage from "./pages/HomePage";
 import PeoplePage from "./pages/PeoplePage";
 import MemberProfilePage from "./pages/MemberProfilePage";
 import EventsPage from "./pages/EventsPage";
-import DevelopmentPage from "./pages/DevelopmentPage";
 import ChapterPage from "./pages/ChapterPage";
 import EOPPage from "./pages/EOPPage";
 import PDPPage from "./pages/PDPPage";
@@ -35,7 +34,6 @@ const App = () => (
               <Route path="/people" element={<PeoplePage />} />
               <Route path="/people/:id" element={<MemberProfilePage />} />
               <Route path="/events" element={<EventsPage />} />
-              <Route path="/development" element={<DevelopmentPage />} />
               <Route path="/chapter" element={<ChapterPage />} />
               <Route path="/eop" element={<EOPPage />} />
               <Route path="/pdp" element={<PDPPage />} />

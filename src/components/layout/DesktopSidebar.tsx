@@ -3,7 +3,6 @@ import {
   Home,
   Users,
   Calendar,
-  Rocket,
   Building,
   Vote,
   GraduationCap,
@@ -15,10 +14,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { useChapterSetting } from '@/hooks/useChapterSettings';
 
 export function DesktopSidebar() {
   const location = useLocation();
   const { profile } = useAuth();
+  const { data: eopVisible } = useChapterSetting('eop_visible');
 
   const isNewMember = profile?.status === 'new_member';
   const isVP = profile?.positions?.includes('VP of New Member Development') ||
@@ -30,10 +31,9 @@ export function DesktopSidebar() {
     { icon: Home, label: 'Home', path: '/' },
     { icon: Users, label: 'People', path: '/people' },
     { icon: Calendar, label: 'Events', path: '/events' },
-    { icon: Rocket, label: 'Development', path: '/development' },
     ...(showPDP ? [{ icon: GraduationCap, label: 'PDP', path: '/pdp' }] : []),
     { icon: Building, label: 'Chapter', path: '/chapter' },
-    { icon: Vote, label: 'EOP', path: '/eop' },
+    ...(eopVisible ? [{ icon: Vote, label: 'EOP', path: '/eop' }] : []),
   ];
 
   const bottomItems = [

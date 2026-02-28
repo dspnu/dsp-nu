@@ -5,8 +5,8 @@ import { Calendar, Users, Coffee, Briefcase, QrCode } from 'lucide-react';
 const actions = [
   { icon: Calendar, label: 'Events', path: '/events' },
   { icon: Users, label: 'People', path: '/people' },
-  { icon: Coffee, label: 'Coffee Chats', path: '/development' },
-  { icon: Briefcase, label: 'Job Board', path: '/development' },
+  { icon: Coffee, label: 'Coffee Chats', path: '/chapter' },
+  { icon: Briefcase, label: 'Job Board', path: '/chapter' },
 ];
 
 export function QuickActions() {
