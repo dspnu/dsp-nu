@@ -53,6 +53,7 @@ function SubmissionDetail({ submission, isVP, members }: { submission: PDPSubmis
   const { data: comments } = usePDPComments(submission.id);
   const addComment = useAddComment();
   const [comment, setComment] = useState('');
+  const [fileUrls, setFileUrls] = useState<Record<string, string>>({});
 
   const memberName = useMemo(() => {
     const m = members?.find(p => p.user_id === submission.user_id);
@@ -78,22 +79,42 @@ function SubmissionDetail({ submission, isVP, members }: { submission: PDPSubmis
         <p className="text-sm text-muted-foreground whitespace-pre-wrap">{submission.content}</p>
       )}
 
-      {submission.file_urls?.length > 0 && (
+      {submission.file_urls && submission.file_urls.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {submission.file_urls.map((url, i) => (
-            <a key={i} href={url} target="_blank" rel="noreferrer" className="text-xs text-primary underline">
+          {submission.file_urls.map((path, i) => (
+            <button
+              key={i}
+              className="text-xs text-primary underline cursor-pointer"
+              onClick={async () => {
+                if (fileUrls[path]) {
+                  window.open(fileUrls[path], '_blank');
+                  return;
+                }
+                const { data } = await supabase.storage.from('pdp-submissions').createSignedUrl(path, 3600);
+                if (data?.signedUrl) {
+                  setFileUrls(prev => ({ ...prev, [path]: data.signedUrl }));
+                  window.open(data.signedUrl, '_blank');
+                }
+              }}
+            >
               Attachment {i + 1}
-            </a>
+            </button>
           ))}
         </div>
       )}
 
-      {isVP && submission.status === 'submitted' && (
+      {isVP && (
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" className="text-emerald-600" onClick={() => updateStatus.mutate({ id: submission.id, status: 'complete' })}>
+          <Button size="sm" variant="outline" className="text-emerald-600"
+            onClick={() => updateStatus.mutate({ id: submission.id, status: 'complete' })}
+            disabled={submission.status === 'complete'}
+          >
             <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Complete
           </Button>
-          <Button size="sm" variant="outline" className="text-red-600" onClick={() => updateStatus.mutate({ id: submission.id, status: 'incomplete' })}>
+          <Button size="sm" variant="outline" className="text-red-600"
+            onClick={() => updateStatus.mutate({ id: submission.id, status: 'incomplete' })}
+            disabled={submission.status === 'incomplete'}
+          >
             <XCircle className="h-3.5 w-3.5 mr-1" /> Incomplete
           </Button>
         </div>
@@ -173,19 +194,17 @@ function AssignmentCard({ assignment, isVP, isNewMember, mySubmission, allSubmis
   const handleSubmit = async () => {
     setUploading(true);
     try {
-      let fileUrls: string[] = [];
+      let fileUrls: string[] = mySubmission?.file_urls || [];
       if (files.length > 0) {
+        fileUrls = [];
         for (const file of files) {
-          const ext = file.name.split('.').pop();
           const path = `${user!.id}/${assignment.id}/${Date.now()}-${file.name}`;
           const { error: uploadError } = await supabase.storage
             .from('pdp-submissions')
-            .upload(path, file);
+            .upload(path, file, { upsert: true });
           if (uploadError) throw uploadError;
-          const { data: urlData } = supabase.storage
-            .from('pdp-submissions')
-            .getPublicUrl(path);
-          fileUrls.push(urlData.publicUrl);
+          // Store the path for signed URL generation later
+          fileUrls.push(path);
         }
       }
       submitAssignment.mutate(
@@ -261,16 +280,16 @@ function AssignmentCard({ assignment, isVP, isNewMember, mySubmission, allSubmis
               </button>
             )}
 
-            {isNewMember && !mySubmission && (
+            {isNewMember && (!mySubmission || mySubmission.status === 'incomplete') && (
               <Dialog open={submitOpen} onOpenChange={setSubmitOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm" variant="outline" className="h-7 text-xs">
-                    <Send className="h-3 w-3 mr-1" /> Submit
+                    <Send className="h-3 w-3 mr-1" /> {mySubmission ? 'Resubmit' : 'Submit'}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
-                    <DialogTitle>Submit: {assignment.title}</DialogTitle>
+                    <DialogTitle>{mySubmission ? 'Resubmit' : 'Submit'}: {assignment.title}</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
                     {(assignment.submission_type === 'text' || assignment.submission_type === 'both') && (
@@ -318,7 +337,7 @@ function AssignmentCard({ assignment, isVP, isNewMember, mySubmission, allSubmis
                     <div className="flex justify-end gap-2">
                       <Button variant="outline" onClick={() => setSubmitOpen(false)}>Cancel</Button>
                       <Button onClick={handleSubmit} disabled={submitAssignment.isPending || uploading}>
-                        {uploading ? 'Uploading...' : submitAssignment.isPending ? 'Submitting...' : 'Submit'}
+                        {uploading ? 'Uploading...' : submitAssignment.isPending ? 'Submitting...' : mySubmission ? 'Resubmit' : 'Submit'}
                       </Button>
                     </div>
                   </div>
@@ -326,13 +345,12 @@ function AssignmentCard({ assignment, isVP, isNewMember, mySubmission, allSubmis
               </Dialog>
             )}
 
-            {isNewMember && mySubmission && (
+            {isNewMember && mySubmission && mySubmission.status !== 'incomplete' && (
               <Badge variant="outline" className={`text-xs ${
                 mySubmission.status === 'complete' ? 'text-emerald-700 bg-emerald-500/10' :
-                mySubmission.status === 'incomplete' ? 'text-red-700 bg-red-500/10' :
                 'text-blue-700 bg-blue-500/10'
               }`}>
-                {mySubmission.status === 'complete' ? 'Complete' : mySubmission.status === 'incomplete' ? 'Incomplete' : 'Submitted'}
+                {mySubmission.status === 'complete' ? 'Complete' : 'Submitted'}
               </Badge>
             )}
           </div>

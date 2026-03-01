@@ -10,7 +10,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus } from 'lucide-react';
 import { useCreateCoffeeChat } from '@/hooks/useCoffeeChats';
-import { useMembers } from '@/hooks/useMembers';
+import { useApprovedMembers } from '@/hooks/useApprovedMembers';
+import { ApprovedMemberProfile } from '@/components/coffee-chats/ApprovedMemberProfile';
 
 const coffeeChatSchema = z.object({
   partner_id: z.string().min(1, 'Please select a member'),
@@ -24,7 +25,7 @@ type CoffeeChatFormValues = z.infer<typeof coffeeChatSchema>;
 export function CoffeeChatForm() {
   const [open, setOpen] = useState(false);
   const createChat = useCreateCoffeeChat();
-  const { data: members } = useMembers();
+  const { data: approvedMembers } = useApprovedMembers();
 
   const form = useForm<CoffeeChatFormValues>({
     resolver: zodResolver(coffeeChatSchema),
@@ -35,6 +36,9 @@ export function CoffeeChatForm() {
       notes: '',
     },
   });
+
+  const selectedMemberId = form.watch('partner_id');
+  const selectedMember = approvedMembers?.find(m => m.id === selectedMemberId);
 
   const onSubmit = async (values: CoffeeChatFormValues) => {
     await createChat.mutateAsync({
@@ -70,13 +74,14 @@ export function CoffeeChatForm() {
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a member" />
+                        <SelectValue placeholder="Select an approved member" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {members?.map((member) => (
-                        <SelectItem key={member.user_id} value={member.user_id}>
+                      {approvedMembers?.map((member) => (
+                        <SelectItem key={member.id} value={member.id}>
                           {member.first_name} {member.last_name}
+                          {member.dsp_position ? ` (${member.dsp_position})` : ''}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -85,6 +90,14 @@ export function CoffeeChatForm() {
                 </FormItem>
               )}
             />
+
+            {selectedMember && (
+              <ApprovedMemberProfile member={selectedMember}>
+                <Button type="button" variant="link" className="h-auto p-0 text-xs">
+                  View {selectedMember.first_name}'s profile details
+                </Button>
+              </ApprovedMemberProfile>
+            )}
 
             <FormField
               control={form.control}

@@ -10,6 +10,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { CoffeeChatForm } from '@/components/coffee-chats/CoffeeChatForm';
 import { CoffeeChatCard } from '@/components/coffee-chats/CoffeeChatCard';
 import { CoffeeChatDashboard } from '@/components/coffee-chats/CoffeeChatDashboard';
+import { ApprovedMembersImport } from '@/components/coffee-chats/ApprovedMembersImport';
+import { useApprovedMembers } from '@/hooks/useApprovedMembers';
 
 interface Props {
   isVP: boolean;
@@ -21,6 +23,7 @@ export function PDPCoffeeChats({ isVP, isNewMember }: Props) {
   const { data: myChats, isLoading } = useMyCoffeeChats();
   const { data: allChats } = useCoffeeChats();
   const { data: members } = useMembers();
+  const { data: approvedMembers } = useApprovedMembers();
 
   const completedCount = myChats?.filter(c => c.status === 'completed').length || 0;
   const scheduledCount = myChats?.filter(c => c.status === 'scheduled').length || 0;
@@ -28,6 +31,10 @@ export function PDPCoffeeChats({ isVP, isNewMember }: Props) {
   const totalRequired = 50;
 
   const getMemberName = (userId: string) => {
+    // First check approved members list
+    const approved = approvedMembers?.find(m => m.id === userId);
+    if (approved) return `${approved.first_name} ${approved.last_name}`;
+    // Fallback to profiles
     const member = members?.find(m => m.user_id === userId);
     return member ? `${member.first_name} ${member.last_name}` : 'Unknown';
   };
@@ -41,7 +48,7 @@ export function PDPCoffeeChats({ isVP, isNewMember }: Props) {
       {/* Personal progress + log form for new members */}
       {isNewMember && (
         <>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <div />
             <CoffeeChatForm />
           </div>
@@ -101,10 +108,13 @@ export function PDPCoffeeChats({ isVP, isNewMember }: Props) {
       {/* My Chats / All Chats */}
       <section>
         <Tabs defaultValue="mine" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="mine">My Chats</TabsTrigger>
-            {(isVP || isAdminOrOfficer) && <TabsTrigger value="all">All Chats</TabsTrigger>}
-          </TabsList>
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <TabsList>
+              <TabsTrigger value="mine">My Chats</TabsTrigger>
+              {(isVP || isAdminOrOfficer) && <TabsTrigger value="all">All Chats</TabsTrigger>}
+            </TabsList>
+            {isVP && <ApprovedMembersImport />}
+          </div>
 
           <TabsContent value="mine">
             {isLoading ? (

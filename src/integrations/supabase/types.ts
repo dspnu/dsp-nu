@@ -65,6 +65,78 @@ export type Database = {
         }
         Relationships: []
       }
+      approved_coffee_chat_members: {
+        Row: {
+          big: string | null
+          created_at: string
+          dsp_position: string | null
+          family: string | null
+          first_name: string
+          fun_facts: string | null
+          grand_big: string | null
+          hobbies_interests: string | null
+          hometown: string | null
+          id: string
+          internships_experiences: string | null
+          last_name: string
+          littles: string | null
+          majors: string | null
+          minors: string | null
+          osu_email: string | null
+          osu_involvements: string | null
+          pledge_class: string | null
+          school_year: string | null
+          state: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          big?: string | null
+          created_at?: string
+          dsp_position?: string | null
+          family?: string | null
+          first_name: string
+          fun_facts?: string | null
+          grand_big?: string | null
+          hobbies_interests?: string | null
+          hometown?: string | null
+          id?: string
+          internships_experiences?: string | null
+          last_name: string
+          littles?: string | null
+          majors?: string | null
+          minors?: string | null
+          osu_email?: string | null
+          osu_involvements?: string | null
+          pledge_class?: string | null
+          school_year?: string | null
+          state?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          big?: string | null
+          created_at?: string
+          dsp_position?: string | null
+          family?: string | null
+          first_name?: string
+          fun_facts?: string | null
+          grand_big?: string | null
+          hobbies_interests?: string | null
+          hometown?: string | null
+          id?: string
+          internships_experiences?: string | null
+          last_name?: string
+          littles?: string | null
+          majors?: string | null
+          minors?: string | null
+          osu_email?: string | null
+          osu_involvements?: string | null
+          pledge_class?: string | null
+          school_year?: string | null
+          state?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       attendance: {
         Row: {
           checked_in_at: string
