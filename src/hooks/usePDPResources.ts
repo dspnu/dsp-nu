@@ -10,6 +10,7 @@ export interface PDPResource {
   url: string | null;
   file_url: string | null;
   file_type: string | null;
+  module_id: string | null;
   created_by: string;
   created_at: string;
 }
@@ -32,11 +33,14 @@ export function useCreatePDPResource() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async (vals: { title: string; description?: string; url?: string }) => {
+    mutationFn: async (vals: { title: string; description?: string; url?: string; module_id?: string }) => {
       const { error } = await supabase.from('pdp_resources').insert({
-        ...vals,
+        title: vals.title,
+        description: vals.description || null,
+        url: vals.url || null,
+        module_id: vals.module_id || null,
         created_by: user!.id,
-      });
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {

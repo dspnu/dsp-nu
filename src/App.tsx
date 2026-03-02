@@ -14,6 +14,7 @@ import EventsPage from "./pages/EventsPage";
 import ChapterPage from "./pages/ChapterPage";
 import EOPPage from "./pages/EOPPage";
 import PDPPage from "./pages/PDPPage";
+import CoffeeChatDirectoryPage from "./pages/CoffeeChatDirectoryPage";
 import SettingsPage from "./pages/SettingsPage";
 import HelpPage from "./pages/HelpPage";
 import NotFound from "./pages/NotFound";
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/chapter" element={<ChapterPage />} />
               <Route path="/eop" element={<EOPPage />} />
               <Route path="/pdp" element={<PDPPage />} />
+              <Route path="/pdp/directory" element={<CoffeeChatDirectoryPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/help" element={<HelpPage />} />
               <Route path="*" element={<NotFound />} />

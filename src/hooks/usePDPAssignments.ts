@@ -9,6 +9,7 @@ export interface PDPAssignment {
   description: string | null;
   due_date: string;
   submission_type: 'text' | 'file' | 'both';
+  module_id: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -51,11 +52,15 @@ export function useCreateAssignment() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async (vals: { title: string; description?: string; due_date: string; submission_type?: 'text' | 'file' | 'both' }) => {
+    mutationFn: async (vals: { title: string; description?: string; due_date: string; submission_type?: 'text' | 'file' | 'both'; module_id?: string }) => {
       const { error } = await supabase.from('pdp_assignments').insert({
-        ...vals,
+        title: vals.title,
+        description: vals.description || null,
+        due_date: vals.due_date,
+        submission_type: vals.submission_type || 'text',
+        module_id: vals.module_id || null,
         created_by: user!.id,
-      });
+      } as any);
       if (error) throw error;
 
       // Notify all new members about the new assignment

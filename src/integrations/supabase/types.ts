@@ -688,6 +688,7 @@ export type Database = {
           description: string | null
           due_date: string
           id: string
+          module_id: string | null
           submission_type: string
           title: string
           updated_at: string
@@ -698,6 +699,7 @@ export type Database = {
           description?: string | null
           due_date: string
           id?: string
+          module_id?: string | null
           submission_type?: string
           title: string
           updated_at?: string
@@ -708,11 +710,20 @@ export type Database = {
           description?: string | null
           due_date?: string
           id?: string
+          module_id?: string | null
           submission_type?: string
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "pdp_assignments_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "pdp_modules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pdp_comments: {
         Row: {
@@ -746,6 +757,36 @@ export type Database = {
           },
         ]
       }
+      pdp_modules: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pdp_resources: {
         Row: {
           created_at: string
@@ -754,6 +795,7 @@ export type Database = {
           file_type: string | null
           file_url: string | null
           id: string
+          module_id: string | null
           title: string
           updated_at: string
           url: string | null
@@ -765,6 +807,7 @@ export type Database = {
           file_type?: string | null
           file_url?: string | null
           id?: string
+          module_id?: string | null
           title: string
           updated_at?: string
           url?: string | null
@@ -776,11 +819,20 @@ export type Database = {
           file_type?: string | null
           file_url?: string | null
           id?: string
+          module_id?: string | null
           title?: string
           updated_at?: string
           url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "pdp_resources_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "pdp_modules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pdp_submissions: {
         Row: {
