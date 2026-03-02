@@ -37,6 +37,8 @@ interface ProfileEditDialogProps {
   trigger?: React.ReactNode;
 }
 
+const FAMILY_OPTIONS = ['Baggio', 'Corleone', 'Conway', 'Sinatra', 'Conrad'] as const;
+
 export function ProfileEditDialog({ profile, trigger }: ProfileEditDialogProps) {
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -268,9 +270,24 @@ export function ProfileEditDialog({ profile, trigger }: ProfileEditDialogProps) 
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Family</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="e.g. The Wolves" />
-                    </FormControl>
+                    <Select
+                      onValueChange={(val) => field.onChange(val === '__none__' ? '' : val)}
+                      value={field.value || '__none__'}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Family" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="__none__">None</SelectItem>
+                        {FAMILY_OPTIONS.map((family) => (
+                          <SelectItem key={family} value={family}>
+                            {family}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
