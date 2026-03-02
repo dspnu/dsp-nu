@@ -41,22 +41,42 @@ export function useResourcesByFolder(folder: string) {
 
 export function useCreateResource() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, isAdminOrOfficer } = useAuth();
 
   return useMutation({
-    mutationFn: async (resource: Omit<ResourceInsert, 'uploaded_by'>) => {
+    mutationFn: async (resource: Omit<ResourceInsert, 'uploaded_by' | 'is_approved'>) => {
+      const payload = {
+        ...resource,
+        uploaded_by: user?.id,
+      };
+
       const { data, error } = await supabase
         .from('resources')
-        .insert({ ...resource, uploaded_by: user?.id })
+        .insert({
+          ...payload,
+          is_approved: isAdminOrOfficer,
+        })
         .select()
         .single();
 
-      if (error) throw error;
-      return data;
+      if (!error) return data;
+
+      if (error.message.includes("Could not find the 'is_approved' column")) {
+        const fallback = await supabase
+          .from('resources')
+          .insert(payload)
+          .select()
+          .single();
+
+        if (fallback.error) throw fallback.error;
+        return fallback.data;
+      }
+
+      throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['resources'] });
-      toast.success('Resource added!');
+      toast.success(isAdminOrOfficer ? 'Resource added!' : 'Resource submitted for approval');
     },
     onError: (error) => {
       toast.error('Failed to add resource: ' + error.message);
@@ -107,6 +127,31 @@ export function useDeleteResource() {
     },
     onError: (error) => {
       toast.error('Failed to delete resource: ' + error.message);
+    },
+  });
+}
+
+export function useApproveResource() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await supabase
+        .from('resources')
+        .update({ is_approved: true })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['resources'] });
+      toast.success('Resource approved');
+    },
+    onError: (error) => {
+      toast.error('Failed to approve resource: ' + error.message);
     },
   });
 }

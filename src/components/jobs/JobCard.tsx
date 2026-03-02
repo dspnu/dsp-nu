@@ -35,6 +35,9 @@ export function JobCard({ job, isBookmarked, onToggleBookmark }: JobCardProps) {
             <Badge variant="secondary" className="text-xs">
               {jobTypeLabels[job.job_type]}
             </Badge>
+            {job.is_approved === false && (
+              <Badge variant="outline" className="text-xs ml-2">Pending approval</Badge>
+            )}
             <CardTitle className="text-lg">{job.title}</CardTitle>
           </div>
           <div className="flex gap-1">
