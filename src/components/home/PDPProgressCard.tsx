@@ -17,10 +17,7 @@ export function PDPProgressCard() {
   const { data: milestones } = useCoffeeChatMilestones();
 
   const isNewMember = profile?.status === 'new_member';
-  const isVP = profile?.positions?.some(p =>
-    ['VP of Pledge Education', 'VP of New Member Development', 'VP of New Member Education'].includes(p)
-  );
-  if (!isNewMember && !isVP) return null;
+  if (!isNewMember) return null;
 
   // Assignment stats
   const total = assignments?.length || 0;
