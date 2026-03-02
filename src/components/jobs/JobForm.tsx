@@ -27,7 +27,7 @@ interface JobFormProps {
 
 export function JobForm({ job, trigger }: JobFormProps) {
   const [open, setOpen] = useState(false);
-  const { user } = useAuth();
+  const { isAdminOrOfficer } = useAuth();
   const createJob = useCreateJob();
   const updateJob = useUpdateJob();
 
@@ -49,7 +49,6 @@ export function JobForm({ job, trigger }: JobFormProps) {
       ...formData,
       deadline: formData.deadline ? new Date(formData.deadline).toISOString() : null,
       tags: formData.tags ? formData.tags.split(',').map(t => t.trim()) : [],
-      posted_by: user?.id,
     };
 
     if (job) {
@@ -172,7 +171,7 @@ export function JobForm({ job, trigger }: JobFormProps) {
               Cancel
             </Button>
             <Button type="submit" disabled={createJob.isPending || updateJob.isPending}>
-              {job ? 'Update' : 'Post'} Job
+              {job ? 'Update' : isAdminOrOfficer ? 'Post' : 'Submit'} Job
             </Button>
           </div>
         </form>

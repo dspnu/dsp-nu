@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Plus, Pencil } from 'lucide-react';
 import { useCreateResource, useUpdateResource } from '@/hooks/useResources';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Resource = Tables<'resources'>;
@@ -35,6 +36,7 @@ interface ResourceFormProps {
 
 export function ResourceForm({ resource, trigger }: ResourceFormProps) {
   const [open, setOpen] = useState(false);
+  const { isAdminOrOfficer } = useAuth();
   const createResource = useCreateResource();
   const updateResource = useUpdateResource();
   const isEditing = !!resource;
@@ -152,30 +154,32 @@ export function ResourceForm({ resource, trigger }: ResourceFormProps) {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="is_officer_only"
-              render={({ field }) => (
-                <FormItem className="flex items-center justify-between rounded-lg border p-3">
-                  <div>
-                    <FormLabel className="text-base">Officers Only</FormLabel>
-                    <p className="text-sm text-muted-foreground">
-                      Only officers can view this resource
-                    </p>
-                  </div>
-                  <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            {isAdminOrOfficer && (
+              <FormField
+                control={form.control}
+                name="is_officer_only"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between rounded-lg border p-3">
+                    <div>
+                      <FormLabel className="text-base">Officers Only</FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Only officers can view this resource
+                      </p>
+                    </div>
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            )}
 
             <div className="flex justify-end gap-2 pt-4">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
               <Button type="submit" disabled={createResource.isPending || updateResource.isPending}>
-                {isEditing ? 'Save' : 'Add'}
+                {isEditing ? 'Save' : isAdminOrOfficer ? 'Add' : 'Submit'}
               </Button>
             </div>
           </form>

@@ -956,6 +956,7 @@ export type Database = {
           file_url: string | null
           folder: string
           id: string
+          is_approved: boolean
           is_officer_only: boolean
           title: string
           updated_at: string
@@ -968,6 +969,7 @@ export type Database = {
           file_url?: string | null
           folder?: string
           id?: string
+          is_approved?: boolean
           is_officer_only?: boolean
           title: string
           updated_at?: string
@@ -980,6 +982,7 @@ export type Database = {
           file_url?: string | null
           folder?: string
           id?: string
+          is_approved?: boolean
           is_officer_only?: boolean
           title?: string
           updated_at?: string
