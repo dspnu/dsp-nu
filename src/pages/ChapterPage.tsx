@@ -18,7 +18,7 @@ import { Switch } from '@/components/ui/switch';
 import {
   Award, Download, TrendingUp, CheckCircle, Clock, Plus, DollarSign,
   Shield, Trophy, Target, ChevronRight, Users, Briefcase, Coffee,
-  FolderOpen, FileText, Folder, Search, AlertCircle
+  FolderOpen, FileText, Folder, Search, AlertCircle, UserCheck
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,9 +28,9 @@ import { exportToCSV } from '@/lib/csv';
 import { GrantPointsDialog } from '@/components/points/GrantPointsDialog';
 import { useServiceHours, useLogServiceHours, useAllServiceHours, useVerifyServiceHours } from '@/hooks/useServiceHours';
 import { useAllDues, useRecordDues } from '@/hooks/useDues';
-import { useJobs, useJobBookmarks } from '@/hooks/useJobs';
+import { useJobs, useJobBookmarks, useApproveJob } from '@/hooks/useJobs';
 import { useMyCoffeeChats, useCoffeeChats } from '@/hooks/useCoffeeChats';
-import { useResources } from '@/hooks/useResources';
+import { useApproveResource, useResources } from '@/hooks/useResources';
 import { useChapterSetting, useUpdateChapterSetting } from '@/hooks/useChapterSettings';
 import { useIsVPChapterOps } from '@/hooks/useEOPRealtime';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -72,9 +72,11 @@ export default function ChapterPage() {
   const { data: allDues = [] } = useAllDues();
   const recordDues = useRecordDues();
   const { data: jobs, isLoading: jobsLoading } = useJobs();
+  const approveJob = useApproveJob();
   const { data: myChats, isLoading: chatsLoading } = useMyCoffeeChats();
   const { data: allChats } = useCoffeeChats();
   const { data: resources, isLoading: resourcesLoading } = useResources();
+  const approveResource = useApproveResource();
   const { bookmarks, toggleBookmark } = useJobBookmarks(user?.id ?? '');
   const { data: eopVisible } = useChapterSetting('eop_visible');
   const updateSetting = useUpdateChapterSetting();
@@ -137,6 +139,8 @@ export default function ChapterPage() {
   const myFamilyRank = familyTotals.findIndex(f => f.family === myFamily) + 1;
 
   const pendingServiceHours = allHours.filter(h => !h.verified);
+  const pendingJobs = jobs?.filter(job => !job.is_approved) ?? [];
+  const pendingResources = resources?.filter(resource => !resource.is_approved) ?? [];
   const totalMembersCount = members?.length || 0;
 
   const getMemberName = (userId: string) => {
@@ -283,7 +287,7 @@ export default function ChapterPage() {
         {/* ========== JOBS TAB ========== */}
         <TabsContent value="jobs" className="space-y-6">
           <div className="flex justify-end">
-            {isAdminOrOfficer && <JobForm />}
+            <JobForm />
           </div>
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
@@ -617,7 +621,7 @@ export default function ChapterPage() {
                 </CardContent>
               </Card>
             </div>
-            {isAdminOrOfficer && <ResourceForm />}
+            <ResourceForm />
           </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -701,7 +705,58 @@ export default function ChapterPage() {
                   </div>
                 </CardContent>
               </Card>
+              <Card>
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                    <UserCheck className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{pendingJobs.length + pendingResources.length}</p>
+                    <p className="text-xs text-muted-foreground">Pending Posts</p>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
+
+            {(pendingJobs.length > 0 || pendingResources.length > 0) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Pending Resource & Job Approvals</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {pendingJobs.map((job) => (
+                    <div key={job.id} className="flex items-center justify-between rounded-lg border p-3 gap-3">
+                      <div>
+                        <p className="font-medium text-sm">{job.title}</p>
+                        <p className="text-xs text-muted-foreground">Job • {job.company}</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => approveJob.mutate(job.id)}
+                        disabled={approveJob.isPending}
+                      >
+                        <CheckCircle className="h-4 w-4 mr-1" />Approve
+                      </Button>
+                    </div>
+                  ))}
+                  {pendingResources.map((resource) => (
+                    <div key={resource.id} className="flex items-center justify-between rounded-lg border p-3 gap-3">
+                      <div>
+                        <p className="font-medium text-sm">{resource.title}</p>
+                        <p className="text-xs text-muted-foreground">Resource • {resource.folder}</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => approveResource.mutate(resource.id)}
+                        disabled={approveResource.isPending}
+                      >
+                        <CheckCircle className="h-4 w-4 mr-1" />Approve
+                      </Button>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
 
             {/* EOP Visibility Toggle - VP of Chapter Ops only */}
             {isVPChapterOps && (

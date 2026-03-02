@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 type JobPost = Tables<'job_posts'>;
 type JobPostInsert = TablesInsert<'job_posts'>;
@@ -42,12 +43,17 @@ export function useJob(id: string) {
 export function useCreateJob() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user, isAdminOrOfficer } = useAuth();
 
   return useMutation({
-    mutationFn: async (job: JobPostInsert) => {
+    mutationFn: async (job: Omit<JobPostInsert, 'posted_by' | 'is_approved'>) => {
       const { data, error } = await supabase
         .from('job_posts')
-        .insert(job)
+        .insert({
+          ...job,
+          posted_by: user?.id,
+          is_approved: isAdminOrOfficer,
+        })
         .select()
         .single();
       
@@ -56,7 +62,7 @@ export function useCreateJob() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
-      toast({ title: 'Job posted successfully' });
+      toast({ title: isAdminOrOfficer ? 'Job posted successfully' : 'Job submitted for approval' });
     },
     onError: (error) => {
       toast({ title: 'Failed to post job', description: error.message, variant: 'destructive' });
@@ -109,6 +115,32 @@ export function useDeleteJob() {
     },
     onError: (error) => {
       toast({ title: 'Failed to delete job', description: error.message, variant: 'destructive' });
+    },
+  });
+}
+
+export function useApproveJob() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await supabase
+        .from('job_posts')
+        .update({ is_approved: true })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      toast({ title: 'Job approved' });
+    },
+    onError: (error) => {
+      toast({ title: 'Failed to approve job', description: error.message, variant: 'destructive' });
     },
   });
 }
