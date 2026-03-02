@@ -63,6 +63,11 @@ export function AdminPositionsDialog({ member }: AdminPositionsDialogProps) {
   };
 
   const statusOptions = Constants.public.Enums.member_status;
+  const formatStatusLabel = (value: MemberStatus) =>
+    value
+      .split('_')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -86,8 +91,8 @@ export function AdminPositionsDialog({ member }: AdminPositionsDialogProps) {
               </SelectTrigger>
               <SelectContent>
                 {statusOptions.map((s) => (
-                  <SelectItem key={s} value={s} className="capitalize">
-                    {s.replace('_', ' ')}
+                  <SelectItem key={s} value={s}>
+                    {formatStatusLabel(s)}
                   </SelectItem>
                 ))}
               </SelectContent>
