@@ -90,14 +90,14 @@ export default function EOPPage() {
         </Card>
       )}
 
-      <Tabs defaultValue="voting" className="space-y-5 sm:space-y-6">
-        <TabsList className="w-full max-w-md grid grid-cols-2 h-10 sm:h-9">
-          <TabsTrigger value="voting" className="gap-1.5 sm:gap-2 text-xs sm:text-sm">
+      <Tabs defaultValue="voting" className="space-y-6">
+        <TabsList className="w-full max-w-md grid grid-cols-2">
+          <TabsTrigger value="voting" className="gap-2">
             <Vote className="h-4 w-4" />
             Voting
           </TabsTrigger>
           {isAdminOrOfficer && (
-            <TabsTrigger value="admin" className="gap-1.5 sm:gap-2 text-xs sm:text-sm">
+            <TabsTrigger value="admin" className="gap-2">
               <Settings className="h-4 w-4" />
               Admin
             </TabsTrigger>

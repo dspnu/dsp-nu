@@ -104,13 +104,13 @@ export default function PeoplePage() {
         {myProfile && <ProfileEditDialog profile={myProfile} />}
       </PageHeader>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-5 sm:space-y-6">
-        <TabsList className="grid w-full max-w-md grid-cols-2 h-10 sm:h-9">
-          <TabsTrigger value="members" className="gap-1.5 sm:gap-2 text-sm">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="members" className="gap-2">
             <Users className="h-4 w-4" />
             Members
           </TabsTrigger>
-          <TabsTrigger value="alumni" className="gap-1.5 sm:gap-2 text-sm">
+          <TabsTrigger value="alumni" className="gap-2">
             <GraduationCap className="h-4 w-4" />
             Alumni
           </TabsTrigger>

@@ -254,26 +254,26 @@ export default function ChapterPage() {
         description="Your one-stop hub for chapter life"
       />
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-5 sm:space-y-6">
-        <TabsList className={`w-full max-w-2xl grid h-10 sm:h-9`} style={{ gridTemplateColumns: `repeat(${tabCount}, 1fr)` }}>
-          <TabsTrigger value="jobs" className="gap-1.5 text-xs sm:text-sm">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className={`w-full max-w-2xl grid`} style={{ gridTemplateColumns: `repeat(${tabCount}, 1fr)` }}>
+          <TabsTrigger value="jobs" className="gap-2">
             <Briefcase className="h-4 w-4 hidden sm:block" />
             Jobs
           </TabsTrigger>
-          <TabsTrigger value="coffee-chats" className="gap-1.5 text-xs sm:text-sm">
+          <TabsTrigger value="coffee-chats" className="gap-2">
             <Coffee className="h-4 w-4 hidden sm:block" />
             Coffee Chats
           </TabsTrigger>
-          <TabsTrigger value="standing" className="gap-1.5 text-xs sm:text-sm">
+          <TabsTrigger value="standing" className="gap-2">
             <Award className="h-4 w-4 hidden sm:block" />
             Standing
           </TabsTrigger>
-          <TabsTrigger value="resources" className="gap-1.5 text-xs sm:text-sm">
+          <TabsTrigger value="resources" className="gap-2">
             <FolderOpen className="h-4 w-4 hidden sm:block" />
             Resources
           </TabsTrigger>
           {isAdminOrOfficer && (
-            <TabsTrigger value="admin" className="gap-1.5 text-xs sm:text-sm">
+            <TabsTrigger value="admin" className="gap-2">
               <Shield className="h-4 w-4 hidden sm:block" />
               Admin
             </TabsTrigger>
