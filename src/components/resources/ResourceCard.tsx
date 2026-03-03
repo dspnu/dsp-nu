@@ -46,9 +46,6 @@ export function ResourceCard({ resource, isOfficer }: ResourceCardProps) {
               {resource.is_officer_only && (
                 <Lock className="h-3 w-3 text-muted-foreground" />
               )}
-              {!resource.is_approved && (
-                <Badge variant="outline" className="text-[10px]">Pending approval</Badge>
-              )}
             </div>
             {resource.description && (
               <p className="text-sm text-muted-foreground mt-1 line-clamp-2">

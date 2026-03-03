@@ -44,7 +44,7 @@ import { CoffeeChatDashboard } from '@/components/coffee-chats/CoffeeChatDashboa
 import { ResourceForm } from '@/components/resources/ResourceForm';
 import { ResourceCard } from '@/components/resources/ResourceCard';
 
-const categories = ['chapter', 'rush', 'fundraising', 'service', 'brotherhood', 'professionalism', 'dei'] as const;
+const categories = ['chapter', 'rush', 'fundraising', 'service', 'brotherhood', 'professionalism', 'dei', 'new_member'] as const;
 const POINTS_REQUIREMENT = 100;
 const SERVICE_HOURS_REQUIREMENT = 10;
 
@@ -140,7 +140,7 @@ export default function ChapterPage() {
 
   const pendingServiceHours = allHours.filter(h => !h.verified);
   const pendingJobs = jobs?.filter(job => !job.is_approved) ?? [];
-  const pendingResources = resources?.filter(resource => !resource.is_approved) ?? [];
+  const pendingResources: any[] = [];
   const totalMembersCount = members?.length || 0;
 
   const getMemberName = (userId: string) => {

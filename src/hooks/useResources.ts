@@ -41,16 +41,15 @@ export function useResourcesByFolder(folder: string) {
 
 export function useCreateResource() {
   const queryClient = useQueryClient();
-  const { user, isAdminOrOfficer } = useAuth();
+  const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (resource: Omit<ResourceInsert, 'uploaded_by' | 'is_approved'>) => {
+    mutationFn: async (resource: Omit<ResourceInsert, 'uploaded_by'>) => {
       const { data, error } = await supabase
         .from('resources')
         .insert({
           ...resource,
           uploaded_by: user?.id,
-          is_approved: isAdminOrOfficer,
         })
         .select()
         .single();
@@ -60,7 +59,7 @@ export function useCreateResource() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['resources'] });
-      toast.success(isAdminOrOfficer ? 'Resource added!' : 'Resource submitted for approval');
+      toast.success('Resource added!');
     },
     onError: (error) => {
       toast.error('Failed to add resource: ' + error.message);
@@ -120,11 +119,11 @@ export function useApproveResource() {
 
   return useMutation({
     mutationFn: async (id: string) => {
+      // is_approved column was removed; this is now a no-op kept for API compat
       const { data, error } = await supabase
         .from('resources')
-        .update({ is_approved: true })
+        .select('*')
         .eq('id', id)
-        .select()
         .single();
 
       if (error) throw error;

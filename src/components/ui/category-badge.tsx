@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 
-type EventCategory = 'chapter' | 'rush' | 'fundraising' | 'service' | 'brotherhood' | 'professionalism' | 'dei';
+type EventCategory = 'chapter' | 'rush' | 'fundraising' | 'service' | 'brotherhood' | 'professionalism' | 'dei' | 'new_member';
 
 interface CategoryBadgeProps {
   category: EventCategory;
@@ -35,6 +35,10 @@ const categoryConfig: Record<EventCategory, { label: string; className: string }
   dei: {
     label: 'DE&I',
     className: 'bg-category-dei/10 text-category-dei border-category-dei/20',
+  },
+  new_member: {
+    label: 'New Member',
+    className: 'bg-purple-500/10 text-purple-700 border-purple-500/20',
   },
 };
 

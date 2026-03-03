@@ -102,6 +102,21 @@ export function useDeleteAssignment() {
   });
 }
 
+export function useUpdateAssignment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...vals }: { id: string; title?: string; description?: string | null; due_date?: string; submission_type?: string; module_id?: string | null }) => {
+      const { error } = await supabase.from('pdp_assignments').update(vals).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['pdp-assignments'] });
+      toast({ title: 'Assignment updated' });
+    },
+    onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
+  });
+}
+
 export function usePDPSubmissions(assignmentId?: string) {
   const { user } = useAuth();
   return useQuery({

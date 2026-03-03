@@ -1,6 +1,5 @@
-import { useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useMemo, useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { CheckCircle2, XCircle, Minus, Clock } from 'lucide-react';
 import { format, isPast } from 'date-fns';
@@ -8,6 +7,8 @@ import { useMembers } from '@/hooks/useMembers';
 import { usePDPAssignments, usePDPSubmissions } from '@/hooks/usePDPAssignments';
 import { useCoffeeChatMilestones } from '@/hooks/useCoffeeChatMilestones';
 import { useCoffeeChats } from '@/hooks/useCoffeeChats';
+import { useApprovedMembers } from '@/hooks/useApprovedMembers';
+import { MemberDetailDialog } from './MemberDetailDialog';
 
 export function PDPProgress() {
   const { data: members } = useMembers();
@@ -15,13 +16,15 @@ export function PDPProgress() {
   const { data: allSubmissions } = usePDPSubmissions();
   const { data: milestones } = useCoffeeChatMilestones();
   const { data: allChats } = useCoffeeChats();
+  const { data: approvedMembers } = useApprovedMembers();
+
+  const [selectedMember, setSelectedMember] = useState<any>(null);
 
   const newMembers = useMemo(() =>
     members?.filter(m => m.status === 'new_member').sort((a, b) => a.last_name.localeCompare(b.last_name)) || [],
     [members]
   );
 
-  // For each new member, count completed coffee chats
   const chatCountByUser = useMemo(() => {
     const counts: Record<string, number> = {};
     allChats?.forEach(chat => {
@@ -42,25 +45,21 @@ export function PDPProgress() {
     [assignments]
   );
 
-  // Get submission status for a user+assignment
   const getStatus = (userId: string, assignmentId: string) => {
     const sub = allSubmissions?.find(s => s.user_id === userId && s.assignment_id === assignmentId);
     const assignment = sortedAssignments.find(a => a.id === assignmentId);
     if (!assignment) return 'dash';
-    if (sub) return sub.status; // 'submitted' | 'complete' | 'incomplete'
+    if (sub) return sub.status;
     if (isPast(new Date(assignment.due_date))) return 'missing';
     return 'dash';
   };
 
-  // Get coffee chat milestone status for a user
   const getMilestoneStatus = (userId: string, milestone: { target_count: number; deadline: string }) => {
     const count = chatCountByUser[userId] || 0;
     if (count >= milestone.target_count) return 'complete';
     if (isPast(new Date(milestone.deadline))) return 'missing';
     return 'dash';
   };
-
-  const totalCols = sortedAssignments.length + sortedMilestones.length;
 
   if (newMembers.length === 0) {
     return (
@@ -110,7 +109,12 @@ export function PDPProgress() {
                 {newMembers.map(member => (
                   <tr key={member.id} className="border-b hover:bg-accent/50 transition-colors">
                     <td className="sticky left-0 bg-card z-10 p-2 font-medium border-r">
-                      {member.first_name} {member.last_name}
+                      <button
+                        className="text-primary hover:underline text-left"
+                        onClick={() => setSelectedMember(member)}
+                      >
+                        {member.first_name} {member.last_name}
+                      </button>
                     </td>
                     {sortedAssignments.map(a => {
                       const status = getStatus(member.user_id, a.id);
@@ -143,6 +147,18 @@ export function PDPProgress() {
         <span className="flex items-center gap-1"><XCircle className="h-3.5 w-3.5 text-red-500" /> Missing/Incomplete</span>
         <span className="flex items-center gap-1"><Minus className="h-3.5 w-3.5 text-muted-foreground" /> Not yet due</span>
       </div>
+
+      {/* Member Detail Dialog */}
+      <MemberDetailDialog
+        open={!!selectedMember}
+        onOpenChange={(open) => { if (!open) setSelectedMember(null); }}
+        member={selectedMember}
+        assignments={sortedAssignments}
+        submissions={allSubmissions || []}
+        coffeeChats={allChats || []}
+        approvedMembers={approvedMembers || []}
+        members={members || []}
+      />
     </div>
   );
 }

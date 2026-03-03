@@ -1122,6 +1122,7 @@ export type Database = {
         | "brotherhood"
         | "professionalism"
         | "dei"
+        | "new_member"
       job_type: "internship" | "full_time" | "part_time" | "contract"
       member_status: "active" | "alumni" | "new_member" | "pnm" | "inactive"
     }
@@ -1262,6 +1263,7 @@ export const Constants = {
         "brotherhood",
         "professionalism",
         "dei",
+        "new_member",
       ],
       job_type: ["internship", "full_time", "part_time", "contract"],
       member_status: ["active", "alumni", "new_member", "pnm", "inactive"],

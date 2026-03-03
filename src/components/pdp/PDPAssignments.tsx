@@ -8,15 +8,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { EmptyState } from '@/components/ui/empty-state';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, ClipboardList, Calendar, Trash2, CheckCircle2, XCircle, Clock, Send, MessageSquare, CalendarPlus, Upload, Paperclip, X } from 'lucide-react';
+import { Plus, ClipboardList, Calendar, Trash2, CheckCircle2, XCircle, Clock, Send, MessageSquare, CalendarPlus, Upload, Paperclip, X, Pencil } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { format, isPast, differenceInDays } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMembers } from '@/hooks/useMembers';
+import { usePDPModules } from '@/hooks/usePDPModules';
 import {
   usePDPAssignments,
   useCreateAssignment,
   useDeleteAssignment,
+  useUpdateAssignment,
   useMySubmissions,
   usePDPSubmissions,
   useSubmitAssignment,
@@ -44,7 +46,6 @@ function generateCalendarUrl(type: 'google' | 'outlook' | 'apple', assignment: P
   if (type === 'outlook') {
     return `https://outlook.live.com/calendar/0/action/compose?subject=${title}&startdt=${date.toISOString()}&enddt=${new Date(date.getTime() + 3600000).toISOString()}`;
   }
-  // Apple/ICS
   return `data:text/calendar;charset=utf-8,BEGIN:VCALENDAR%0AVERSION:2.0%0ABEGIN:VEVENT%0ADTSTART:${dateStr}%0ADTEND:${endStr}%0ASUMMARY:${title}%0AEND:VEVENT%0AEND:VCALENDAR`;
 }
 
@@ -97,7 +98,7 @@ function SubmissionDetail({ submission, isVP, members }: { submission: PDPSubmis
                 }
               }}
             >
-              Attachment {i + 1}
+              📎 Attachment {i + 1}
             </button>
           ))}
         </div>
@@ -120,7 +121,6 @@ function SubmissionDetail({ submission, isVP, members }: { submission: PDPSubmis
         </div>
       )}
 
-      {/* Comments */}
       {comments && comments.length > 0 && (
         <div className="space-y-2 pt-2 border-t">
           {comments.map(c => {
@@ -161,13 +161,15 @@ function SubmissionDetail({ submission, isVP, members }: { submission: PDPSubmis
   );
 }
 
-function AssignmentCard({ assignment, isVP, isNewMember, mySubmission, allSubmissions, members }: {
+function AssignmentCard({ assignment, isVP, isNewMember, mySubmission, allSubmissions, members, modules, onEdit }: {
   assignment: PDPAssignment;
   isVP: boolean;
   isNewMember: boolean;
   mySubmission?: PDPSubmission;
   allSubmissions?: PDPSubmission[];
   members: any[];
+  modules: any[];
+  onEdit: (a: PDPAssignment) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [submitOpen, setSubmitOpen] = useState(false);
@@ -176,10 +178,12 @@ function AssignmentCard({ assignment, isVP, isNewMember, mySubmission, allSubmis
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const submitAssignment = useSubmitAssignment();
+  const deleteAssignment = useDeleteAssignment();
   const { user } = useAuth();
 
   const overdue = isPast(new Date(assignment.due_date));
   const daysLeft = differenceInDays(new Date(assignment.due_date), new Date());
+  const moduleName = modules?.find(m => m.id === assignment.module_id)?.name;
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = Array.from(e.target.files || []);
@@ -203,7 +207,6 @@ function AssignmentCard({ assignment, isVP, isNewMember, mySubmission, allSubmis
             .from('pdp-submissions')
             .upload(path, file, { upsert: true });
           if (uploadError) throw uploadError;
-          // Store the path for signed URL generation later
           fileUrls.push(path);
         }
       }
@@ -225,7 +228,7 @@ function AssignmentCard({ assignment, isVP, isNewMember, mySubmission, allSubmis
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
               {mySubmission?.status === 'complete' ? (
                 <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
               ) : mySubmission?.status === 'incomplete' ? (
@@ -239,14 +242,33 @@ function AssignmentCard({ assignment, isVP, isNewMember, mySubmission, allSubmis
               <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                 {assignment.submission_type === 'text' ? 'Text' : assignment.submission_type === 'file' ? 'File' : 'Text + File'}
               </Badge>
+              {moduleName && (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0">{moduleName}</Badge>
+              )}
             </div>
             {assignment.description && (
               <p className="text-xs text-muted-foreground ml-6">{assignment.description}</p>
             )}
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-          {/* Delete handled at parent level */}
-          </div>
+          {isVP && (
+            <div className="flex items-center gap-1 shrink-0">
+              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onEdit(assignment)}>
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                onClick={() => {
+                  if (confirm(`Delete "${assignment.title}"?`)) {
+                    deleteAssignment.mutate(assignment.id);
+                  }
+                }}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-between ml-6">
@@ -256,17 +278,9 @@ function AssignmentCard({ assignment, isVP, isNewMember, mySubmission, allSubmis
               {overdue ? 'Overdue' : `Due ${format(new Date(assignment.due_date), 'MMM d')}`}
               {!overdue && daysLeft <= 3 && ` (${daysLeft}d left)`}
             </span>
-
-            {/* Calendar add buttons */}
             <div className="flex gap-1">
               {(['google', 'outlook', 'apple'] as const).map(type => (
-                <a
-                  key={type}
-                  href={generateCalendarUrl(type, assignment)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-[10px] text-primary hover:underline"
-                >
+                <a key={type} href={generateCalendarUrl(type, assignment)} target="_blank" rel="noreferrer" className="text-[10px] text-primary hover:underline">
                   {type === 'google' ? 'Google' : type === 'outlook' ? 'Outlook' : 'Apple'}
                 </a>
               ))}
@@ -293,41 +307,20 @@ function AssignmentCard({ assignment, isVP, isNewMember, mySubmission, allSubmis
                   </DialogHeader>
                   <div className="space-y-4">
                     {(assignment.submission_type === 'text' || assignment.submission_type === 'both') && (
-                      <Textarea
-                        placeholder="Your response..."
-                        value={content}
-                        onChange={e => setContent(e.target.value)}
-                        rows={4}
-                      />
+                      <Textarea placeholder="Your response..." value={content} onChange={e => setContent(e.target.value)} rows={4} />
                     )}
                     {(assignment.submission_type === 'file' || assignment.submission_type === 'both') && (
                       <div>
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          multiple
-                          accept="image/*,.pdf,.doc,.docx,.txt"
-                          className="hidden"
-                          onChange={handleFileSelect}
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => fileInputRef.current?.click()}
-                          className="w-full"
-                        >
-                          <Paperclip className="h-3.5 w-3.5 mr-1.5" />
-                          Attach Files
+                        <input ref={fileInputRef} type="file" multiple accept="image/*,.pdf,.doc,.docx,.txt" className="hidden" onChange={handleFileSelect} />
+                        <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="w-full">
+                          <Paperclip className="h-3.5 w-3.5 mr-1.5" /> Attach Files
                         </Button>
                         {files.length > 0 && (
                           <div className="mt-2 space-y-1">
                             {files.map((f, i) => (
                               <div key={i} className="flex items-center justify-between text-xs bg-muted rounded px-2 py-1">
                                 <span className="truncate">{f.name}</span>
-                                <button onClick={() => removeFile(i)} className="text-muted-foreground hover:text-foreground ml-2">
-                                  <X className="h-3 w-3" />
-                                </button>
+                                <button onClick={() => removeFile(i)} className="text-muted-foreground hover:text-foreground ml-2"><X className="h-3 w-3" /></button>
                               </div>
                             ))}
                           </div>
@@ -347,8 +340,7 @@ function AssignmentCard({ assignment, isVP, isNewMember, mySubmission, allSubmis
 
             {isNewMember && mySubmission && mySubmission.status !== 'incomplete' && (
               <Badge variant="outline" className={`text-xs ${
-                mySubmission.status === 'complete' ? 'text-emerald-700 bg-emerald-500/10' :
-                'text-blue-700 bg-blue-500/10'
+                mySubmission.status === 'complete' ? 'text-emerald-700 bg-emerald-500/10' : 'text-blue-700 bg-blue-500/10'
               }`}>
                 {mySubmission.status === 'complete' ? 'Complete' : 'Submitted'}
               </Badge>
@@ -356,7 +348,6 @@ function AssignmentCard({ assignment, isVP, isNewMember, mySubmission, allSubmis
           </div>
         </div>
 
-        {/* Expanded submissions view for VPs */}
         {expanded && isVP && allSubmissions && (
           <div className="space-y-2 mt-3 pt-3 border-t">
             {allSubmissions.length === 0 ? (
@@ -378,24 +369,61 @@ export function PDPAssignments({ isVP, isNewMember }: Props) {
   const { data: mySubmissions } = useMySubmissions();
   const { data: allSubmissions } = usePDPSubmissions();
   const { data: members } = useMembers();
+  const { data: modules } = usePDPModules();
   const createAssignment = useCreateAssignment();
-  const deleteAssignment = useDeleteAssignment();
+  const updateAssignment = useUpdateAssignment();
 
   const [createOpen, setCreateOpen] = useState(false);
+  const [editingAssignment, setEditingAssignment] = useState<PDPAssignment | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [submissionType, setSubmissionType] = useState<'text' | 'file' | 'both'>('text');
+  const [moduleId, setModuleId] = useState<string>('none');
 
-  const handleCreate = () => {
-    if (!title || !dueDate) return;
-    createAssignment.mutate(
-      { title, description: description || undefined, due_date: new Date(dueDate).toISOString(), submission_type: submissionType },
-      { onSuccess: () => { setTitle(''); setDescription(''); setDueDate(''); setSubmissionType('text'); setCreateOpen(false); } }
-    );
+  const openCreate = () => {
+    setEditingAssignment(null);
+    setTitle('');
+    setDescription('');
+    setDueDate('');
+    setSubmissionType('text');
+    setModuleId('none');
+    setCreateOpen(true);
   };
 
-  // Checklist summary for new members
+  const openEdit = (a: PDPAssignment) => {
+    setEditingAssignment(a);
+    setTitle(a.title);
+    setDescription(a.description || '');
+    setDueDate(new Date(a.due_date).toISOString().slice(0, 16));
+    setSubmissionType(a.submission_type as 'text' | 'file' | 'both');
+    setModuleId(a.module_id || 'none');
+    setCreateOpen(true);
+  };
+
+  const handleSave = () => {
+    if (!title || !dueDate) return;
+    const mid = moduleId === 'none' ? undefined : moduleId;
+    if (editingAssignment) {
+      updateAssignment.mutate(
+        {
+          id: editingAssignment.id,
+          title,
+          description: description || null,
+          due_date: new Date(dueDate).toISOString(),
+          submission_type: submissionType,
+          module_id: mid || null,
+        },
+        { onSuccess: () => setCreateOpen(false) }
+      );
+    } else {
+      createAssignment.mutate(
+        { title, description: description || undefined, due_date: new Date(dueDate).toISOString(), submission_type: submissionType, module_id: mid },
+        { onSuccess: () => setCreateOpen(false) }
+      );
+    }
+  };
+
   const completedCount = useMemo(() => {
     if (!assignments || !mySubmissions) return 0;
     return mySubmissions.filter(s => s.status === 'complete').length;
@@ -410,7 +438,6 @@ export function PDPAssignments({ isVP, isNewMember }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Header + Create */}
       <div className="flex items-center justify-between">
         {isNewMember && totalAssignments > 0 && (
           <div className="flex items-center gap-3">
@@ -420,53 +447,65 @@ export function PDPAssignments({ isVP, isNewMember }: Props) {
         )}
         {!isNewMember && <div />}
         {isVP && (
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-1" /> New Assignment
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Create Assignment</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Title</label>
-                  <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Assignment title" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Description</label>
-                  <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Optional description" rows={3} />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Due Date</label>
-                  <Input type="datetime-local" value={dueDate} onChange={e => setDueDate(e.target.value)} />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Submission Type</label>
-                  <Select value={submissionType} onValueChange={(v) => setSubmissionType(v as 'text' | 'file' | 'both')}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="text">Text Only</SelectItem>
-                      <SelectItem value="file">File Upload Only</SelectItem>
-                      <SelectItem value="both">Text + File Upload</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
-                  <Button onClick={handleCreate} disabled={createAssignment.isPending || !title || !dueDate}>
-                    {createAssignment.isPending ? 'Creating...' : 'Create'}
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button size="sm" onClick={openCreate}>
+            <Plus className="h-4 w-4 mr-1" /> New Assignment
+          </Button>
         )}
       </div>
+
+      {/* Create/Edit Dialog */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editingAssignment ? 'Edit Assignment' : 'Create Assignment'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Title</label>
+              <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Assignment title" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Description</label>
+              <Textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Optional description" rows={3} />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Due Date</label>
+              <Input type="datetime-local" value={dueDate} onChange={e => setDueDate(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Submission Type</label>
+              <Select value={submissionType} onValueChange={(v) => setSubmissionType(v as 'text' | 'file' | 'both')}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="text">Text Only</SelectItem>
+                  <SelectItem value="file">File Upload Only</SelectItem>
+                  <SelectItem value="both">Text + File Upload</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Module</label>
+              <Select value={moduleId} onValueChange={setModuleId}>
+                <SelectTrigger><SelectValue placeholder="No module" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No module</SelectItem>
+                  {modules?.map(m => (
+                    <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
+              <Button onClick={handleSave} disabled={createAssignment.isPending || updateAssignment.isPending || !title || !dueDate}>
+                {editingAssignment
+                  ? (updateAssignment.isPending ? 'Saving...' : 'Save')
+                  : (createAssignment.isPending ? 'Creating...' : 'Create')}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Assignment list */}
       {!assignments || assignments.length === 0 ? (
@@ -489,6 +528,8 @@ export function PDPAssignments({ isVP, isNewMember }: Props) {
                 mySubmission={mySub}
                 allSubmissions={assignSubs}
                 members={members || []}
+                modules={modules || []}
+                onEdit={openEdit}
               />
             );
           })}
