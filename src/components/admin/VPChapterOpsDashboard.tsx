@@ -80,6 +80,7 @@ export function VPChapterOpsDashboard() {
 
         return {
           id: member.id,
+          userId: member.user_id,
           name: `${member.first_name} ${member.last_name}`,
           status: member.status,
           totalPts,
