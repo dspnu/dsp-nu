@@ -7,9 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Plus, FolderOpen, ExternalLink, Trash2 } from 'lucide-react';
+import { Plus, FolderOpen, ExternalLink, Trash2, Edit2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { usePDPResources, useCreatePDPResource, useDeletePDPResource } from '@/hooks/usePDPResources';
+import { usePDPResources, useCreatePDPResource, useDeletePDPResource, useUpdatePDPResource, PDPResource } from '@/hooks/usePDPResources';
 import { usePDPModules } from '@/hooks/usePDPModules';
 
 interface Props {
