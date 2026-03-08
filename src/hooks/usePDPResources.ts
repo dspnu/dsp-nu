@@ -51,6 +51,21 @@ export function useCreatePDPResource() {
   });
 }
 
+export function useUpdatePDPResource() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...vals }: { id: string; title?: string; description?: string | null; url?: string | null; module_id?: string | null }) => {
+      const { error } = await supabase.from('pdp_resources').update(vals).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['pdp-resources'] });
+      toast({ title: 'Resource updated' });
+    },
+    onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
+  });
+}
+
 export function useDeletePDPResource() {
   const qc = useQueryClient();
   return useMutation({

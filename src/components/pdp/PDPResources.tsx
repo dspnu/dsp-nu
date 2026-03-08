@@ -7,9 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Plus, FolderOpen, ExternalLink, Trash2 } from 'lucide-react';
+import { Plus, FolderOpen, ExternalLink, Trash2, Edit2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { usePDPResources, useCreatePDPResource, useDeletePDPResource } from '@/hooks/usePDPResources';
+import { usePDPResources, useCreatePDPResource, useDeletePDPResource, useUpdatePDPResource, PDPResource } from '@/hooks/usePDPResources';
 import { usePDPModules } from '@/hooks/usePDPModules';
 
 interface Props {
@@ -21,6 +21,7 @@ export function PDPResources({ isVP }: Props) {
   const { data: modules } = usePDPModules();
   const createResource = useCreatePDPResource();
   const deleteResource = useDeletePDPResource();
+  const updateResource = useUpdatePDPResource();
 
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
@@ -28,11 +29,42 @@ export function PDPResources({ isVP }: Props) {
   const [url, setUrl] = useState('');
   const [moduleId, setModuleId] = useState<string>('none');
 
+  // Edit state
+  const [editOpen, setEditOpen] = useState(false);
+  const [editResource, setEditResource] = useState<PDPResource | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editUrl, setEditUrl] = useState('');
+  const [editModuleId, setEditModuleId] = useState<string>('none');
+
   const handleCreate = () => {
     if (!title) return;
     createResource.mutate(
       { title, description: description || undefined, url: url || undefined, module_id: moduleId === 'none' ? undefined : moduleId },
       { onSuccess: () => { setTitle(''); setDescription(''); setUrl(''); setModuleId('none'); setOpen(false); } }
+    );
+  };
+
+  const openEdit = (r: PDPResource) => {
+    setEditResource(r);
+    setEditTitle(r.title);
+    setEditDescription(r.description || '');
+    setEditUrl(r.url || '');
+    setEditModuleId(r.module_id || 'none');
+    setEditOpen(true);
+  };
+
+  const handleEdit = () => {
+    if (!editResource || !editTitle) return;
+    updateResource.mutate(
+      {
+        id: editResource.id,
+        title: editTitle,
+        description: editDescription || null,
+        url: editUrl || null,
+        module_id: editModuleId === 'none' ? null : editModuleId,
+      },
+      { onSuccess: () => setEditOpen(false) }
     );
   };
 
@@ -126,14 +158,24 @@ export function PDPResources({ isVP }: Props) {
                       </Button>
                     )}
                     {isVP && (
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        onClick={() => deleteResource.mutate(resource.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8"
+                          onClick={() => openEdit(resource)}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={() => deleteResource.mutate(resource.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
                     )}
                   </div>
                 </CardContent>
@@ -142,6 +184,47 @@ export function PDPResources({ isVP }: Props) {
           })}
         </div>
       )}
+
+      {/* Edit Resource Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Resource</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Title</label>
+              <Input value={editTitle} onChange={e => setEditTitle(e.target.value)} placeholder="Resource title" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Description</label>
+              <Textarea value={editDescription} onChange={e => setEditDescription(e.target.value)} placeholder="Optional description" rows={2} />
+            </div>
+            <div>
+              <label className="text-sm font-medium">URL</label>
+              <Input value={editUrl} onChange={e => setEditUrl(e.target.value)} placeholder="https://..." />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Module</label>
+              <Select value={editModuleId} onValueChange={setEditModuleId}>
+                <SelectTrigger><SelectValue placeholder="No module" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No module</SelectItem>
+                  {modules?.map(m => (
+                    <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
+              <Button onClick={handleEdit} disabled={updateResource.isPending || !editTitle}>
+                {updateResource.isPending ? 'Saving...' : 'Save'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
