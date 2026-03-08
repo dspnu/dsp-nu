@@ -12,7 +12,7 @@ import { lovable } from '@/integrations/lovable/index';
 import { Separator } from '@/components/ui/separator';
 
 export default function AuthPage() {
-  const { user, loading, signIn, signUp } = useAuth();
+  const { user, loading, signIn, signUp, profile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
