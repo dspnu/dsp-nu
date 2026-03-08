@@ -538,10 +538,12 @@ export default function ChapterPage() {
                   <Progress value={pointsProgress} className="h-2" />
                 </div>
                 <div className="grid grid-cols-4 gap-1.5 sm:gap-2 pt-1 sm:pt-2">
-                  {categories.slice(0, 4).map(cat => (
+                  {categories.filter(c => c !== 'new_member').map(cat => (
                     <div key={cat} className="text-center">
-                      <div className="text-base sm:text-lg font-semibold">{myByCategory[cat] || 0}</div>
-                      <div className="text-[9px] sm:text-[10px] text-muted-foreground capitalize truncate">{cat}</div>
+                      <div className={`text-base sm:text-lg font-semibold ${(myByCategory[cat] || 0) >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
+                        {(myByCategory[cat] || 0) >= 1 ? '✓' : '✗'}
+                      </div>
+                      <div className="text-[9px] sm:text-[10px] text-muted-foreground capitalize truncate">{cat === 'dei' ? 'DE&I' : cat}</div>
                     </div>
                   ))}
                 </div>
