@@ -44,6 +44,7 @@ import { CoffeeChatCard } from '@/components/coffee-chats/CoffeeChatCard';
 import { CoffeeChatDashboard } from '@/components/coffee-chats/CoffeeChatDashboard';
 import { ResourceForm } from '@/components/resources/ResourceForm';
 import { ResourceCard } from '@/components/resources/ResourceCard';
+import { useAllPaddleSubmissions } from '@/hooks/usePaddleSubmissions';
 
 const categories = ['chapter', 'rush', 'fundraising', 'service', 'brotherhood', 'professionalism', 'dei', 'new_member'] as const;
 const POINTS_REQUIREMENT = 100;
