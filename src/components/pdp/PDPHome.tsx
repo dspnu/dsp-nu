@@ -9,10 +9,11 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Plus, LayoutGrid, Trash2, Edit2, ClipboardList, FolderOpen, ExternalLink,
-  Calendar, CheckCircle2, XCircle, Clock, ChevronDown, ChevronRight, Link as LinkIcon
+  Calendar, CheckCircle2, XCircle, Clock, ChevronDown, ChevronRight, Link as LinkIcon,
+  ArrowUp, ArrowDown
 } from 'lucide-react';
 import { format, isPast, differenceInDays } from 'date-fns';
-import { usePDPModules, useCreatePDPModule, useDeletePDPModule, useUpdatePDPModule } from '@/hooks/usePDPModules';
+import { usePDPModules, useCreatePDPModule, useDeletePDPModule, useUpdatePDPModule, useReorderPDPModules } from '@/hooks/usePDPModules';
 import { usePDPAssignments, useCreateAssignment, useDeleteAssignment, useMySubmissions } from '@/hooks/usePDPAssignments';
 import { usePDPResources, useCreatePDPResource, useDeletePDPResource } from '@/hooks/usePDPResources';
 import { useAuth } from '@/contexts/AuthContext';
