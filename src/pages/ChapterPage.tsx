@@ -32,7 +32,7 @@ import { useAllDues, useRecordDues } from '@/hooks/useDues';
 import { useJobs, useJobBookmarks, useApproveJob } from '@/hooks/useJobs';
 import { useMyCoffeeChats, useCoffeeChats } from '@/hooks/useCoffeeChats';
 import { useApproveResource, useResources } from '@/hooks/useResources';
-import { useChapterSetting, useUpdateChapterSetting } from '@/hooks/useChapterSettings';
+import { useChapterSetting } from '@/hooks/useChapterSettings';
 import { useIsVPChapterOps } from '@/hooks/useEOPRealtime';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
