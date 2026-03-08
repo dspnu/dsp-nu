@@ -75,6 +75,7 @@ export function EventForm({ event, trigger }: EventFormProps) {
         location: '',
         points_value: 0,
         is_required: false,
+        payment_required: false,
       });
     }
   };
