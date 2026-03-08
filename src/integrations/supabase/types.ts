@@ -684,6 +684,30 @@ export type Database = {
         }
         Relationships: []
       }
+      paddle_submissions: {
+        Row: {
+          created_at: string
+          id: string
+          link_url: string
+          subject_name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          link_url: string
+          subject_name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          link_url?: string
+          subject_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pdp_assignments: {
         Row: {
           created_at: string
