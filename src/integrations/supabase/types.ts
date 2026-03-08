@@ -301,6 +301,135 @@ export type Database = {
         }
         Relationships: []
       }
+      dues_config: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          is_active: boolean
+          member_status: string
+          semester: string
+          tier_name: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          member_status: string
+          semester: string
+          tier_name: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          member_status?: string
+          semester?: string
+          tier_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      dues_installments: {
+        Row: {
+          amount: number
+          created_at: string
+          due_date: string
+          id: string
+          installment_number: number
+          paid: boolean
+          semester: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          due_date: string
+          id?: string
+          installment_number?: number
+          paid?: boolean
+          semester: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          due_date?: string
+          id?: string
+          installment_number?: number
+          paid?: boolean
+          semester?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      dues_late_fees: {
+        Row: {
+          created_at: string
+          deadline: string
+          description: string | null
+          fee_amount: number
+          id: string
+          is_active: boolean
+          semester: string
+        }
+        Insert: {
+          created_at?: string
+          deadline: string
+          description?: string | null
+          fee_amount?: number
+          id?: string
+          is_active?: boolean
+          semester: string
+        }
+        Update: {
+          created_at?: string
+          deadline?: string
+          description?: string | null
+          fee_amount?: number
+          id?: string
+          is_active?: boolean
+          semester?: string
+        }
+        Relationships: []
+      }
+      dues_line_items: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          semester: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          semester: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          semester?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       dues_payments: {
         Row: {
           amount: number
@@ -498,6 +627,7 @@ export type Database = {
           is_required: boolean
           location: string | null
           organizer_id: string | null
+          payment_required: boolean
           points_value: number
           qr_code: string | null
           start_time: string
@@ -514,6 +644,7 @@ export type Database = {
           is_required?: boolean
           location?: string | null
           organizer_id?: string | null
+          payment_required?: boolean
           points_value?: number
           qr_code?: string | null
           start_time: string
@@ -530,6 +661,7 @@ export type Database = {
           is_required?: boolean
           location?: string | null
           organizer_id?: string | null
+          payment_required?: boolean
           points_value?: number
           qr_code?: string | null
           start_time?: string

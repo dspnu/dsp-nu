@@ -45,6 +45,7 @@ export function EventForm({ event, trigger }: EventFormProps) {
     location: event?.location || '',
     points_value: event?.points_value || 0,
     is_required: event?.is_required || false,
+    payment_required: (event as any)?.payment_required || false,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,6 +75,7 @@ export function EventForm({ event, trigger }: EventFormProps) {
         location: '',
         points_value: 0,
         is_required: false,
+        payment_required: false,
       });
     }
   };
@@ -182,6 +184,15 @@ export function EventForm({ event, trigger }: EventFormProps) {
               />
               <Label htmlFor="is_required">Required Event</Label>
             </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Switch
+              id="payment_required"
+              checked={formData.payment_required}
+              onCheckedChange={(checked) => setFormData({ ...formData, payment_required: checked })}
+            />
+            <Label htmlFor="payment_required">Requires Dues Payment</Label>
           </div>
 
           <div className="flex justify-end gap-2 pt-4">

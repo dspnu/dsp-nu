@@ -49,6 +49,7 @@ import { VPCommunityServiceDashboard } from '@/components/admin/VPCommunityServi
 import { VPProfessionalActivitiesDashboard } from '@/components/admin/VPProfessionalActivitiesDashboard';
 import { VPScholarshipDashboard } from '@/components/admin/VPScholarshipDashboard';
 import { PresidentDashboard } from '@/components/admin/PresidentDashboard';
+import { VPFinanceDashboard } from '@/components/admin/VPFinanceDashboard';
 
 const categories = ['chapter', 'rush', 'fundraising', 'service', 'brotherhood', 'professionalism', 'dei', 'new_member'] as const;
 const POINTS_REQUIREMENT = 7;
@@ -89,6 +90,7 @@ export default function ChapterPage() {
   const isVPCommunityService = profile?.positions?.includes('VP of Community Service') || false;
   const isVPProfessionalActivities = profile?.positions?.includes('VP of Professional Activities') || false;
   const isPresident = profile?.positions?.includes('President') || false;
+  const isVPFinance = profile?.positions?.includes('VP Finance') || profile?.positions?.includes('VP of Finance') || false;
 
   const [activeTab, setActiveTab] = useState('jobs');
   const [jobSearch, setJobSearch] = useState('');
@@ -797,11 +799,13 @@ export default function ChapterPage() {
             {isVPProfessionalActivities && <VPProfessionalActivitiesDashboard />}
             {isVPScholarship && <VPScholarshipDashboard />}
             {isPresident && <PresidentDashboard />}
+            {isVPFinance && <VPFinanceDashboard />}
 
             {/* Fallback for admins/developers who don't hold a specific VP position */}
-            {!isVPChapterOps && !isVPCommunityService && !isVPProfessionalActivities && !isVPScholarship && !isPresident && (
+            {!isVPChapterOps && !isVPCommunityService && !isVPProfessionalActivities && !isVPScholarship && !isPresident && !isVPFinance && (
               <div className="space-y-6">
                 <PresidentDashboard />
+                <VPFinanceDashboard />
                 <VPChapterOpsDashboard />
                 <VPCommunityServiceDashboard />
                 <VPProfessionalActivitiesDashboard />
