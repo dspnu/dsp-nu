@@ -184,6 +184,47 @@ export function PDPResources({ isVP }: Props) {
           })}
         </div>
       )}
+
+      {/* Edit Resource Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Resource</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Title</label>
+              <Input value={editTitle} onChange={e => setEditTitle(e.target.value)} placeholder="Resource title" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Description</label>
+              <Textarea value={editDescription} onChange={e => setEditDescription(e.target.value)} placeholder="Optional description" rows={2} />
+            </div>
+            <div>
+              <label className="text-sm font-medium">URL</label>
+              <Input value={editUrl} onChange={e => setEditUrl(e.target.value)} placeholder="https://..." />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Module</label>
+              <Select value={editModuleId} onValueChange={setEditModuleId}>
+                <SelectTrigger><SelectValue placeholder="No module" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No module</SelectItem>
+                  {modules?.map(m => (
+                    <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
+              <Button onClick={handleEdit} disabled={updateResource.isPending || !editTitle}>
+                {updateResource.isPending ? 'Saving...' : 'Save'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
