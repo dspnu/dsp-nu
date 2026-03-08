@@ -32,6 +32,7 @@ export function PDPHome({ isVP, isNewMember, onNavigateToAssignments }: Props) {
   const createModule = useCreatePDPModule();
   const deleteModule = useDeletePDPModule();
   const updateModule = useUpdatePDPModule();
+  const reorderModules = useReorderPDPModules();
   const createAssignment = useCreateAssignment();
   const deleteAssignment = useDeleteAssignment();
   const createResource = useCreatePDPResource();
