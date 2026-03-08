@@ -59,6 +59,7 @@ export function useLogServiceHours() {
       hours: number;
       description: string;
       service_date: string;
+      photo_url?: string;
     }) => {
       const { error } = await supabase.from('service_hours').insert(values);
       if (error) throw error;
