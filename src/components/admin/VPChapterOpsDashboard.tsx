@@ -172,6 +172,27 @@ export function VPChapterOpsDashboard() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Member Standing Spreadsheet</CardTitle>
+          <div className="flex flex-col sm:flex-row gap-2 mt-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search members..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 h-9"
+              />
+            </div>
+            <Select value={standingFilter} onValueChange={(v) => setStandingFilter(v as 'all' | 'good' | 'at_risk')}>
+              <SelectTrigger className="w-[160px] h-9">
+                <SelectValue placeholder="Standing" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Members</SelectItem>
+                <SelectItem value="good">Good Standing</SelectItem>
+                <SelectItem value="at_risk">At Risk</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <ScrollArea className="w-full">
