@@ -9,10 +9,11 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Plus, LayoutGrid, Trash2, Edit2, ClipboardList, FolderOpen, ExternalLink,
-  Calendar, CheckCircle2, XCircle, Clock, ChevronDown, ChevronRight, Link as LinkIcon
+  Calendar, CheckCircle2, XCircle, Clock, ChevronDown, ChevronRight, Link as LinkIcon,
+  ArrowUp, ArrowDown
 } from 'lucide-react';
 import { format, isPast, differenceInDays } from 'date-fns';
-import { usePDPModules, useCreatePDPModule, useDeletePDPModule, useUpdatePDPModule } from '@/hooks/usePDPModules';
+import { usePDPModules, useCreatePDPModule, useDeletePDPModule, useUpdatePDPModule, useReorderPDPModules } from '@/hooks/usePDPModules';
 import { usePDPAssignments, useCreateAssignment, useDeleteAssignment, useMySubmissions } from '@/hooks/usePDPAssignments';
 import { usePDPResources, useCreatePDPResource, useDeletePDPResource } from '@/hooks/usePDPResources';
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,6 +32,7 @@ export function PDPHome({ isVP, isNewMember, onNavigateToAssignments }: Props) {
   const createModule = useCreatePDPModule();
   const deleteModule = useDeletePDPModule();
   const updateModule = useUpdatePDPModule();
+  const reorderModules = useReorderPDPModules();
   const createAssignment = useCreateAssignment();
   const deleteAssignment = useDeleteAssignment();
   const createResource = useCreatePDPResource();
@@ -50,6 +52,12 @@ export function PDPHome({ isVP, isNewMember, onNavigateToAssignments }: Props) {
   const [itemSubmissionType, setItemSubmissionType] = useState<'text' | 'file' | 'both'>('text');
   const [itemUrl, setItemUrl] = useState('');
 
+  // Edit module dialog
+  const [editModuleOpen, setEditModuleOpen] = useState(false);
+  const [editModuleId, setEditModuleId] = useState('');
+  const [editModuleName, setEditModuleName] = useState('');
+  const [editModuleDesc, setEditModuleDesc] = useState('');
+
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
 
   const toggleModule = (id: string) => {
@@ -67,6 +75,30 @@ export function PDPHome({ isVP, isNewMember, onNavigateToAssignments }: Props) {
       { name: moduleName, description: moduleDesc || undefined },
       { onSuccess: () => { setModuleName(''); setModuleDesc(''); setModuleOpen(false); } }
     );
+  };
+
+  const openEditModule = (mod: { id: string; name: string; description: string | null }) => {
+    setEditModuleId(mod.id);
+    setEditModuleName(mod.name);
+    setEditModuleDesc(mod.description || '');
+    setEditModuleOpen(true);
+  };
+
+  const handleEditModule = () => {
+    if (!editModuleName) return;
+    updateModule.mutate(
+      { id: editModuleId, name: editModuleName, description: editModuleDesc || undefined },
+      { onSuccess: () => setEditModuleOpen(false) }
+    );
+  };
+
+  const handleMoveModule = (index: number, direction: 'up' | 'down') => {
+    if (!modules) return;
+    const newModules = [...modules];
+    const swapIndex = direction === 'up' ? index - 1 : index + 1;
+    if (swapIndex < 0 || swapIndex >= newModules.length) return;
+    [newModules[index], newModules[swapIndex]] = [newModules[swapIndex], newModules[index]];
+    reorderModules.mutate(newModules.map((m, i) => ({ id: m.id, sort_order: i })));
   };
 
   const openAddItem = (moduleId: string, type: 'assignment' | 'resource') => {
@@ -170,7 +202,7 @@ export function PDPHome({ isVP, isNewMember, onNavigateToAssignments }: Props) {
         />
       ) : (
         <div className="space-y-4">
-          {modules?.map(mod => {
+          {modules?.map((mod, modIndex) => {
             const modAssignments = getModuleAssignments(mod.id);
             const modResources = getModuleResources(mod.id);
             const isExpanded = expandedModules.has(mod.id);
@@ -189,7 +221,18 @@ export function PDPHome({ isVP, isNewMember, onNavigateToAssignments }: Props) {
                       <Badge variant="secondary" className="text-[10px]">{totalItems} item{totalItems !== 1 ? 's' : ''}</Badge>
                     </div>
                     {isVP && (
-                      <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                      <div className="flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" disabled={modIndex === 0}
+                          onClick={() => handleMoveModule(modIndex, 'up')}>
+                          <ArrowUp className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" disabled={modIndex === (modules?.length ?? 0) - 1}
+                          onClick={() => handleMoveModule(modIndex, 'down')}>
+                          <ArrowDown className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEditModule(mod)}>
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </Button>
                         <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openAddItem(mod.id, 'assignment')}>
                           <ClipboardList className="h-3.5 w-3.5" />
                         </Button>
@@ -374,6 +417,31 @@ export function PDPHome({ isVP, isNewMember, onNavigateToAssignments }: Props) {
               <Button variant="outline" onClick={() => setAddItemOpen(false)}>Cancel</Button>
               <Button onClick={handleAddItem} disabled={!itemTitle || (addItemType === 'assignment' && !itemDueDate)}>
                 Add
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Module Dialog */}
+      <Dialog open={editModuleOpen} onOpenChange={setEditModuleOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Module</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Name</label>
+              <Input value={editModuleName} onChange={e => setEditModuleName(e.target.value)} placeholder="Module name" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Description</label>
+              <Textarea value={editModuleDesc} onChange={e => setEditModuleDesc(e.target.value)} placeholder="Optional description" rows={2} />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setEditModuleOpen(false)}>Cancel</Button>
+              <Button onClick={handleEditModule} disabled={updateModule.isPending || !editModuleName}>
+                {updateModule.isPending ? 'Saving...' : 'Save'}
               </Button>
             </div>
           </div>

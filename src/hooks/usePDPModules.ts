@@ -59,7 +59,7 @@ export function useCreatePDPModule() {
 export function useUpdatePDPModule() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...vals }: { id: string; name?: string; description?: string }) => {
+    mutationFn: async ({ id, ...vals }: { id: string; name?: string; description?: string; sort_order?: number }) => {
       const { error } = await supabase.from('pdp_modules').update(vals).eq('id', id);
       if (error) throw error;
     },
@@ -68,6 +68,24 @@ export function useUpdatePDPModule() {
       toast({ title: 'Module updated' });
     },
     onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
+  });
+}
+
+export function useReorderPDPModules() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (modules: { id: string; sort_order: number }[]) => {
+      const promises = modules.map(m =>
+        supabase.from('pdp_modules').update({ sort_order: m.sort_order }).eq('id', m.id)
+      );
+      const results = await Promise.all(promises);
+      const err = results.find(r => r.error);
+      if (err?.error) throw err.error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['pdp-modules'] });
+    },
+    onError: (e: Error) => toast({ title: 'Error reordering', description: e.message, variant: 'destructive' }),
   });
 }
 
