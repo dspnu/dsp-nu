@@ -6,6 +6,7 @@ import { AlertsSection } from '@/components/home/AlertsSection';
 import { QuickActions } from '@/components/home/QuickActions';
 import { UpcomingTimeline } from '@/components/home/UpcomingTimeline';
 import { PDPProgressCard } from '@/components/home/PDPProgressCard';
+import { PaddleSubmissionCard } from '@/components/home/PaddleSubmissionCard';
 
 export default function HomePage() {
   return (
@@ -17,9 +18,11 @@ export default function HomePage() {
         {/* Alerts / Notifications */}
         <AlertsSection />
 
-        {/* Primary Cards */}
         {/* PDP Progress for New Members */}
         <PDPProgressCard />
+
+        {/* Paddle Submission (toggled by admin) */}
+        <PaddleSubmissionCard />
 
         {/* Primary Cards */}
         <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
