@@ -10,6 +10,7 @@ interface ServiceHour {
   service_date: string;
   verified: boolean;
   verified_by: string | null;
+  photo_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -58,6 +59,7 @@ export function useLogServiceHours() {
       hours: number;
       description: string;
       service_date: string;
+      photo_url?: string;
     }) => {
       const { error } = await supabase.from('service_hours').insert(values);
       if (error) throw error;

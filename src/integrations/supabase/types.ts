@@ -1048,6 +1048,7 @@ export type Database = {
           description: string
           hours: number
           id: string
+          photo_url: string | null
           service_date: string
           updated_at: string
           user_id: string
@@ -1059,6 +1060,7 @@ export type Database = {
           description: string
           hours: number
           id?: string
+          photo_url?: string | null
           service_date: string
           updated_at?: string
           user_id: string
@@ -1070,6 +1072,7 @@ export type Database = {
           description?: string
           hours?: number
           id?: string
+          photo_url?: string | null
           service_date?: string
           updated_at?: string
           user_id?: string

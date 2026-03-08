@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -18,7 +19,7 @@ import { Switch } from '@/components/ui/switch';
 import {
   Award, Download, TrendingUp, CheckCircle, Clock, Plus, DollarSign,
   Shield, Trophy, Target, ChevronRight, Users, Briefcase, Coffee,
-  FolderOpen, FileText, Folder, Search, AlertCircle, UserCheck
+  FolderOpen, FileText, Folder, Search, AlertCircle, UserCheck, Camera, Image, X
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -90,6 +91,9 @@ export default function ChapterPage() {
   const [hours, setHours] = useState('');
   const [description, setDescription] = useState('');
   const [serviceDate, setServiceDate] = useState('');
+  const [servicePhoto, setServicePhoto] = useState<File | null>(null);
+  const [servicePhotoPreview, setServicePhotoPreview] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [duesOpen, setDuesOpen] = useState(false);
   const [duesUserId, setDuesUserId] = useState('');
   const [duesAmount, setDuesAmount] = useState('');
@@ -206,20 +210,57 @@ export default function ChapterPage() {
     exportToCSV(exportData, 'family-points-report');
   };
 
-  const handleLogHours = (e: React.FormEvent) => {
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setServicePhoto(file);
+      setServicePhotoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const clearPhoto = () => {
+    setServicePhoto(null);
+    if (servicePhotoPreview) URL.revokeObjectURL(servicePhotoPreview);
+    setServicePhotoPreview(null);
+  };
+
+  const handleLogHours = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user?.id || !hours || !description || !serviceDate) return;
+
+    let photo_url: string | undefined;
+
+    if (servicePhoto) {
+      setUploadingPhoto(true);
+      const ext = servicePhoto.name.split('.').pop();
+      const path = `${user.id}/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('service-hours-photos')
+        .upload(path, servicePhoto);
+      setUploadingPhoto(false);
+      if (uploadError) {
+        toast.error('Failed to upload photo');
+        return;
+      }
+      const { data: urlData } = supabase.storage
+        .from('service-hours-photos')
+        .getPublicUrl(path);
+      photo_url = urlData.publicUrl;
+    }
+
     logHours.mutate({
       user_id: user.id,
       hours: parseFloat(hours),
       description,
       service_date: serviceDate,
+      photo_url,
     }, {
       onSuccess: () => {
         setLogHoursOpen(false);
         setHours('');
         setDescription('');
         setServiceDate('');
+        clearPhoto();
       }
     });
   };
@@ -505,8 +546,33 @@ export default function ChapterPage() {
                           <Label htmlFor="description">What did you do?</Label>
                           <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the service activity..." required />
                         </div>
-                        <Button type="submit" className="w-full" disabled={logHours.isPending}>
-                          {logHours.isPending ? 'Submitting...' : 'Submit for Verification'}
+                        <div className="space-y-2">
+                          <Label>Photo Proof (optional)</Label>
+                          {servicePhotoPreview ? (
+                            <div className="relative">
+                              <img src={servicePhotoPreview} alt="Service proof" className="w-full h-40 object-cover rounded-md border" />
+                              <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-6 w-6" onClick={clearPhoto}>
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex gap-2">
+                              <Button type="button" variant="outline" className="flex-1 gap-2" onClick={() => document.getElementById('service-photo-upload')?.click()}>
+                                <Image className="h-4 w-4" />Upload
+                              </Button>
+                              <Button type="button" variant="outline" className="flex-1 gap-2" onClick={() => {
+                                const input = document.getElementById('service-photo-capture') as HTMLInputElement;
+                                input?.click();
+                              }}>
+                                <Camera className="h-4 w-4" />Camera
+                              </Button>
+                              <input id="service-photo-upload" type="file" accept="image/*" className="hidden" onChange={handlePhotoSelect} />
+                              <input id="service-photo-capture" type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoSelect} />
+                            </div>
+                          )}
+                        </div>
+                        <Button type="submit" className="w-full" disabled={logHours.isPending || uploadingPhoto}>
+                          {uploadingPhoto ? 'Uploading photo...' : logHours.isPending ? 'Submitting...' : 'Submit for Verification'}
                         </Button>
                       </form>
                     </DialogContent>
@@ -852,6 +918,11 @@ export default function ChapterPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
+                          {(entry as any).photo_url && (
+                            <a href={(entry as any).photo_url} target="_blank" rel="noopener noreferrer">
+                              <img src={(entry as any).photo_url} alt="Proof" className="h-8 w-8 rounded object-cover border" />
+                            </a>
+                          )}
                           <p className="text-xs text-muted-foreground max-w-[150px] truncate hidden sm:block">{entry.description}</p>
                           <Button size="sm" onClick={() => handleVerify(entry.id)} disabled={verifyHours.isPending}>
                             <CheckCircle className="h-4 w-4 mr-1" />Verify
