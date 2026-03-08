@@ -213,7 +213,7 @@ export function VPChapterOpsDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {memberRows.map((row) => (
+                  {filteredRows.map((row) => (
                     <TableRow key={row.id}>
                       <TableCell
                         className="sticky left-0 bg-background z-10 font-medium text-sm text-primary cursor-pointer hover:underline"
