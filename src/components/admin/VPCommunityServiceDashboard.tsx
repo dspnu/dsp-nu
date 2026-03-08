@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const SERVICE_HOURS_REQUIREMENT = 10;
 
 export function VPCommunityServiceDashboard() {
+  const { user } = useAuth();
   const { data: members = [] } = useMembers();
   const { data: allHours = [] } = useAllServiceHours();
   const verifyHours = useVerifyServiceHours();
