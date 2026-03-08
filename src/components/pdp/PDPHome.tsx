@@ -422,6 +422,31 @@ export function PDPHome({ isVP, isNewMember, onNavigateToAssignments }: Props) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Module Dialog */}
+      <Dialog open={editModuleOpen} onOpenChange={setEditModuleOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Module</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Name</label>
+              <Input value={editModuleName} onChange={e => setEditModuleName(e.target.value)} placeholder="Module name" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Description</label>
+              <Textarea value={editModuleDesc} onChange={e => setEditModuleDesc(e.target.value)} placeholder="Optional description" rows={2} />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setEditModuleOpen(false)}>Cancel</Button>
+              <Button onClick={handleEditModule} disabled={updateModule.isPending || !editModuleName}>
+                {updateModule.isPending ? 'Saving...' : 'Save'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
