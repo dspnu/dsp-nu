@@ -546,8 +546,33 @@ export default function ChapterPage() {
                           <Label htmlFor="description">What did you do?</Label>
                           <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the service activity..." required />
                         </div>
-                        <Button type="submit" className="w-full" disabled={logHours.isPending}>
-                          {logHours.isPending ? 'Submitting...' : 'Submit for Verification'}
+                        <div className="space-y-2">
+                          <Label>Photo Proof (optional)</Label>
+                          {servicePhotoPreview ? (
+                            <div className="relative">
+                              <img src={servicePhotoPreview} alt="Service proof" className="w-full h-40 object-cover rounded-md border" />
+                              <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-6 w-6" onClick={clearPhoto}>
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex gap-2">
+                              <Button type="button" variant="outline" className="flex-1 gap-2" onClick={() => document.getElementById('service-photo-upload')?.click()}>
+                                <Image className="h-4 w-4" />Upload
+                              </Button>
+                              <Button type="button" variant="outline" className="flex-1 gap-2" onClick={() => {
+                                const input = document.getElementById('service-photo-capture') as HTMLInputElement;
+                                input?.click();
+                              }}>
+                                <Camera className="h-4 w-4" />Camera
+                              </Button>
+                              <input id="service-photo-upload" type="file" accept="image/*" className="hidden" onChange={handlePhotoSelect} />
+                              <input id="service-photo-capture" type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoSelect} />
+                            </div>
+                          )}
+                        </div>
+                        <Button type="submit" className="w-full" disabled={logHours.isPending || uploadingPhoto}>
+                          {uploadingPhoto ? 'Uploading photo...' : logHours.isPending ? 'Submitting...' : 'Submit for Verification'}
                         </Button>
                       </form>
                     </DialogContent>
