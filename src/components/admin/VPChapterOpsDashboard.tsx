@@ -207,6 +207,15 @@ export function VPChapterOpsDashboard() {
           </ScrollArea>
         </CardContent>
       </Card>
+
+      {selectedMember && (
+        <MemberStandingDetail
+          open={!!selectedMember}
+          onOpenChange={(open) => !open && setSelectedMember(null)}
+          userId={selectedMember.userId}
+          memberName={selectedMember.name}
+        />
+      )}
     </div>
   );
 }
