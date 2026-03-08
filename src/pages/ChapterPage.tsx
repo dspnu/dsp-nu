@@ -19,7 +19,7 @@ import { Switch } from '@/components/ui/switch';
 import {
   Award, Download, TrendingUp, CheckCircle, Clock, Plus, DollarSign,
   Shield, Trophy, Target, ChevronRight, Users, Briefcase, Coffee,
-  FolderOpen, FileText, Folder, Search, AlertCircle, UserCheck, Camera, Image, X
+  FolderOpen, FileText, Folder, Search, AlertCircle, UserCheck, Camera, Image, X, Palette, ExternalLink
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
