@@ -10,6 +10,7 @@ interface ServiceHour {
   service_date: string;
   verified: boolean;
   verified_by: string | null;
+  photo_url: string | null;
   created_at: string;
   updated_at: string;
 }
