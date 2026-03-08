@@ -77,7 +77,7 @@ export function EventDetailDialog({ event, open, onOpenChange, onOpenAttendance 
           {!isPast && user && (
             <div className="pt-4 border-t">
               <h4 className="text-sm font-medium mb-3">RSVP</h4>
-              <EventRSVP eventId={event.id} />
+              <EventRSVP eventId={event.id} paymentRequired={(event as any).payment_required} />
             </div>
           )}
 
