@@ -221,7 +221,18 @@ export function PDPHome({ isVP, isNewMember, onNavigateToAssignments }: Props) {
                       <Badge variant="secondary" className="text-[10px]">{totalItems} item{totalItems !== 1 ? 's' : ''}</Badge>
                     </div>
                     {isVP && (
-                      <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                      <div className="flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" disabled={modIndex === 0}
+                          onClick={() => handleMoveModule(modIndex, 'up')}>
+                          <ArrowUp className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" disabled={modIndex === (modules?.length ?? 0) - 1}
+                          onClick={() => handleMoveModule(modIndex, 'down')}>
+                          <ArrowDown className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEditModule(mod)}>
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </Button>
                         <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openAddItem(mod.id, 'assignment')}>
                           <ClipboardList className="h-3.5 w-3.5" />
                         </Button>
