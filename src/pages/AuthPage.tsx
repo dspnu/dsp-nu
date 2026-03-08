@@ -12,7 +12,7 @@ import { lovable } from '@/integrations/lovable/index';
 import { Separator } from '@/components/ui/separator';
 
 export default function AuthPage() {
-  const { user, loading, signIn, signUp } = useAuth();
+  const { user, loading, signIn, signUp, profile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
@@ -36,7 +36,9 @@ export default function AuthPage() {
   }
 
   if (user) {
-    return <Navigate to="/" replace />;
+    // Redirect to onboarding if profile is incomplete (no major = never onboarded)
+    const needsOnboarding = profile && !profile.major && !profile.graduation_year;
+    return <Navigate to={needsOnboarding ? '/onboarding' : '/'} replace />;
   }
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {

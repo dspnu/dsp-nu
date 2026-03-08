@@ -10,7 +10,7 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
 
   if (loading) {
     return (
@@ -27,6 +27,11 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // Redirect to onboarding if profile is incomplete
+  if (profile && !profile.major && !profile.graduation_year) {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return (
