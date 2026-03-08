@@ -594,19 +594,25 @@ export default function ChapterPage() {
                                 <X className="h-3 w-3" />
                               </Button>
                             </div>
+                          ) : cameraOpen ? (
+                            <div className="relative rounded-md overflow-hidden border">
+                              <video ref={videoRef} autoPlay playsInline muted className="w-full h-48 object-cover" />
+                              <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
+                                <Button type="button" size="sm" onClick={capturePhoto} className="gap-1">
+                                  <Camera className="h-4 w-4" />Capture
+                                </Button>
+                                <Button type="button" size="sm" variant="outline" onClick={closeCamera}>Cancel</Button>
+                              </div>
+                            </div>
                           ) : (
                             <div className="flex gap-2">
                               <Button type="button" variant="outline" className="flex-1 gap-2" onClick={() => document.getElementById('service-photo-upload')?.click()}>
                                 <Image className="h-4 w-4" />Upload
                               </Button>
-                              <Button type="button" variant="outline" className="flex-1 gap-2" onClick={() => {
-                                const input = document.getElementById('service-photo-capture') as HTMLInputElement;
-                                input?.click();
-                              }}>
+                              <Button type="button" variant="outline" className="flex-1 gap-2" onClick={openCamera}>
                                 <Camera className="h-4 w-4" />Camera
                               </Button>
                               <input id="service-photo-upload" type="file" accept="image/*" className="hidden" onChange={handlePhotoSelect} />
-                              <input id="service-photo-capture" type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoSelect} />
                             </div>
                           )}
                         </div>
