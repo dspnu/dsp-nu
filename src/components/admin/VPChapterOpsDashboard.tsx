@@ -28,6 +28,8 @@ export function VPChapterOpsDashboard() {
   const [selectedMember, setSelectedMember] = useState<{ userId: string; name: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [standingFilter, setStandingFilter] = useState<'all' | 'good' | 'at_risk'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<'all' | typeof categories[number]>('all');
+  const [categoryMode, setCategoryMode] = useState<'has' | 'missing'>('missing');
 
   const { data: allPoints = [] } = useQuery({
     queryKey: ['all-points'],
