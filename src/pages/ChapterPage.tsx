@@ -45,7 +45,6 @@ import { CoffeeChatDashboard } from '@/components/coffee-chats/CoffeeChatDashboa
 import { ResourceForm } from '@/components/resources/ResourceForm';
 import { ResourceCard } from '@/components/resources/ResourceCard';
 import { VPChapterOpsDashboard } from '@/components/admin/VPChapterOpsDashboard';
-import { VPChapterOpsDashboard } from '@/components/admin/VPChapterOpsDashboard';
 import { VPCommunityServiceDashboard } from '@/components/admin/VPCommunityServiceDashboard';
 import { VPProfessionalActivitiesDashboard } from '@/components/admin/VPProfessionalActivitiesDashboard';
 import { VPScholarshipDashboard } from '@/components/admin/VPScholarshipDashboard';
