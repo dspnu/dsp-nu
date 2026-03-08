@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { CheckCircle, Clock, Heart } from 'lucide-react';
 import { useAllServiceHours, useVerifyServiceHours } from '@/hooks/useServiceHours';
 import { useMembers } from '@/hooks/useMembers';
+import { useAuth } from '@/contexts/AuthContext';
 
 const SERVICE_HOURS_REQUIREMENT = 10;
 
