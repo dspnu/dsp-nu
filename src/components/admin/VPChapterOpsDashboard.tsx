@@ -7,7 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Users, CalendarCheck, Shield, Eye } from 'lucide-react';
+import { Users, CalendarCheck, Shield, Eye, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMembers } from '@/hooks/useMembers';
 import { useAllAttendance } from '@/hooks/useAttendance';
 import { useChapterSetting, useUpdateChapterSetting } from '@/hooks/useChapterSettings';
@@ -24,6 +26,8 @@ export function VPChapterOpsDashboard() {
   const { data: eopVisible } = useChapterSetting('eop_visible');
   const updateSetting = useUpdateChapterSetting();
   const [selectedMember, setSelectedMember] = useState<{ userId: string; name: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [standingFilter, setStandingFilter] = useState<'all' | 'good' | 'at_risk'>('all');
 
   const { data: allPoints = [] } = useQuery({
     queryKey: ['all-points'],
@@ -96,6 +100,15 @@ export function VPChapterOpsDashboard() {
       .sort((a, b) => b.totalPts - a.totalPts);
   }, [members, allPoints, allHours, allAttendance, totalEvents]);
 
+  const filteredRows = useMemo(() => {
+    return memberRows.filter(row => {
+      const matchesSearch = searchQuery === '' || row.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStanding = standingFilter === 'all' || (standingFilter === 'good' ? row.isGoodStanding : !row.isGoodStanding);
+      return matchesSearch && matchesStanding;
+    });
+  }, [memberRows, searchQuery, standingFilter]);
+
+
   return (
     <div className="space-y-6">
       <div>
@@ -160,6 +173,27 @@ export function VPChapterOpsDashboard() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Member Standing Spreadsheet</CardTitle>
+          <div className="flex flex-col sm:flex-row gap-2 mt-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search members..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 h-9"
+              />
+            </div>
+            <Select value={standingFilter} onValueChange={(v) => setStandingFilter(v as 'all' | 'good' | 'at_risk')}>
+              <SelectTrigger className="w-[160px] h-9">
+                <SelectValue placeholder="Standing" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Members</SelectItem>
+                <SelectItem value="good">Good Standing</SelectItem>
+                <SelectItem value="at_risk">At Risk</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <ScrollArea className="w-full">
@@ -179,7 +213,7 @@ export function VPChapterOpsDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {memberRows.map((row) => (
+                  {filteredRows.map((row) => (
                     <TableRow key={row.id}>
                       <TableCell
                         className="sticky left-0 bg-background z-10 font-medium text-sm text-primary cursor-pointer hover:underline"
