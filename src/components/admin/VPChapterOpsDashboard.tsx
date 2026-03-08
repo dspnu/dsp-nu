@@ -28,6 +28,8 @@ export function VPChapterOpsDashboard() {
   const [selectedMember, setSelectedMember] = useState<{ userId: string; name: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [standingFilter, setStandingFilter] = useState<'all' | 'good' | 'at_risk'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<'all' | typeof categories[number]>('all');
+  const [categoryMode, setCategoryMode] = useState<'has' | 'missing'>('missing');
 
   const { data: allPoints = [] } = useQuery({
     queryKey: ['all-points'],
@@ -104,9 +106,14 @@ export function VPChapterOpsDashboard() {
     return memberRows.filter(row => {
       const matchesSearch = searchQuery === '' || row.name.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStanding = standingFilter === 'all' || (standingFilter === 'good' ? row.isGoodStanding : !row.isGoodStanding);
-      return matchesSearch && matchesStanding;
+      const matchesCategory = categoryFilter === 'all' || (
+        categoryMode === 'has'
+          ? (row.byCategory[categoryFilter] || 0) > 0
+          : (row.byCategory[categoryFilter] || 0) === 0
+      );
+      return matchesSearch && matchesStanding && matchesCategory;
     });
-  }, [memberRows, searchQuery, standingFilter]);
+  }, [memberRows, searchQuery, standingFilter, categoryFilter, categoryMode]);
 
 
   return (
@@ -193,6 +200,28 @@ export function VPChapterOpsDashboard() {
                 <SelectItem value="at_risk">At Risk</SelectItem>
               </SelectContent>
             </Select>
+            <div className="flex gap-1">
+              <Select value={categoryMode} onValueChange={(v) => setCategoryMode(v as 'has' | 'missing')}>
+                <SelectTrigger className="w-[110px] h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="missing">Missing</SelectItem>
+                  <SelectItem value="has">Has</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v as any)}>
+                <SelectTrigger className="w-[160px] h-9">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map(c => (
+                    <SelectItem key={c} value={c} className="capitalize">{c === 'dei' ? 'DE&I' : c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-0">
