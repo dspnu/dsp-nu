@@ -23,6 +23,7 @@ export function VPChapterOpsDashboard() {
   const { data: allAttendance = [] } = useAllAttendance();
   const { data: eopVisible } = useChapterSetting('eop_visible');
   const updateSetting = useUpdateChapterSetting();
+  const [selectedMember, setSelectedMember] = useState<{ userId: string; name: string } | null>(null);
 
   const { data: allPoints = [] } = useQuery({
     queryKey: ['all-points'],
