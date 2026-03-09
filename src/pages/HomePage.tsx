@@ -7,6 +7,7 @@ import { QuickActions } from '@/components/home/QuickActions';
 import { UpcomingTimeline } from '@/components/home/UpcomingTimeline';
 import { PDPProgressCard } from '@/components/home/PDPProgressCard';
 import { PaddleSubmissionCard } from '@/components/home/PaddleSubmissionCard';
+import { ElectionVotingCards } from '@/components/elections/ElectionVotingCard';
 
 export default function HomePage() {
   return (
