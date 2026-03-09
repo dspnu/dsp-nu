@@ -21,7 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const categories = ['chapter', 'rush', 'fundraising', 'service', 'brotherhood', 'professionalism', 'dei'] as const;
 const POINTS_REQUIREMENT = 7;
-const SERVICE_HOURS_REQUIREMENT = 10;
+const SERVICE_HOURS_REQUIREMENT = 3;
 
 export function VPChapterOpsDashboard() {
   const { data: members = [] } = useMembers();

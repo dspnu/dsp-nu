@@ -844,25 +844,13 @@ export default function ChapterPage() {
         {/* ========== ADMIN TAB ========== */}
         {isAdminOrOfficer && (
           <TabsContent value="admin" className="space-y-8">
-            {/* Show role-specific dashboards based on user's positions */}
+            {/* Each officer only sees their own dashboard */}
             {isVPChapterOps && <VPChapterOpsDashboard />}
             {isVPCommunityService && <VPCommunityServiceDashboard />}
             {isVPProfessionalActivities && <VPProfessionalActivitiesDashboard />}
             {isVPScholarship && <VPScholarshipDashboard />}
             {isPresident && <PresidentDashboard />}
             {isVPFinance && <VPFinanceDashboard />}
-
-            {/* Fallback for admins/developers who don't hold a specific VP position */}
-            {!isVPChapterOps && !isVPCommunityService && !isVPProfessionalActivities && !isVPScholarship && !isPresident && !isVPFinance && (
-              <div className="space-y-6">
-                <PresidentDashboard />
-                <VPFinanceDashboard />
-                <VPChapterOpsDashboard />
-                <VPCommunityServiceDashboard />
-                <VPProfessionalActivitiesDashboard />
-                <VPScholarshipDashboard />
-              </div>
-            )}
 
             {/* Chair Positions Management — visible to all admins/officers */}
             <ChairPositionsManager />
