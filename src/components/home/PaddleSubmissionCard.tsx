@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Palette, CheckCircle, ExternalLink } from 'lucide-react';
+import { Clapperboard, CheckCircle, ExternalLink, ChevronDown, Send } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useChapterSetting } from '@/hooks/useChapterSettings';
 import { useMyPaddleSubmission, useSubmitPaddle } from '@/hooks/usePaddleSubmissions';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export function PaddleSubmissionCard() {
   const { user } = useAuth();
@@ -15,10 +17,11 @@ export function PaddleSubmissionCard() {
   const { data: existing, isLoading: subLoading } = useMyPaddleSubmission();
   const submitPaddle = useSubmitPaddle();
 
+  const [isOpen, setIsOpen] = useState(false);
   const [subjectName, setSubjectName] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
 
-  if (settingLoading || !visible) return null;
+  if (settingLoading || !visible || subLoading) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,73 +33,94 @@ export function PaddleSubmissionCard() {
     });
   };
 
-  if (subLoading) return null;
-
   if (existing) {
     return (
-      <Card className="border-primary/20 bg-primary/5">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Palette className="h-4 w-4 text-primary" />
-            Paddle Submission
-            <Badge variant="secondary" className="ml-auto gap-1 text-xs">
-              <CheckCircle className="h-3 w-3" />Submitted
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Video of <span className="font-medium text-foreground">{existing.subject_name}</span>
-          </p>
-          <a
-            href={existing.link_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-primary hover:underline inline-flex items-center gap-1 mt-1"
-          >
-            View submission <ExternalLink className="h-3 w-3" />
-          </a>
+      <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 overflow-hidden">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+              <Clapperboard className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold">Paddle Submitted!</p>
+                <Badge variant="secondary" className="gap-1 text-[10px] px-1.5 py-0">
+                  <CheckCircle className="h-2.5 w-2.5" />Done
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground truncate">
+                Video of <span className="font-medium text-foreground">{existing.subject_name}</span>
+              </p>
+            </div>
+            <a
+              href={existing.link_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-primary hover:underline inline-flex items-center gap-1 shrink-0"
+            >
+              View <ExternalLink className="h-3 w-3" />
+            </a>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base flex items-center gap-2">
-          <Palette className="h-4 w-4 text-primary" />
-          Paddle Submission
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="subject" className="text-xs">Who is the video of?</Label>
-            <Input
-              id="subject"
-              value={subjectName}
-              onChange={(e) => setSubjectName(e.target.value)}
-              placeholder="e.g. John Doe"
-              required
-            />
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Card className="overflow-hidden border-border/60 hover:border-primary/30 transition-all">
+        <CollapsibleTrigger asChild>
+          <CardContent className="p-4 cursor-pointer group">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <Clapperboard className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold">🎬 Paddle Time!</p>
+                <p className="text-xs text-muted-foreground">
+                  Submit a funny video of a brother
+                </p>
+              </div>
+              <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            </div>
+          </CardContent>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="px-4 pb-4 pt-0">
+            <div className="border-t border-border/40 pt-3">
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="paddle-subject" className="text-xs font-medium">Who's the star of this video?</Label>
+                  <Input
+                    id="paddle-subject"
+                    value={subjectName}
+                    onChange={(e) => setSubjectName(e.target.value)}
+                    placeholder="e.g. John Doe"
+                    className="h-9"
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="paddle-link" className="text-xs font-medium">Video Link</Label>
+                  <Input
+                    id="paddle-link"
+                    type="url"
+                    value={linkUrl}
+                    onChange={(e) => setLinkUrl(e.target.value)}
+                    placeholder="Paste your link here..."
+                    className="h-9"
+                    required
+                  />
+                </div>
+                <Button type="submit" size="sm" className="w-full gap-2" disabled={submitPaddle.isPending}>
+                  <Send className="h-3.5 w-3.5" />
+                  {submitPaddle.isPending ? 'Submitting...' : 'Send It'}
+                </Button>
+              </form>
+            </div>
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="link" className="text-xs">Video Link</Label>
-            <Input
-              id="link"
-              type="url"
-              value={linkUrl}
-              onChange={(e) => setLinkUrl(e.target.value)}
-              placeholder="https://..."
-              required
-            />
-          </div>
-          <Button type="submit" size="sm" className="w-full" disabled={submitPaddle.isPending}>
-            {submitPaddle.isPending ? 'Submitting...' : 'Submit Paddle'}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   );
 }
