@@ -15,11 +15,12 @@ interface EOPCSVRow {
   email?: string;
   phone?: string;
   video_score?: string;
+  video_graded_by?: string;
   interview_score?: string;
+  interview_graded_by?: string;
   r1_pu?: string;
   r2_pu?: string;
   tu_td?: string;
-  eligible_voters?: string;
   notes?: string;
 }
 
@@ -61,11 +62,12 @@ export function EOPImportDialog() {
         email: row.email || null,
         phone: row.phone || null,
         video_score: row.video_score ? parseInt(row.video_score) : null,
+        video_graded_by: row.video_graded_by || null,
         interview_score: row.interview_score ? parseInt(row.interview_score) : null,
+        interview_graded_by: row.interview_graded_by || null,
         r1_pu: row.r1_pu || null,
         r2_pu: row.r2_pu || null,
         tu_td: row.tu_td ? parseInt(row.tu_td) : 0,
-        eligible_voters: row.eligible_voters ? parseInt(row.eligible_voters) : 0,
         notes: row.notes || null,
       }));
 
@@ -99,7 +101,7 @@ export function EOPImportDialog() {
           <div className="text-sm text-muted-foreground">
             <p className="mb-2">Upload a CSV file with the following columns:</p>
             <code className="text-xs bg-muted p-2 rounded block">
-              first_name, last_name, email, phone, video_score, interview_score, r1_pu, r2_pu, tu_td, eligible_voters, notes
+              first_name, last_name, email, phone, video_score, video_graded_by, interview_score, interview_graded_by, r1_pu, r2_pu, tu_td, notes
             </code>
             <p className="mt-2 text-xs">Required: first_name, last_name. All other fields are optional.</p>
           </div>
