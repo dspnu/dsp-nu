@@ -211,6 +211,33 @@ export type Database = {
         }
         Relationships: []
       }
+      chair_positions: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chapter_settings: {
         Row: {
           id: string
@@ -1079,6 +1106,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           big: string | null
+          chair: string | null
           committees: string[] | null
           created_at: string
           email: string
@@ -1101,6 +1129,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           big?: string | null
+          chair?: string | null
           committees?: string[] | null
           created_at?: string
           email: string
@@ -1123,6 +1152,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           big?: string | null
+          chair?: string | null
           committees?: string[] | null
           created_at?: string
           email?: string
@@ -1149,6 +1179,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_chair_fkey"
+            columns: ["chair"]
+            isOneToOne: false
+            referencedRelation: "chair_positions"
+            referencedColumns: ["title"]
           },
           {
             foreignKeyName: "profiles_little_fkey"
