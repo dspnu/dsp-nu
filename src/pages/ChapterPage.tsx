@@ -713,7 +713,7 @@ export default function ChapterPage() {
             <Card className="lg:col-span-3">
               <CardHeader className="pb-3 flex flex-row items-center justify-between">
                 <CardTitle className="text-base font-medium flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4" />Top Families
+                  <TrendingUp className="h-4 w-4" />Family Games
                 </CardTitle>
                 {isAdminOrOfficer && (
                   <Button variant="ghost" size="sm" onClick={handleExportPoints} className="h-8 gap-1">
