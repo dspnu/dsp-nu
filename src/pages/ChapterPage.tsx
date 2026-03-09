@@ -93,7 +93,7 @@ export default function ChapterPage() {
   const isPresident = profile?.positions?.includes('President') || false;
   const isVPFinance = profile?.positions?.includes('VP Finance') || profile?.positions?.includes('VP of Finance') || false;
 
-  const [activeTab, setActiveTab] = useState('jobs');
+  const [activeTab, setActiveTab] = useState('standing');
   const [jobSearch, setJobSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [resourceSearch, setResourceSearch] = useState('');
