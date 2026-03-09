@@ -163,22 +163,66 @@ export default function ChapterPage() {
     },
   });
 
-  // Family-based leaderboard
+  // Family Games data
+  const { data: familyWeights = [] } = useQuery({
+    queryKey: ['family-game-weights'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('family_game_weights').select('*');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: familyBonusPoints = [] } = useQuery({
+    queryKey: ['family-bonus-points'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('family_bonus_points').select('*');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const SCORED_CATEGORIES = ['chapter', 'professionalism', 'brotherhood', 'fundraising', 'service'] as const;
+
+  // Family-based leaderboard with weighted scoring
   const familyTotals = useMemo(() => {
     if (!members || !allPoints) return [];
-    const familyMap: Record<string, { family: string; total: number; memberCount: number }> = {};
-    members.forEach(member => {
+    const activeMembers = members.filter(m => m.status === 'active' || m.status === 'new_member');
+    const familyMap: Record<string, { family: string; score: number; memberCount: number }> = {};
+
+    // Group members by family
+    const familyMembers: Record<string, typeof activeMembers> = {};
+    activeMembers.forEach(member => {
       const family = member.family || 'Unassigned';
-      const memberPoints = allPoints.filter(p => p.user_id === member.user_id);
-      const total = memberPoints.reduce((sum, p) => sum + p.points, 0);
-      if (!familyMap[family]) {
-        familyMap[family] = { family, total: 0, memberCount: 0 };
-      }
-      familyMap[family].total += total;
-      familyMap[family].memberCount += 1;
+      if (!familyMembers[family]) familyMembers[family] = [];
+      familyMembers[family].push(member);
     });
-    return Object.values(familyMap).sort((a, b) => b.total - a.total);
-  }, [members, allPoints]);
+
+    // Calculate weighted score per family
+    Object.entries(familyMembers).forEach(([family, fMembers]) => {
+      const totalInFamily = fMembers.length;
+      let score = 0;
+
+      SCORED_CATEGORIES.forEach(cat => {
+        const weight = familyWeights.find(w => w.category === cat);
+        const weightValue = weight ? Number(weight.weight) : 1;
+        const membersWithPoint = fMembers.filter(m =>
+          allPoints.some(p => p.user_id === m.user_id && p.category === cat && p.points > 0)
+        ).length;
+        score += (membersWithPoint / totalInFamily) * weightValue;
+      });
+
+      // Add bonus points
+      const bonus = familyBonusPoints
+        .filter(bp => bp.family_name === family)
+        .reduce((sum, bp) => sum + bp.points, 0);
+      score += bonus;
+
+      familyMap[family] = { family, score, memberCount: totalInFamily };
+    });
+
+    return Object.values(familyMap).sort((a, b) => b.score - a.score);
+  }, [members, allPoints, familyWeights, familyBonusPoints]);
 
   const myTotal = myPoints?.reduce((sum, p) => sum + p.points, 0) ?? 0;
   const myByCategory = myPoints?.reduce((acc, p) => {
