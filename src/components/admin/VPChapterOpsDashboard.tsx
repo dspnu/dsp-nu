@@ -284,6 +284,9 @@ export function VPChapterOpsDashboard() {
 
       {/* Attendance Earners */}
       <AttendanceEarnersManager />
+
+      {/* Family Games Settings */}
+      <FamilyGamesManager />
     </div>
   );
 }

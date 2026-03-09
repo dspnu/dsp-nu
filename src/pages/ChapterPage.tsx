@@ -296,12 +296,12 @@ export default function ChapterPage() {
   // ---- Handlers ----
   const handleExportPoints = () => {
     if (!familyTotals) return;
-    const exportData = familyTotals.map(({ family, total, memberCount }) => ({
+    const exportData = familyTotals.map(({ family, score, memberCount }) => ({
       Family: family,
-      'Total Points': total,
+      Score: score.toFixed(1),
       Members: memberCount,
     }));
-    exportToCSV(exportData, 'family-points-report');
+    exportToCSV(exportData, 'family-games-report');
   };
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
