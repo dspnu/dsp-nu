@@ -555,6 +555,139 @@ export type Database = {
         }
         Relationships: []
       }
+      election_candidates: {
+        Row: {
+          candidate_name: string
+          candidate_user_id: string | null
+          created_at: string
+          id: string
+          position_id: string
+        }
+        Insert: {
+          candidate_name: string
+          candidate_user_id?: string | null
+          created_at?: string
+          id?: string
+          position_id: string
+        }
+        Update: {
+          candidate_name?: string
+          candidate_user_id?: string | null
+          created_at?: string
+          id?: string
+          position_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "election_candidates_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "election_positions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      election_positions: {
+        Row: {
+          created_at: string
+          election_id: string
+          id: string
+          position_name: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          election_id: string
+          id?: string
+          position_name: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          election_id?: string
+          id?: string
+          position_name?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "election_positions_election_id_fkey"
+            columns: ["election_id"]
+            isOneToOne: false
+            referencedRelation: "elections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      election_votes: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          id: string
+          position_id: string
+          voter_id: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          id?: string
+          position_id: string
+          voter_id: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          id?: string
+          position_id?: string
+          voter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "election_votes_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "election_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "election_votes_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "election_positions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      elections: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          status: Database["public"]["Enums"]["election_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["election_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["election_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       eop_candidates: {
         Row: {
           absent_members: string[] | null
@@ -1440,6 +1573,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "officer" | "member" | "developer"
       coffee_chat_status: "emailed" | "scheduled" | "completed"
+      election_status: "draft" | "open" | "closed"
       eop_vote: "yes" | "no" | "abstain"
       event_category:
         | "chapter"
@@ -1582,6 +1716,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "officer", "member", "developer"],
       coffee_chat_status: ["emailed", "scheduled", "completed"],
+      election_status: ["draft", "open", "closed"],
       eop_vote: ["yes", "no", "abstain"],
       event_category: [
         "chapter",

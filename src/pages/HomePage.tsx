@@ -7,6 +7,7 @@ import { QuickActions } from '@/components/home/QuickActions';
 import { UpcomingTimeline } from '@/components/home/UpcomingTimeline';
 import { PDPProgressCard } from '@/components/home/PDPProgressCard';
 import { PaddleSubmissionCard } from '@/components/home/PaddleSubmissionCard';
+import { ElectionVotingCards } from '@/components/elections/ElectionVotingCard';
 
 export default function HomePage() {
   return (
@@ -23,6 +24,9 @@ export default function HomePage() {
 
         {/* Paddle Submission (toggled by admin) */}
         <PaddleSubmissionCard />
+
+        {/* Active Elections */}
+        <ElectionVotingCards />
 
         {/* Primary Cards */}
         <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
