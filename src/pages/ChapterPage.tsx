@@ -726,7 +726,7 @@ export default function ChapterPage() {
                   <EmptyState icon={Award} title="No points yet" description="Points will appear as members earn them." />
                 ) : (
                   <div className="space-y-2">
-                    {familyTotals.slice(0, 8).map(({ family, total, memberCount }, index) => {
+                    {familyTotals.slice(0, 8).map(({ family, score, memberCount }, index) => {
                       const isMyFamily = family === myFamily;
                       return (
                         <div
