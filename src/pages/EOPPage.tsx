@@ -5,6 +5,8 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Vote, Users, UserCheck, Settings, Pencil, Trash2, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
@@ -14,14 +16,25 @@ import { EOPVotingCard } from '@/components/eop/EOPVotingCard';
 import { EOPCandidateForm, EditCandidateButton } from '@/components/eop/EOPCandidateForm';
 import { EOPImportDialog } from '@/components/eop/EOPImportDialog';
 import { useAuth } from '@/contexts/AuthContext';
+import { useChapterSetting, useUpdateChapterSetting } from '@/hooks/useChapterSettings';
 
 export default function EOPPage() {
-  const { isAdminOrOfficer } = useAuth();
+  const { profile, isAdminOrOfficer } = useAuth();
   const { isVPChapterOps } = useIsVPChapterOps();
+  const isChancellor = profile?.positions?.includes('Chancellor') || false;
   const { data: candidates, isLoading } = useRealtimeCandidates();
   const { data: voteCounts } = useRealtimeVoteCounts();
   const { data: readyCounts } = useRealtimeReadyCounts();
   const deleteCandidate = useDeleteCandidate();
+  const { data: baseVoters } = useChapterSetting('eop_base_voters');
+  const updateSetting = useUpdateChapterSetting();
+  const [baseVotersInput, setBaseVotersInput] = useState('');
+
+  // Sync input with setting value
+  const currentBase = typeof baseVoters === 'number' ? baseVoters : (typeof baseVoters === 'string' ? parseInt(baseVoters as string) : 0);
+
+  // Who can manage PNMs: Chancellor or VP Chapter Ops or admin
+  const canManagePNMs = isChancellor || isVPChapterOps || isAdminOrOfficer;
 
   // Find the active candidate (voting open)
   const activeCandidate = useMemo(() => 
@@ -96,7 +109,7 @@ export default function EOPPage() {
             <Vote className="h-4 w-4" />
             Voting
           </TabsTrigger>
-          {isAdminOrOfficer && (
+          {canManagePNMs && (
             <TabsTrigger value="admin" className="gap-2">
               <Settings className="h-4 w-4" />
               Admin
@@ -177,7 +190,7 @@ export default function EOPPage() {
             <EmptyState
               icon={Vote}
               title="No PNMs Added"
-              description={isAdminOrOfficer 
+              description={canManagePNMs 
                 ? "Add PNMs in the Admin tab to begin the election process."
                 : "No PNMs have been added for this election yet."
               }
@@ -186,8 +199,48 @@ export default function EOPPage() {
         </TabsContent>
 
         {/* Admin Tab */}
-        {isAdminOrOfficer && (
+        {canManagePNMs && (
           <TabsContent value="admin" className="space-y-4 sm:space-y-6">
+            {/* Base Voters Setting (VP Chapter Ops only) */}
+            {isVPChapterOps && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Users className="h-4 w-4 text-primary" />
+                    Base Eligible Voters
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Set the base number of eligible voters (members present at EOP). 
+                    This will be reduced per-PNM when members leave the room during voting.
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <Label className="text-sm shrink-0">Base count:</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={baseVotersInput || currentBase.toString()}
+                      onChange={(e) => setBaseVotersInput(e.target.value)}
+                      className="w-24 h-9"
+                    />
+                    <Button 
+                      size="sm"
+                      onClick={() => {
+                        const val = parseInt(baseVotersInput || currentBase.toString());
+                        updateSetting.mutate({ key: 'eop_base_voters', value: val });
+                        setBaseVotersInput('');
+                      }}
+                      disabled={updateSetting.isPending}
+                    >
+                      Save
+                    </Button>
+                    <span className="text-sm text-muted-foreground">Currently: <strong>{currentBase}</strong></span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
               <div>
                 <h2 className="text-base sm:text-lg font-semibold">Manage PNMs</h2>
@@ -206,7 +259,8 @@ export default function EOPPage() {
                   const yesVotes = counts?.yes || 0;
                   const noVotes = counts?.no || 0;
                   const totalVotes = counts?.total || 0;
-                  const eligibleVoters = (candidate as any).eligible_voters || 0;
+                  const absentMembers: string[] = (candidate as any).absent_members || [];
+                  const eligibleVoters = Math.max(0, currentBase - absentMembers.length);
                   
                   // 80% approval calculation
                   const requiredYes = eligibleVoters > 0 ? Math.ceil(eligibleVoters * 0.8) : 0;
@@ -222,12 +276,12 @@ export default function EOPPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-medium">{candidate.first_name} {candidate.last_name}</p>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
                               {candidate.video_score != null && (
-                                <span>Video: {candidate.video_score}</span>
+                                <span>Video: {candidate.video_score}{(candidate as any).video_graded_by ? ` (${(candidate as any).video_graded_by})` : ''}</span>
                               )}
                               {candidate.interview_score != null && (
-                                <span>Interview: {candidate.interview_score}</span>
+                                <span>Interview: {candidate.interview_score}{(candidate as any).interview_graded_by ? ` (${(candidate as any).interview_graded_by})` : ''}</span>
                               )}
                             </div>
                           </div>
@@ -267,6 +321,9 @@ export default function EOPPage() {
                           </Badge>
                           <span className="text-sm text-muted-foreground">
                             Eligible: {eligibleVoters} voters
+                            {absentMembers.length > 0 && (
+                              <span className="text-xs"> ({absentMembers.length} out)</span>
+                            )}
                           </span>
                         </div>
 

@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ThumbsUp, ThumbsDown, Hand, CheckCircle2, Lock, Unlock, Users, RotateCcw, RefreshCw, CheckCircle, XCircle, AlertTriangle, Edit2, Check, X } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Hand, CheckCircle2, Lock, Unlock, Users, RotateCcw, RefreshCw, CheckCircle, XCircle, AlertTriangle, Edit2, Check, X, UserMinus, Plus } from 'lucide-react';
 import { useMyVoteForCandidate, useCastVoteRealtime, useToggleReady, useToggleVotingRealtime, useClearVotes, useChangeVote } from '@/hooks/useEOPRealtime';
 import { useUpdateCandidate } from '@/hooks/useEOP';
 import { useAuth } from '@/contexts/AuthContext';
+import { useChapterSetting } from '@/hooks/useChapterSettings';
 import type { Tables } from '@/integrations/supabase/types';
 import {
   AlertDialog,
@@ -20,6 +21,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 type EOPCandidate = Tables<'eop_candidates'>;
 
@@ -46,15 +52,19 @@ export function EOPVotingCard({
   const toggleVoting = useToggleVotingRealtime();
   const clearVotes = useClearVotes();
   const updateCandidate = useUpdateCandidate();
+  const { data: baseVoters } = useChapterSetting('eop_base_voters');
 
   const [isChangingVote, setIsChangingVote] = useState(false);
-  const [isEditingEligible, setIsEditingEligible] = useState(false);
-  const [eligibleVotersInput, setEligibleVotersInput] = useState(candidate.eligible_voters?.toString() || '0');
+  const [absentName, setAbsentName] = useState('');
+  const [absentPopoverOpen, setAbsentPopoverOpen] = useState(false);
 
   const isReady = readyCount?.userIds.includes(user?.id || '') || false;
   
-  // Calculate approval status (80% threshold)
-  const eligibleVoters = candidate.eligible_voters || 0;
+  // Calculate eligible voters: base - absent members
+  const baseNumber = typeof baseVoters === 'number' ? baseVoters : (typeof baseVoters === 'string' ? parseInt(baseVoters as string) : 0);
+  const absentMembers: string[] = (candidate as any).absent_members || [];
+  const eligibleVoters = Math.max(0, baseNumber - absentMembers.length);
+  
   const yesVotes = voteCounts?.yes || 0;
   const noVotes = voteCounts?.no || 0;
   const totalVotes = voteCounts?.total || 0;
@@ -63,12 +73,27 @@ export function EOPVotingCard({
   const isApproved = eligibleVoters > 0 && yesVotes >= requiredYes;
   const needsMoreYes = requiredYes - yesVotes;
 
-  const handleSaveEligibleVoters = () => {
-    const value = parseInt(eligibleVotersInput) || 0;
-    updateCandidate.mutate({ id: candidate.id, eligible_voters: value }, {
-      onSuccess: () => setIsEditingEligible(false),
+  const handleAddAbsent = () => {
+    const name = absentName.trim();
+    if (!name) return;
+    const updated = [...absentMembers, name];
+    updateCandidate.mutate({ 
+      id: candidate.id, 
+      absent_members: updated,
+      eligible_voters: Math.max(0, baseNumber - updated.length),
+    });
+    setAbsentName('');
+  };
+
+  const handleRemoveAbsent = (index: number) => {
+    const updated = absentMembers.filter((_, i) => i !== index);
+    updateCandidate.mutate({ 
+      id: candidate.id, 
+      absent_members: updated,
+      eligible_voters: Math.max(0, baseNumber - updated.length),
     });
   };
+
   const hasVoted = !!myVote;
 
   const handleVote = (vote: 'yes' | 'no') => {
@@ -252,50 +277,81 @@ export function EOPVotingCard({
         {/* VP of Chapter Operations Controls */}
         {isVPChapterOps && (
           <div className="space-y-4 pt-4 border-t">
-            {/* Eligible Voters Input */}
+            {/* Eligible Voters Display (auto-calculated) */}
             <div className="flex items-center justify-between bg-muted/50 rounded-lg px-4 py-3">
               <span className="text-sm text-muted-foreground">Eligible Voters</span>
-              {isEditingEligible ? (
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    min={0}
-                    value={eligibleVotersInput}
-                    onChange={(e) => setEligibleVotersInput(e.target.value)}
-                    className="w-20 h-8 text-center"
-                    autoFocus
-                  />
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8 text-emerald-600"
-                    onClick={handleSaveEligibleVoters}
-                    disabled={updateCandidate.isPending}
-                  >
-                    <Check className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8"
-                    onClick={() => {
-                      setIsEditingEligible(false);
-                      setEligibleVotersInput(candidate.eligible_voters?.toString() || '0');
-                    }}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setIsEditingEligible(true)}
-                  className="flex items-center gap-2 font-semibold hover:text-primary transition-colors"
-                >
-                  {eligibleVoters}
-                  <Edit2 className="h-3.5 w-3.5 text-muted-foreground" />
-                </button>
-              )}
+              <div className="text-right">
+                <span className="font-semibold text-lg">{eligibleVoters}</span>
+                {absentMembers.length > 0 && (
+                  <span className="text-xs text-muted-foreground ml-1">
+                    ({baseNumber} - {absentMembers.length} out)
+                  </span>
+                )}
+              </div>
             </div>
+
+            {/* Quick Absent Member Tracker */}
+            <Popover open={absentPopoverOpen} onOpenChange={setAbsentPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full gap-2 relative"
+                >
+                  <UserMinus className="h-4 w-4" />
+                  Out of Room
+                  {absentMembers.length > 0 && (
+                    <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-xs">
+                      {absentMembers.length}
+                    </Badge>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-72 p-3" align="start">
+                <div className="space-y-3">
+                  <p className="text-xs font-medium text-muted-foreground">Members out of the room</p>
+                  <form 
+                    onSubmit={(e) => { e.preventDefault(); handleAddAbsent(); }}
+                    className="flex gap-1.5"
+                  >
+                    <Input
+                      value={absentName}
+                      onChange={(e) => setAbsentName(e.target.value)}
+                      placeholder="Name..."
+                      className="h-8 text-sm"
+                      autoFocus
+                    />
+                    <Button 
+                      type="submit" 
+                      size="sm" 
+                      className="h-8 px-2 shrink-0"
+                      disabled={!absentName.trim()}
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                    </Button>
+                  </form>
+                  {absentMembers.length > 0 ? (
+                    <div className="space-y-1 max-h-40 overflow-y-auto">
+                      {absentMembers.map((name, i) => (
+                        <div key={i} className="flex items-center justify-between py-1 px-2 rounded bg-muted/50 text-sm">
+                          <span className="truncate">{name}</span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive"
+                            onClick={() => handleRemoveAbsent(i)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground text-center py-2">No one marked as absent</p>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
 
             {/* Vote Counts with Percentage */}
             <div className="grid grid-cols-2 gap-3">
@@ -337,9 +393,9 @@ export function EOPVotingCard({
               </div>
             )}
 
-            {eligibleVoters === 0 && (
+            {eligibleVoters === 0 && baseNumber === 0 && (
               <div className="p-3 rounded-lg bg-muted/50 border border-border text-center text-sm text-muted-foreground">
-                Set eligible voters to see approval status
+                Set base voters in the Admin tab to see approval status
               </div>
             )}
 

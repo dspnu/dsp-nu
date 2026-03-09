@@ -557,12 +557,14 @@ export type Database = {
       }
       eop_candidates: {
         Row: {
+          absent_members: string[] | null
           attachments: string[] | null
           created_at: string
           eligible_voters: number | null
           email: string | null
           first_name: string
           id: string
+          interview_graded_by: string | null
           interview_score: number | null
           last_name: string
           notes: string | null
@@ -572,16 +574,19 @@ export type Database = {
           r2_pu: string | null
           tu_td: number | null
           updated_at: string
+          video_graded_by: string | null
           video_score: number | null
           voting_open: boolean
         }
         Insert: {
+          absent_members?: string[] | null
           attachments?: string[] | null
           created_at?: string
           eligible_voters?: number | null
           email?: string | null
           first_name: string
           id?: string
+          interview_graded_by?: string | null
           interview_score?: number | null
           last_name: string
           notes?: string | null
@@ -591,16 +596,19 @@ export type Database = {
           r2_pu?: string | null
           tu_td?: number | null
           updated_at?: string
+          video_graded_by?: string | null
           video_score?: number | null
           voting_open?: boolean
         }
         Update: {
+          absent_members?: string[] | null
           attachments?: string[] | null
           created_at?: string
           eligible_voters?: number | null
           email?: string | null
           first_name?: string
           id?: string
+          interview_graded_by?: string | null
           interview_score?: number | null
           last_name?: string
           notes?: string | null
@@ -610,6 +618,7 @@ export type Database = {
           r2_pu?: string | null
           tu_td?: number | null
           updated_at?: string
+          video_graded_by?: string | null
           video_score?: number | null
           voting_open?: boolean
         }

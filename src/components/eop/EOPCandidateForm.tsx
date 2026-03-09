@@ -20,12 +20,13 @@ const candidateSchema = z.object({
   first_name: z.string().min(1, 'First name is required').max(50),
   last_name: z.string().min(1, 'Last name is required').max(50),
   video_score: z.coerce.number().min(0).max(100).optional().nullable(),
+  video_graded_by: z.string().optional(),
   interview_score: z.coerce.number().min(0).max(100).optional().nullable(),
+  interview_graded_by: z.string().optional(),
   r1_pu: z.string().optional(),
   r2_pu: z.string().optional(),
   tu_td: z.coerce.number().optional().nullable(),
   notes: z.string().optional(),
-  eligible_voters: z.coerce.number().min(0).optional().nullable(),
 });
 
 type CandidateFormValues = z.infer<typeof candidateSchema>;
@@ -34,11 +35,12 @@ interface EOPCandidateFormProps {
   candidate?: EOPCandidate & {
     picture_url?: string | null;
     video_score?: number | null;
+    video_graded_by?: string | null;
     interview_score?: number | null;
+    interview_graded_by?: string | null;
     r1_pu?: string | null;
     r2_pu?: string | null;
     tu_td?: number | null;
-    eligible_voters?: number | null;
   };
   trigger?: React.ReactNode;
 }
@@ -59,12 +61,13 @@ export function EOPCandidateForm({ candidate, trigger }: EOPCandidateFormProps) 
       first_name: candidate?.first_name || '',
       last_name: candidate?.last_name || '',
       video_score: candidate?.video_score ?? null,
+      video_graded_by: (candidate as any)?.video_graded_by || '',
       interview_score: candidate?.interview_score ?? null,
+      interview_graded_by: (candidate as any)?.interview_graded_by || '',
       r1_pu: candidate?.r1_pu || '',
       r2_pu: candidate?.r2_pu || '',
       tu_td: candidate?.tu_td ?? 0,
       notes: candidate?.notes || '',
-      eligible_voters: candidate?.eligible_voters ?? 0,
     },
   });
 
@@ -102,12 +105,13 @@ export function EOPCandidateForm({ candidate, trigger }: EOPCandidateFormProps) 
       last_name: values.last_name,
       picture_url: pictureUrl || null,
       video_score: values.video_score ?? null,
+      video_graded_by: values.video_graded_by || null,
       interview_score: values.interview_score ?? null,
+      interview_graded_by: values.interview_graded_by || null,
       r1_pu: values.r1_pu || null,
       r2_pu: values.r2_pu || null,
       tu_td: values.tu_td ?? 0,
       notes: values.notes || null,
-      eligible_voters: values.eligible_voters ?? 0,
     };
     
     if (isEditing) {
@@ -195,14 +199,14 @@ export function EOPCandidateForm({ candidate, trigger }: EOPCandidateFormProps) 
               />
             </div>
 
-            {/* Scores */}
+            {/* Video Score + Graded By */}
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="video_score"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Video Score</FormLabel>
+                    <FormLabel>Video/Application Score</FormLabel>
                     <FormControl>
                       <Input 
                         type="number" 
@@ -217,6 +221,23 @@ export function EOPCandidateForm({ candidate, trigger }: EOPCandidateFormProps) 
               />
               <FormField
                 control={form.control}
+                name="video_graded_by"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Graded By</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Who graded" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Interview Score + Interviewed By */}
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
                 name="interview_score"
                 render={({ field }) => (
                   <FormItem>
@@ -228,6 +249,19 @@ export function EOPCandidateForm({ candidate, trigger }: EOPCandidateFormProps) 
                         value={field.value ?? ''} 
                         onChange={e => field.onChange(e.target.value ? Number(e.target.value) : null)}
                       />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="interview_graded_by"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Interviewed By</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Who interviewed" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -264,46 +298,25 @@ export function EOPCandidateForm({ candidate, trigger }: EOPCandidateFormProps) 
               )}
             />
 
-            {/* TU/TD and Eligible Voters */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="tu_td"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>TU/TD (+/-)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        {...field} 
-                        value={field.value ?? 0}
-                        onChange={e => field.onChange(Number(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="eligible_voters"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Eligible Voters</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        min={0}
-                        {...field} 
-                        value={field.value ?? 0}
-                        onChange={e => field.onChange(Number(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            {/* TU/TD */}
+            <FormField
+              control={form.control}
+              name="tu_td"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>TU/TD (+/-)</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      {...field} 
+                      value={field.value ?? 0}
+                      onChange={e => field.onChange(Number(e.target.value))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {/* Notes */}
             <FormField
