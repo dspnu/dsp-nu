@@ -25,12 +25,13 @@ import { useMembers } from '@/hooks/useMembers';
 import { useAuth } from '@/contexts/AuthContext';
 
 const categories = ['chapter', 'rush', 'fundraising', 'service', 'brotherhood', 'professionalism', 'dei'] as const;
+type CategoryType = typeof categories[number];
 
 function EarnerForm({ earner, onClose }: { earner?: AttendanceEarner; onClose: () => void }) {
   const { user } = useAuth();
   const [title, setTitle] = useState(earner?.title ?? '');
   const [description, setDescription] = useState(earner?.description ?? '');
-  const [category, setCategory] = useState(earner?.category ?? 'chapter');
+  const [category, setCategory] = useState<CategoryType>(earner?.category as CategoryType ?? 'chapter');
   const [pointsValue, setPointsValue] = useState(earner?.points_value?.toString() ?? '1');
   const create = useCreateAttendanceEarner();
   const update = useUpdateAttendanceEarner();
