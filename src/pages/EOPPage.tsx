@@ -34,7 +34,7 @@ export default function EOPPage() {
   const currentBase = typeof baseVoters === 'number' ? baseVoters : (typeof baseVoters === 'string' ? parseInt(baseVoters as string) : 0);
 
   // Who can manage PNMs: Chancellor or VP Chapter Ops or admin
-  const canManagePNMs = isChancellor || isVPChapterOps || isAdminOrOfficer;
+  const canManagePNMs = isChancellor;
 
   // Find the active candidate (voting open)
   const activeCandidate = useMemo(() => 
