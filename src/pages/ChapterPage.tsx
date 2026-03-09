@@ -604,14 +604,20 @@ export default function ChapterPage() {
                   <CardTitle className="text-base font-medium flex items-center gap-2">
                     <Clock className="h-4 w-4 text-primary" />Service Hours
                   </CardTitle>
-                  <span className="text-2xl font-bold">{myVerifiedHours.toFixed(1)}</span>
+                  {myVerifiedHours >= SERVICE_HOURS_REQUIREMENT ? (
+                    <Badge className="bg-green-500/20 text-green-700 border-green-300 hover:bg-green-500/30">
+                      <CheckCircle className="h-3 w-3 mr-1" />Completed
+                    </Badge>
+                  ) : (
+                    <span className="text-2xl font-bold">{myVerifiedHours.toFixed(1)}</span>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Progress to {SERVICE_HOURS_REQUIREMENT}</span>
-                    <span className="font-medium">{Math.round(hoursProgress)}%</span>
+                    <span className="text-muted-foreground">Progress to {SERVICE_HOURS_REQUIREMENT} hrs</span>
+                    <span className="font-medium">{myVerifiedHours.toFixed(1)} / {SERVICE_HOURS_REQUIREMENT}</span>
                   </div>
                   <Progress value={hoursProgress} className="h-2" />
                 </div>
