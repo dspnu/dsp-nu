@@ -765,6 +765,57 @@ export type Database = {
         }
         Relationships: []
       }
+      family_bonus_points: {
+        Row: {
+          created_at: string
+          family_name: string
+          granted_by: string | null
+          id: string
+          points: number
+          reason: string
+        }
+        Insert: {
+          created_at?: string
+          family_name: string
+          granted_by?: string | null
+          id?: string
+          points?: number
+          reason: string
+        }
+        Update: {
+          created_at?: string
+          family_name?: string
+          granted_by?: string | null
+          id?: string
+          points?: number
+          reason?: string
+        }
+        Relationships: []
+      }
+      family_game_weights: {
+        Row: {
+          category: string
+          id: string
+          updated_at: string
+          updated_by: string | null
+          weight: number
+        }
+        Insert: {
+          category: string
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+          weight?: number
+        }
+        Update: {
+          category?: string
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+          weight?: number
+        }
+        Relationships: []
+      }
       job_bookmarks: {
         Row: {
           created_at: string

@@ -93,7 +93,7 @@ export default function ChapterPage() {
   const isPresident = profile?.positions?.includes('President') || false;
   const isVPFinance = profile?.positions?.includes('VP Finance') || profile?.positions?.includes('VP of Finance') || false;
 
-  const [activeTab, setActiveTab] = useState('jobs');
+  const [activeTab, setActiveTab] = useState('standing');
   const [jobSearch, setJobSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [resourceSearch, setResourceSearch] = useState('');
@@ -163,22 +163,66 @@ export default function ChapterPage() {
     },
   });
 
-  // Family-based leaderboard
+  // Family Games data
+  const { data: familyWeights = [] } = useQuery({
+    queryKey: ['family-game-weights'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('family_game_weights').select('*');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: familyBonusPoints = [] } = useQuery({
+    queryKey: ['family-bonus-points'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('family_bonus_points').select('*');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const SCORED_CATEGORIES = ['chapter', 'professionalism', 'brotherhood', 'fundraising', 'service'] as const;
+
+  // Family-based leaderboard with weighted scoring
   const familyTotals = useMemo(() => {
     if (!members || !allPoints) return [];
-    const familyMap: Record<string, { family: string; total: number; memberCount: number }> = {};
-    members.forEach(member => {
+    const activeMembers = members.filter(m => m.status === 'active' || m.status === 'new_member');
+    const familyMap: Record<string, { family: string; score: number; memberCount: number }> = {};
+
+    // Group members by family
+    const familyMembers: Record<string, typeof activeMembers> = {};
+    activeMembers.forEach(member => {
       const family = member.family || 'Unassigned';
-      const memberPoints = allPoints.filter(p => p.user_id === member.user_id);
-      const total = memberPoints.reduce((sum, p) => sum + p.points, 0);
-      if (!familyMap[family]) {
-        familyMap[family] = { family, total: 0, memberCount: 0 };
-      }
-      familyMap[family].total += total;
-      familyMap[family].memberCount += 1;
+      if (!familyMembers[family]) familyMembers[family] = [];
+      familyMembers[family].push(member);
     });
-    return Object.values(familyMap).sort((a, b) => b.total - a.total);
-  }, [members, allPoints]);
+
+    // Calculate weighted score per family
+    Object.entries(familyMembers).forEach(([family, fMembers]) => {
+      const totalInFamily = fMembers.length;
+      let score = 0;
+
+      SCORED_CATEGORIES.forEach(cat => {
+        const weight = familyWeights.find(w => w.category === cat);
+        const weightValue = weight ? Number(weight.weight) : 1;
+        const membersWithPoint = fMembers.filter(m =>
+          allPoints.some(p => p.user_id === m.user_id && p.category === cat && p.points > 0)
+        ).length;
+        score += (membersWithPoint / totalInFamily) * weightValue;
+      });
+
+      // Add bonus points
+      const bonus = familyBonusPoints
+        .filter(bp => bp.family_name === family)
+        .reduce((sum, bp) => sum + bp.points, 0);
+      score += bonus;
+
+      familyMap[family] = { family, score, memberCount: totalInFamily };
+    });
+
+    return Object.values(familyMap).sort((a, b) => b.score - a.score);
+  }, [members, allPoints, familyWeights, familyBonusPoints]);
 
   const myTotal = myPoints?.reduce((sum, p) => sum + p.points, 0) ?? 0;
   const myByCategory = myPoints?.reduce((acc, p) => {
@@ -252,12 +296,12 @@ export default function ChapterPage() {
   // ---- Handlers ----
   const handleExportPoints = () => {
     if (!familyTotals) return;
-    const exportData = familyTotals.map(({ family, total, memberCount }) => ({
+    const exportData = familyTotals.map(({ family, score, memberCount }) => ({
       Family: family,
-      'Total Points': total,
+      Score: score.toFixed(1),
       Members: memberCount,
     }));
-    exportToCSV(exportData, 'family-points-report');
+    exportToCSV(exportData, 'family-games-report');
   };
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -351,6 +395,10 @@ export default function ChapterPage() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className={`w-full max-w-2xl grid`} style={{ gridTemplateColumns: `repeat(${tabCount}, 1fr)` }}>
+          <TabsTrigger value="standing" className="gap-2">
+            <Award className="h-4 w-4 hidden sm:block" />
+            Standing
+          </TabsTrigger>
           <TabsTrigger value="jobs" className="gap-2">
             <Briefcase className="h-4 w-4 hidden sm:block" />
             Jobs
@@ -358,10 +406,6 @@ export default function ChapterPage() {
           <TabsTrigger value="coffee-chats" className="gap-2">
             <Coffee className="h-4 w-4 hidden sm:block" />
             Coffee Chats
-          </TabsTrigger>
-          <TabsTrigger value="standing" className="gap-2">
-            <Award className="h-4 w-4 hidden sm:block" />
-            Standing
           </TabsTrigger>
           <TabsTrigger value="resources" className="gap-2">
             <FolderOpen className="h-4 w-4 hidden sm:block" />
@@ -669,7 +713,7 @@ export default function ChapterPage() {
             <Card className="lg:col-span-3">
               <CardHeader className="pb-3 flex flex-row items-center justify-between">
                 <CardTitle className="text-base font-medium flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4" />Top Families
+                  <TrendingUp className="h-4 w-4" />Family Games
                 </CardTitle>
                 {isAdminOrOfficer && (
                   <Button variant="ghost" size="sm" onClick={handleExportPoints} className="h-8 gap-1">
@@ -682,7 +726,7 @@ export default function ChapterPage() {
                   <EmptyState icon={Award} title="No points yet" description="Points will appear as members earn them." />
                 ) : (
                   <div className="space-y-2">
-                    {familyTotals.slice(0, 8).map(({ family, total, memberCount }, index) => {
+                    {familyTotals.slice(0, 8).map(({ family, score, memberCount }, index) => {
                       const isMyFamily = family === myFamily;
                       return (
                         <div
@@ -707,7 +751,7 @@ export default function ChapterPage() {
                             </p>
                             <p className="text-xs text-muted-foreground">{memberCount} members</p>
                           </div>
-                          <span className="text-sm font-semibold">{total} pts</span>
+                          <span className="text-sm font-semibold">{score.toFixed(1)} pts</span>
                         </div>
                       );
                     })}
