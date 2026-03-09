@@ -65,7 +65,7 @@ function EarnerForm({ earner, onClose }: { earner?: AttendanceEarner; onClose: (
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Category</Label>
-          <Select value={category} onValueChange={setCategory}>
+          <Select value={category} onValueChange={(v) => setCategory(v as CategoryType)}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
