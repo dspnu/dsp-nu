@@ -13,7 +13,9 @@ export function StandingCard() {
   const totalPoints = userPoints?.reduce((sum, p) => sum + p.points, 0) || 0;
   
   const { data: serviceHours } = useServiceHours(user?.id);
+  const SERVICE_HOURS_REQUIREMENT = 3;
   const verifiedServiceHours = serviceHours?.filter(h => h.verified).reduce((sum, h) => sum + Number(h.hours), 0) || 0;
+  const serviceCompleted = verifiedServiceHours >= SERVICE_HOURS_REQUIREMENT;
   const pendingHours = serviceHours?.filter(h => !h.verified).reduce((sum, h) => sum + Number(h.hours), 0) || 0;
 
   return (
