@@ -115,7 +115,7 @@ export function EOPVotingCard({
   };
 
   return (
-    <Card className={`transition-all ${isActive ? 'ring-2 ring-primary shadow-lg' : 'opacity-60'}`}>
+    <Card className={`transition-all ${isActive ? 'ring-2 ring-primary shadow-lg' : ''} ${!isVPChapterOps && !isActive ? 'opacity-60' : ''}`}>
       <CardContent className="p-6">
         {/* Header */}
         <div className="flex items-start gap-4 mb-4">
@@ -353,44 +353,48 @@ export function EOPVotingCard({
               </PopoverContent>
             </Popover>
 
-            {/* Vote Counts with Percentage */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-emerald-600">{yesVotes}</p>
-                <p className="text-xs text-muted-foreground font-medium">Yes Votes</p>
-              </div>
-              <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-red-600">{noVotes}</p>
-                <p className="text-xs text-muted-foreground font-medium">No Votes</p>
-              </div>
-            </div>
-
-            {/* Approval Status with Percentage */}
-            {eligibleVoters > 0 && (
-              <div className={`p-3 rounded-lg flex items-center justify-between ${
-                isApproved 
-                  ? 'bg-emerald-500/10 border border-emerald-500/20' 
-                  : 'bg-amber-500/10 border border-amber-500/20'
-              }`}>
-                <div className="flex items-center gap-2">
-                  {isApproved ? (
-                    <CheckCircle className="h-5 w-5 text-emerald-600" />
-                  ) : (
-                    <AlertTriangle className="h-5 w-5 text-amber-600" />
-                  )}
-                  <div>
-                    <p className={`font-semibold text-sm ${isApproved ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
-                      {isApproved ? 'Approved for Bid' : needsMoreYes > 0 ? `Need ${needsMoreYes} more Yes` : 'Pending'}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {totalVotes}/{eligibleVoters} voted • {requiredYes} required (80%)
-                    </p>
+            {candidate.voting_open && (
+              <>
+                {/* Vote Counts with Percentage */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3 text-center">
+                    <p className="text-2xl font-bold text-emerald-600">{yesVotes}</p>
+                    <p className="text-xs text-muted-foreground font-medium">Yes Votes</p>
+                  </div>
+                  <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 text-center">
+                    <p className="text-2xl font-bold text-red-600">{noVotes}</p>
+                    <p className="text-xs text-muted-foreground font-medium">No Votes</p>
                   </div>
                 </div>
-                <div className={`text-2xl font-bold ${isApproved ? 'text-emerald-600' : 'text-amber-600'}`}>
-                  {yesPercentage}%
-                </div>
-              </div>
+
+                {/* Approval Status with Percentage */}
+                {eligibleVoters > 0 && (
+                  <div className={`p-3 rounded-lg flex items-center justify-between ${
+                    isApproved 
+                      ? 'bg-emerald-500/10 border border-emerald-500/20' 
+                      : 'bg-amber-500/10 border border-amber-500/20'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      {isApproved ? (
+                        <CheckCircle className="h-5 w-5 text-emerald-600" />
+                      ) : (
+                        <AlertTriangle className="h-5 w-5 text-amber-600" />
+                      )}
+                      <div>
+                        <p className={`font-semibold text-sm ${isApproved ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
+                          {isApproved ? 'Approved for Bid' : needsMoreYes > 0 ? `Need ${needsMoreYes} more Yes` : 'Pending'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {totalVotes}/{eligibleVoters} voted • {requiredYes} required (80%)
+                        </p>
+                      </div>
+                    </div>
+                    <div className={`text-2xl font-bold ${isApproved ? 'text-emerald-600' : 'text-amber-600'}`}>
+                      {yesPercentage}%
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             {/* Control Buttons */}
