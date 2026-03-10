@@ -857,6 +857,7 @@ export default function ChapterPage() {
             {isVPScholarship && <VPScholarshipDashboard />}
             {isPresident && <PresidentDashboard />}
             {isVPFinance && <VPFinanceDashboard />}
+            {isChancellor && <ChancellorDashboard />}
 
           </TabsContent>
         )}
