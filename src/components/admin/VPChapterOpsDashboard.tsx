@@ -297,7 +297,7 @@ export function VPChapterOpsDashboard() {
                   />
                 </div>
 
-                <ScrollArea className="max-h-[400px]">
+                <ScrollArea className="h-[400px] rounded-md border">
                   <div className="space-y-1">
                     {filteredEopMembers.map((member) => {
                       const status = eopAttendance[member.user_id];
