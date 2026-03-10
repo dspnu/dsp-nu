@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -35,25 +35,7 @@ export function ManualAttendance({ event }: ManualAttendanceProps) {
   // Permission check: chapter events = VP of Chapter Operations only, others = any exec
   const canRecord = isChapterEvent ? isVPChapterOps : isAdminOrOfficer;
 
-  // Initialize status map from existing attendance
-  const [statusMap, setStatusMap] = useState<Record<string, AttendanceStatus>>(() => {
-    const map: Record<string, AttendanceStatus> = {};
-    existingAttendance?.forEach(a => {
-      map[a.user_id] = (a as any).status === 'excused' || a.is_excused ? 'excused' : 'present';
-    });
-    return map;
-  });
-
-  // Re-sync when existingAttendance loads
-  useMemo(() => {
-    if (existingAttendance && Object.keys(statusMap).length === 0) {
-      const map: Record<string, AttendanceStatus> = {};
-      existingAttendance.forEach(a => {
-        map[a.user_id] = (a as any).status === 'excused' || a.is_excused ? 'excused' : 'present';
-      });
-      setStatusMap(map);
-    }
-  }, [existingAttendance]);
+  const [statusMap, setStatusMap] = useState<Record<string, AttendanceStatus>>({});
 
   const sortedMembers = useMemo(() => {
     let filtered = members?.filter(m => m.status === 'active' || m.status === 'new_member') || [];
@@ -65,6 +47,34 @@ export function ManualAttendance({ event }: ManualAttendanceProps) {
     
     return filtered.sort((a, b) => a.last_name.localeCompare(b.last_name));
   }, [members, isExecEvent]);
+
+  const mapAttendanceStatus = (record: any): AttendanceStatus => {
+    if (record.status === 'present' || record.status === 'excused' || record.status === 'unexcused') {
+      return record.status;
+    }
+
+    return record.is_excused ? 'excused' : 'present';
+  };
+
+  useEffect(() => {
+    if (!existingAttendance || !sortedMembers.length) return;
+
+    const map: Record<string, AttendanceStatus> = {};
+
+    existingAttendance.forEach((record: any) => {
+      map[record.user_id] = mapAttendanceStatus(record);
+    });
+
+    if (isChapterEvent) {
+      sortedMembers.forEach(member => {
+        if (!map[member.user_id]) {
+          map[member.user_id] = 'present';
+        }
+      });
+    }
+
+    setStatusMap(map);
+  }, [existingAttendance, sortedMembers, isChapterEvent]);
 
   const filteredMembers = sortedMembers.filter(member => {
     const name = `${member.first_name} ${member.last_name}`.toLowerCase();
@@ -85,11 +95,18 @@ export function ManualAttendance({ event }: ManualAttendanceProps) {
 
   const handleSave = () => {
     if (!user) return;
-    const records = Object.entries(statusMap)
-      .filter(([_, status]) => status !== 'none')
-      .map(([user_id, status]) => ({
-        user_id,
-        status: status as 'present' | 'excused' | 'unexcused',
+    const records = sortedMembers
+      .map(member => {
+        const status = statusMap[member.user_id] || (isChapterEvent ? 'present' : 'none');
+        return {
+          user_id: member.user_id,
+          status,
+        };
+      })
+      .filter(record => record.status !== 'none')
+      .map(record => ({
+        ...record,
+        status: record.status as 'present' | 'excused' | 'unexcused',
       }));
 
     saveAttendance.mutate({ eventId: event.id, records, checkedInBy: user.id });
@@ -102,7 +119,7 @@ export function ManualAttendance({ event }: ManualAttendanceProps) {
     const exportData = sortedMembers.map(m => ({
       Name: `${m.first_name} ${m.last_name}`,
       Email: m.email,
-      Status: statusMap[m.user_id] || (isChapterEvent ? 'unexcused' : 'absent'),
+      Status: statusMap[m.user_id] || (isChapterEvent ? 'present' : 'absent'),
     }));
     exportToCSV(exportData, `attendance-${event.title.replace(/\s+/g, '-').toLowerCase()}`);
   };
@@ -163,7 +180,7 @@ export function ManualAttendance({ event }: ManualAttendanceProps) {
       <ScrollArea className="h-[400px] pr-2">
         <div className="space-y-1">
           {filteredMembers.map((member) => {
-            const status = statusMap[member.user_id] || 'none';
+            const status = statusMap[member.user_id] || (isChapterEvent ? 'present' : 'none');
 
             return (
               <div
@@ -194,7 +211,7 @@ export function ManualAttendance({ event }: ManualAttendanceProps) {
                       size="sm"
                       variant={status === 'present' ? 'default' : 'outline'}
                       className={`h-7 text-xs px-2 ${status === 'present' ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}
-                      onClick={() => setMemberStatus(member.user_id, status === 'present' ? 'none' : 'present')}
+                      onClick={() => setMemberStatus(member.user_id, 'present')}
                     >
                       P
                     </Button>
@@ -202,7 +219,7 @@ export function ManualAttendance({ event }: ManualAttendanceProps) {
                       size="sm"
                       variant={status === 'excused' ? 'default' : 'outline'}
                       className={`h-7 text-xs px-2 ${status === 'excused' ? 'bg-amber-600 hover:bg-amber-700' : ''}`}
-                      onClick={() => setMemberStatus(member.user_id, status === 'excused' ? 'none' : 'excused')}
+                      onClick={() => setMemberStatus(member.user_id, 'excused')}
                     >
                       E
                     </Button>
@@ -210,7 +227,7 @@ export function ManualAttendance({ event }: ManualAttendanceProps) {
                       size="sm"
                       variant={status === 'unexcused' ? 'default' : 'outline'}
                       className={`h-7 text-xs px-2 ${status === 'unexcused' ? 'bg-red-600 hover:bg-red-700' : ''}`}
-                      onClick={() => setMemberStatus(member.user_id, status === 'unexcused' ? 'none' : 'unexcused')}
+                      onClick={() => setMemberStatus(member.user_id, 'unexcused')}
                     >
                       U
                     </Button>
