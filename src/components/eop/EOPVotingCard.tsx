@@ -60,7 +60,7 @@ export function EOPVotingCard({
 
   const isReady = readyCount?.userIds.includes(user?.id || '') || false;
   
-  // Calculate eligible voters: base - absent members
+  // Calculate base number: base - absent members
   const baseNumber = typeof baseVoters === 'number' ? baseVoters : (typeof baseVoters === 'string' ? parseInt(baseVoters as string) : 0);
   const absentMembers: string[] = (candidate as any).absent_members || [];
   const eligibleVoters = Math.max(0, baseNumber - absentMembers.length);
@@ -277,9 +277,9 @@ export function EOPVotingCard({
         {/* VP of Chapter Operations Controls */}
         {isVPChapterOps && (
           <div className="space-y-4 pt-4 border-t">
-            {/* Eligible Voters Display (auto-calculated) */}
+            {/* Base Number Display (auto-calculated) */}
             <div className="flex items-center justify-between bg-muted/50 rounded-lg px-4 py-3">
-              <span className="text-sm text-muted-foreground">Eligible Voters</span>
+              <span className="text-sm text-muted-foreground">Base Number</span>
               <div className="text-right">
                 <span className="font-semibold text-lg">{eligibleVoters}</span>
                 {absentMembers.length > 0 && (
@@ -392,18 +392,6 @@ export function EOPVotingCard({
                 </div>
               </div>
             )}
-
-            {eligibleVoters === 0 && baseNumber === 0 && (
-              <div className="p-3 rounded-lg bg-muted/50 border border-border text-center text-sm text-muted-foreground">
-                Set base voters in the Admin tab to see approval status
-              </div>
-            )}
-
-            {/* Ready & Total */}
-            <div className="flex items-center justify-between text-sm bg-muted/50 rounded-lg px-4 py-3">
-              <span className="text-muted-foreground">Ready Members</span>
-              <span className="font-semibold">{readyCount?.count || 0}</span>
-            </div>
 
             {/* Control Buttons */}
             <div className="flex gap-2">

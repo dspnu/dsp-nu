@@ -8,11 +8,13 @@ import { ElectionManager } from './ElectionManager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Users, CalendarCheck, Shield, Eye, Search, ChevronDown } from 'lucide-react';
+import { Users, CalendarCheck, Shield, Eye, Search, ChevronDown, Calendar, Save } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMembers } from '@/hooks/useMembers';
@@ -20,6 +22,7 @@ import { useAllAttendance } from '@/hooks/useAttendance';
 import { useChapterSetting, useUpdateChapterSetting } from '@/hooks/useChapterSettings';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const categories = ['chapter', 'rush', 'fundraising', 'service', 'brotherhood', 'professionalism', 'dei'] as const;
 const POINTS_REQUIREMENT = 7;
@@ -29,12 +32,51 @@ export function VPChapterOpsDashboard() {
   const { data: members = [] } = useMembers();
   const { data: allAttendance = [] } = useAllAttendance();
   const { data: eopVisible } = useChapterSetting('eop_visible');
+  const { data: eopDate } = useChapterSetting('eop_date');
+  const { data: eopAttendanceData } = useChapterSetting('eop_attendance');
   const updateSetting = useUpdateChapterSetting();
   const [selectedMember, setSelectedMember] = useState<{ userId: string; name: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [standingFilter, setStandingFilter] = useState<'all' | 'good' | 'at_risk'>('all');
   const [categoryFilter, setCategoryFilter] = useState<'all' | typeof categories[number]>('all');
   const [categoryMode, setCategoryMode] = useState<'has' | 'missing'>('missing');
+  const [eopDateInput, setEopDateInput] = useState('');
+
+  const currentEopDate = typeof eopDate === 'string' ? eopDate : '';
+
+  // EOP Attendance state
+  const eopAttendance: Record<string, 'present' | 'excused' | 'unexcused'> = 
+    (eopAttendanceData && typeof eopAttendanceData === 'object' && !Array.isArray(eopAttendanceData)) 
+      ? (eopAttendanceData as Record<string, 'present' | 'excused' | 'unexcused'>) 
+      : {};
+
+  const activeMembers = useMemo(() => 
+    members.filter(m => m.status === 'active' || m.status === 'new_member')
+      .sort((a, b) => `${a.last_name} ${a.first_name}`.localeCompare(`${b.last_name} ${b.first_name}`)),
+    [members]
+  );
+
+  const presentCount = useMemo(() => 
+    Object.values(eopAttendance).filter(s => s === 'present').length,
+    [eopAttendance]
+  );
+
+  const handleEopAttendanceChange = (userId: string, status: 'present' | 'excused' | 'unexcused') => {
+    const current = eopAttendance[userId];
+    const newAttendance = { ...eopAttendance };
+    
+    if (current === status) {
+      // Toggle off
+      delete newAttendance[userId];
+    } else {
+      newAttendance[userId] = status;
+    }
+    
+    // Save attendance and update base number
+    const newPresentCount = Object.values(newAttendance).filter(s => s === 'present').length;
+    updateSetting.mutate({ key: 'eop_attendance', value: newAttendance });
+    updateSetting.mutate({ key: 'eop_base_voters', value: newPresentCount });
+  };
 
   const { data: allPoints = [] } = useQuery({
     queryKey: ['all-points'],
@@ -120,6 +162,14 @@ export function VPChapterOpsDashboard() {
     });
   }, [memberRows, searchQuery, standingFilter, categoryFilter, categoryMode]);
 
+  const [eopAttSearch, setEopAttSearch] = useState('');
+
+  const filteredEopMembers = useMemo(() => {
+    if (!eopAttSearch) return activeMembers;
+    return activeMembers.filter(m => 
+      `${m.first_name} ${m.last_name}`.toLowerCase().includes(eopAttSearch.toLowerCase())
+    );
+  }, [activeMembers, eopAttSearch]);
 
   return (
     <div className="space-y-6">
@@ -180,6 +230,133 @@ export function VPChapterOpsDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* EOP Date & Attendance */}
+      <Collapsible>
+        <Card>
+          <CardHeader>
+            <CollapsibleTrigger className="flex items-center justify-between w-full">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-primary" />
+                EOP Date & Attendance
+              </CardTitle>
+              <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200" />
+            </CollapsibleTrigger>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent className="space-y-4">
+              {/* EOP Date Setting */}
+              <div className="flex items-center gap-3">
+                <Label className="text-sm shrink-0">EOP Date:</Label>
+                <Input
+                  type="date"
+                  value={eopDateInput || currentEopDate}
+                  onChange={(e) => setEopDateInput(e.target.value)}
+                  className="w-48 h-9"
+                />
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    const val = eopDateInput || currentEopDate;
+                    if (val) {
+                      updateSetting.mutate({ key: 'eop_date', value: val });
+                      setEopDateInput('');
+                      toast.success('EOP date saved');
+                    }
+                  }}
+                  disabled={updateSetting.isPending}
+                >
+                  Save
+                </Button>
+                {currentEopDate && (
+                  <span className="text-sm text-muted-foreground">
+                    Set to: <strong>{format(new Date(currentEopDate + 'T00:00:00'), 'MMM d, yyyy')}</strong>
+                  </span>
+                )}
+              </div>
+
+              {/* EOP Attendance */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">EOP Attendance</p>
+                  <Badge variant="outline" className="text-sm">
+                    {presentCount} Present (Base Number)
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Mark members present at EOP. The count of present members automatically sets the base number for voting approval.
+                </p>
+
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search members..."
+                    value={eopAttSearch}
+                    onChange={(e) => setEopAttSearch(e.target.value)}
+                    className="pl-9 h-9"
+                  />
+                </div>
+
+                <ScrollArea className="max-h-[400px]">
+                  <div className="space-y-1">
+                    {filteredEopMembers.map((member) => {
+                      const status = eopAttendance[member.user_id];
+                      return (
+                        <div
+                          key={member.user_id}
+                          className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/50"
+                        >
+                          <span className="text-sm font-medium">
+                            {member.last_name}, {member.first_name}
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant={status === 'present' ? 'default' : 'outline'}
+                              size="sm"
+                              className={`h-7 w-8 p-0 text-xs font-bold ${
+                                status === 'present' 
+                                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+                                  : ''
+                              }`}
+                              onClick={() => handleEopAttendanceChange(member.user_id, 'present')}
+                            >
+                              P
+                            </Button>
+                            <Button
+                              variant={status === 'excused' ? 'default' : 'outline'}
+                              size="sm"
+                              className={`h-7 w-8 p-0 text-xs font-bold ${
+                                status === 'excused' 
+                                  ? 'bg-amber-500 hover:bg-amber-600 text-white' 
+                                  : ''
+                              }`}
+                              onClick={() => handleEopAttendanceChange(member.user_id, 'excused')}
+                            >
+                              E
+                            </Button>
+                            <Button
+                              variant={status === 'unexcused' ? 'default' : 'outline'}
+                              size="sm"
+                              className={`h-7 w-8 p-0 text-xs font-bold ${
+                                status === 'unexcused' 
+                                  ? 'bg-red-600 hover:bg-red-700 text-white' 
+                                  : ''
+                              }`}
+                              onClick={() => handleEopAttendanceChange(member.user_id, 'unexcused')}
+                            >
+                              U
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
       {/* Member Points Spreadsheet */}
       <Collapsible>
