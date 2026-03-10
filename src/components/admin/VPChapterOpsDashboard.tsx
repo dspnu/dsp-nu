@@ -56,24 +56,34 @@ export function VPChapterOpsDashboard() {
     [members]
   );
 
+  const getEopStatus = (userId: string): 'present' | 'excused' | 'unexcused' =>
+    eopAttendance[userId] ?? 'present';
+
   const presentCount = useMemo(() => 
-    Object.values(eopAttendance).filter(s => s === 'present').length,
-    [eopAttendance]
+    activeMembers.filter((member) => getEopStatus(member.user_id) === 'present').length,
+    [activeMembers, eopAttendance]
   );
 
   const handleEopAttendanceChange = (userId: string, status: 'present' | 'excused' | 'unexcused') => {
-    const current = eopAttendance[userId];
+    const current = getEopStatus(userId);
     const newAttendance = { ...eopAttendance };
     
     if (current === status) {
-      // Toggle off
-      delete newAttendance[userId];
+      if (status !== 'present') {
+        // Toggle E/U back to default present
+        delete newAttendance[userId];
+      }
     } else {
-      newAttendance[userId] = status;
+      if (status === 'present') {
+        // Present is the default selection
+        delete newAttendance[userId];
+      } else {
+        newAttendance[userId] = status;
+      }
     }
     
     // Save attendance and update base number
-    const newPresentCount = Object.values(newAttendance).filter(s => s === 'present').length;
+    const newPresentCount = activeMembers.filter((member) => (newAttendance[member.user_id] ?? 'present') === 'present').length;
     updateSetting.mutate({ key: 'eop_attendance', value: newAttendance });
     updateSetting.mutate({ key: 'eop_base_voters', value: newPresentCount });
   };
@@ -300,7 +310,7 @@ export function VPChapterOpsDashboard() {
                 <ScrollArea className="h-[400px] rounded-md border">
                   <div className="space-y-1">
                     {filteredEopMembers.map((member) => {
-                      const status = eopAttendance[member.user_id];
+                      const status = getEopStatus(member.user_id);
                       return (
                         <div
                           key={member.user_id}
