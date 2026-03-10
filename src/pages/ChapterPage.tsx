@@ -50,6 +50,7 @@ import { VPProfessionalActivitiesDashboard } from '@/components/admin/VPProfessi
 import { VPScholarshipDashboard } from '@/components/admin/VPScholarshipDashboard';
 import { PresidentDashboard } from '@/components/admin/PresidentDashboard';
 import { VPFinanceDashboard } from '@/components/admin/VPFinanceDashboard';
+import { ChancellorDashboard } from '@/components/admin/ChancellorDashboard';
 
 
 const categories = ['chapter', 'rush', 'fundraising', 'service', 'brotherhood', 'professionalism', 'dei', 'new_member'] as const;
