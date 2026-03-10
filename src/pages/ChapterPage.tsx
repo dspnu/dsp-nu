@@ -17,7 +17,7 @@ import { CategoryBadge } from '@/components/ui/category-badge';
 import { Progress } from '@/components/ui/progress';
 import { Switch } from '@/components/ui/switch';
 import {
-  Award, Download, TrendingUp, CheckCircle, Clock, Plus, DollarSign,
+  Award, Download, TrendingUp, Check, Clock, Plus, DollarSign,
   Shield, Trophy, Target, ChevronRight, Users, Briefcase, Coffee,
   FolderOpen, FileText, Folder, Search, AlertCircle, UserCheck, Camera, Image, X
 } from 'lucide-react';
@@ -535,7 +535,7 @@ export default function ChapterPage() {
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                   {isGoodStanding ? (
                     <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
-                      <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
+                      <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                     </div>
                   ) : (
                     <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
@@ -589,7 +589,7 @@ export default function ChapterPage() {
                     <div key={cat} className="text-center">
                       <div className={`flex justify-center ${(myByCategory[cat] || 0) >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
                         {(myByCategory[cat] || 0) >= 1 ? (
-                          <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+                          <Check className="h-4 w-4 sm:h-5 sm:w-5" />
                         ) : (
                           <X className="h-4 w-4 sm:h-5 sm:w-5" />
                         )}
@@ -610,7 +610,7 @@ export default function ChapterPage() {
                   </CardTitle>
                   {myVerifiedHours >= SERVICE_HOURS_REQUIREMENT ? (
                     <Badge className="bg-green-500/20 text-green-700 border-green-300 hover:bg-green-500/30">
-                      <CheckCircle className="h-3 w-3 mr-1" />Completed
+                      <Check className="h-3 w-3 mr-1" />Completed
                     </Badge>
                   ) : (
                     <span className="text-2xl font-bold">{myVerifiedHours.toFixed(1)}</span>
