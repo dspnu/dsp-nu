@@ -353,7 +353,7 @@ export function EOPVotingCard({
               </PopoverContent>
             </Popover>
 
-            {candidate.voting_open ? (
+            {candidate.voting_open && (
               <>
                 {/* Vote Counts with Percentage */}
                 <div className="grid grid-cols-2 gap-3">
@@ -395,10 +395,6 @@ export function EOPVotingCard({
                   </div>
                 )}
               </>
-            ) : (
-              <div className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground text-center">
-                Vote totals and approval threshold will appear once voting is open.
-              </div>
             )}
 
             {/* Control Buttons */}
