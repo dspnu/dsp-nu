@@ -222,6 +222,20 @@ export function useDeleteElectionCandidate() {
   });
 }
 
+export function useTogglePositionActive() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+      const { error } = await supabase.from('election_positions').update({ is_active }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['election-positions'] });
+    },
+    onError: () => toast.error('Failed to toggle position'),
+  });
+}
+
 export function useCastVote() {
   const qc = useQueryClient();
   return useMutation({
