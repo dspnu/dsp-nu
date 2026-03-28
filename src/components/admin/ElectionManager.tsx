@@ -6,13 +6,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Vote, Plus, Trash2, Play, Square, ChevronDown, BarChart3,
-  Users, UserPlus, Trophy, ArrowRight
+  Vote, Plus, Trash2, Play, Square, BarChart3,
+  Users, UserPlus, Trophy, Eye, EyeOff
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMembers } from '@/hooks/useMembers';
@@ -21,12 +22,88 @@ import {
   useCreateElection, useUpdateElectionStatus, useDeleteElection,
   useAddElectionPosition, useDeleteElectionPosition,
   useAddElectionCandidate, useDeleteElectionCandidate,
+  useTogglePositionActive,
   Election,
 } from '@/hooks/useElections';
 
+function ResultsView({ election }: { election: Election }) {
+  const { data: positions = [] } = useElectionPositions(election.id);
+  const { data: members = [] } = useMembers();
+  const positionIds = useMemo(() => positions.map(p => p.id), [positions]);
+  const { data: candidates = [] } = useElectionCandidates(positionIds);
+  const { data: allVotes = [] } = useElectionVotes(positionIds);
+
+  const totalVoters = useMemo(() => new Set(allVotes.map(v => v.voter_id)).size, [allVotes]);
+  const activeMembers = members.filter(m => m.status === 'active' || m.status === 'new_member').length;
+  const turnout = activeMembers > 0 ? Math.round((totalVoters / activeMembers) * 100) : 0;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-4 text-sm p-3 rounded-lg bg-muted/50">
+        <div className="flex items-center gap-1.5">
+          <Users className="h-3.5 w-3.5 text-primary" />
+          <span className="font-medium">{totalVoters}</span>
+          <span className="text-muted-foreground">/ {activeMembers} voted</span>
+        </div>
+        <div className="flex-1">
+          <Progress value={turnout} className="h-2" />
+        </div>
+        <span className="font-semibold text-primary">{turnout}%</span>
+      </div>
+
+      {positions.map(position => {
+        const posCandidates = candidates.filter(c => c.position_id === position.id);
+        const posVotes = allVotes.filter(v => v.position_id === position.id);
+        const totalPosVotes = posVotes.length;
+
+        const ranked = posCandidates
+          .map(c => ({ ...c, voteCount: posVotes.filter(v => v.candidate_id === c.id).length }))
+          .sort((a, b) => b.voteCount - a.voteCount);
+
+        return (
+          <div key={position.id} className="border rounded-lg p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-semibold flex items-center gap-2">
+                <Trophy className="h-3.5 w-3.5 text-primary" />
+                {position.position_name}
+              </h4>
+              <Badge variant="outline" className="text-xs">
+                {totalPosVotes} vote{totalPosVotes !== 1 ? 's' : ''}
+              </Badge>
+            </div>
+            {ranked.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No candidates</p>
+            ) : (
+              <div className="space-y-2">
+                {ranked.map((c, i) => {
+                  const pct = totalPosVotes > 0 ? (c.voteCount / totalPosVotes) * 100 : 0;
+                  const isWinner = election.status === 'closed' && i === 0 && c.voteCount > 0;
+                  return (
+                    <div key={c.id} className="space-y-1">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className={`flex items-center gap-1.5 ${isWinner ? 'font-semibold' : ''}`}>
+                          {isWinner && <Trophy className="h-3 w-3 text-yellow-500" />}
+                          {c.candidate_name}
+                        </span>
+                        <span className="text-muted-foreground text-xs">
+                          {c.voteCount} ({Math.round(pct)}%)
+                        </span>
+                      </div>
+                      <Progress value={pct} className="h-2" />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function ElectionDetail({ election }: { election: Election }) {
   const { user } = useAuth();
-  const { data: members = [] } = useMembers();
   const { data: positions = [] } = useElectionPositions(election.id);
   const positionIds = useMemo(() => positions.map(p => p.id), [positions]);
   const { data: candidates = [] } = useElectionCandidates(positionIds);
@@ -37,16 +114,10 @@ function ElectionDetail({ election }: { election: Election }) {
   const deletePosition = useDeleteElectionPosition();
   const addCandidate = useAddElectionCandidate();
   const deleteCandidate = useDeleteElectionCandidate();
+  const toggleActive = useTogglePositionActive();
 
   const [newPosition, setNewPosition] = useState('');
   const [candidateInputs, setCandidateInputs] = useState<Record<string, string>>({});
-
-  const totalVoters = useMemo(() => {
-    const voterIds = new Set(allVotes.map(v => v.voter_id));
-    return voterIds.size;
-  }, [allVotes]);
-
-  const activeMembers = members.filter(m => m.status === 'active' || m.status === 'new_member').length;
 
   const handleAddPosition = () => {
     if (!newPosition.trim()) return;
@@ -74,7 +145,7 @@ function ElectionDetail({ election }: { election: Election }) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex-1 min-w-0">
             <CardTitle className="text-base truncate">{election.title}</CardTitle>
             {election.description && (
@@ -85,12 +156,12 @@ function ElectionDetail({ election }: { election: Election }) {
             <Badge className={statusColor[election.status]}>{election.status}</Badge>
             {election.status === 'draft' && (
               <Button size="sm" variant="default" className="gap-1 h-7" onClick={() => updateStatus.mutate({ id: election.id, status: 'open' })}>
-                <Play className="h-3 w-3" />Open
+                <Play className="h-3 w-3" />Open All
               </Button>
             )}
             {election.status === 'open' && (
               <Button size="sm" variant="destructive" className="gap-1 h-7" onClick={() => updateStatus.mutate({ id: election.id, status: 'closed' })}>
-                <Square className="h-3 w-3" />Close
+                <Square className="h-3 w-3" />Close All
               </Button>
             )}
             {election.status === 'closed' && (
@@ -120,129 +191,106 @@ function ElectionDetail({ election }: { election: Election }) {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Stats bar */}
-        {(election.status === 'open' || election.status === 'closed') && (
-          <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Users className="h-3.5 w-3.5" />
-              <span>{totalVoters} voted</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <BarChart3 className="h-3.5 w-3.5" />
-              <span>{activeMembers > 0 ? Math.round((totalVoters / activeMembers) * 100) : 0}% turnout</span>
-            </div>
-          </div>
-        )}
+      <CardContent>
+        <Tabs defaultValue="manage" className="w-full">
+          <TabsList className="w-full grid grid-cols-2 h-9">
+            <TabsTrigger value="manage" className="text-xs gap-1.5">
+              <Vote className="h-3.5 w-3.5" />Manage
+            </TabsTrigger>
+            <TabsTrigger value="results" className="text-xs gap-1.5">
+              <BarChart3 className="h-3.5 w-3.5" />Results
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Positions */}
-        {positions.map(position => {
-          const posCandidates = candidates.filter(c => c.position_id === position.id);
-          const posVotes = allVotes.filter(v => v.position_id === position.id);
-          const totalPosVotes = posVotes.length;
+          <TabsContent value="manage" className="space-y-3 mt-3">
+            {/* Positions */}
+            {positions.map(position => {
+              const posCandidates = candidates.filter(c => c.position_id === position.id);
+              return (
+                <div key={position.id} className={`border rounded-lg p-3 space-y-2 ${!position.is_active ? 'opacity-50' : ''}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="text-sm font-semibold flex items-center gap-2 min-w-0">
+                      <Trophy className="h-3.5 w-3.5 text-primary shrink-0" />
+                      <span className="truncate">{position.position_name}</span>
+                    </h4>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {election.status === 'open' && (
+                        <div className="flex items-center gap-1.5">
+                          {position.is_active ? <Eye className="h-3 w-3 text-muted-foreground" /> : <EyeOff className="h-3 w-3 text-muted-foreground" />}
+                          <Switch
+                            checked={position.is_active}
+                            onCheckedChange={(checked) => toggleActive.mutate({ id: position.id, is_active: checked })}
+                            className="scale-75"
+                          />
+                        </div>
+                      )}
+                      {election.status === 'draft' && (
+                        <Button
+                          size="icon" variant="ghost" className="h-6 w-6 text-destructive"
+                          onClick={() => deletePosition.mutate({ id: position.id, electionId: election.id })}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
 
-          return (
-            <div key={position.id} className="border rounded-lg p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-semibold flex items-center gap-2">
-                  <Trophy className="h-3.5 w-3.5 text-primary" />
-                  {position.position_name}
-                </h4>
-                {election.status === 'draft' && (
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-6 w-6 text-destructive"
-                    onClick={() => deletePosition.mutate({ id: position.id, electionId: election.id })}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                )}
-              </div>
-
-              {/* Candidates with results */}
-              {posCandidates.length === 0 ? (
-                <p className="text-xs text-muted-foreground">No candidates added yet</p>
-              ) : (
-                <div className="space-y-1.5">
-                  {posCandidates
-                    .map(c => ({
-                      ...c,
-                      voteCount: posVotes.filter(v => v.candidate_id === c.id).length,
-                    }))
-                    .sort((a, b) => b.voteCount - a.voteCount)
-                    .map((c, i) => {
-                      const pct = totalPosVotes > 0 ? (c.voteCount / totalPosVotes) * 100 : 0;
-                      const isWinner = election.status === 'closed' && i === 0 && c.voteCount > 0;
-
-                      return (
-                        <div key={c.id} className="flex items-center gap-2">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              {isWinner && <Trophy className="h-3 w-3 text-yellow-500 shrink-0" />}
-                              <span className={`text-sm truncate ${isWinner ? 'font-semibold' : ''}`}>
-                                {c.candidate_name}
-                              </span>
-                            </div>
-                            {(election.status === 'open' || election.status === 'closed') && (
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <Progress value={pct} className="h-1.5 flex-1" />
-                                <span className="text-[10px] text-muted-foreground w-16 text-right">
-                                  {c.voteCount} ({Math.round(pct)}%)
-                                </span>
-                              </div>
-                            )}
-                          </div>
+                  {posCandidates.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">No candidates added yet</p>
+                  ) : (
+                    <div className="space-y-1">
+                      {posCandidates.map(c => (
+                        <div key={c.id} className="flex items-center justify-between text-sm">
+                          <span>{c.candidate_name}</span>
                           {election.status === 'draft' && (
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-5 w-5 text-muted-foreground hover:text-destructive shrink-0"
-                              onClick={() => deleteCandidate.mutate(c.id)}
-                            >
+                            <Button size="icon" variant="ghost" className="h-5 w-5 text-muted-foreground hover:text-destructive"
+                              onClick={() => deleteCandidate.mutate(c.id)}>
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           )}
                         </div>
-                      );
-                    })}
-                </div>
-              )}
+                      ))}
+                    </div>
+                  )}
 
-              {/* Add candidate (draft only) */}
-              {election.status === 'draft' && (
-                <div className="flex gap-1.5 pt-1">
-                  <Input
-                    placeholder="Add candidate name..."
-                    value={candidateInputs[position.id] || ''}
-                    onChange={(e) => setCandidateInputs(prev => ({ ...prev, [position.id]: e.target.value }))}
-                    className="h-7 text-xs"
-                    onKeyDown={(e) => e.key === 'Enter' && handleAddCandidate(position.id)}
-                  />
-                  <Button size="sm" variant="outline" className="h-7 px-2" onClick={() => handleAddCandidate(position.id)}>
-                    <UserPlus className="h-3 w-3" />
-                  </Button>
+                  {election.status === 'draft' && (
+                    <div className="flex gap-1.5 pt-1">
+                      <Input
+                        placeholder="Add candidate name..."
+                        value={candidateInputs[position.id] || ''}
+                        onChange={(e) => setCandidateInputs(prev => ({ ...prev, [position.id]: e.target.value }))}
+                        className="h-7 text-xs"
+                        onKeyDown={(e) => e.key === 'Enter' && handleAddCandidate(position.id)}
+                      />
+                      <Button size="sm" variant="outline" className="h-7 px-2" onClick={() => handleAddCandidate(position.id)}>
+                        <UserPlus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          );
-        })}
+              );
+            })}
 
-        {/* Add position (draft only) */}
-        {election.status === 'draft' && (
-          <div className="flex gap-2">
-            <Input
-              placeholder="Add position (e.g. President)..."
-              value={newPosition}
-              onChange={(e) => setNewPosition(e.target.value)}
-              className="h-8 text-sm"
-              onKeyDown={(e) => e.key === 'Enter' && handleAddPosition()}
-            />
-            <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleAddPosition}>
-              <Plus className="h-3 w-3" />Add
-            </Button>
-          </div>
-        )}
+            {election.status === 'draft' && (
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Add position (e.g. President)..."
+                  value={newPosition}
+                  onChange={(e) => setNewPosition(e.target.value)}
+                  className="h-8 text-sm"
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddPosition()}
+                />
+                <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleAddPosition}>
+                  <Plus className="h-3 w-3" />Add
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="results" className="mt-3">
+            <ResultsView election={election} />
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );

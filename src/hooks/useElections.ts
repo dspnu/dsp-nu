@@ -17,6 +17,7 @@ export interface ElectionPosition {
   election_id: string;
   position_name: string;
   sort_order: number;
+  is_active: boolean;
   created_at: string;
 }
 
@@ -218,6 +219,20 @@ export function useDeleteElectionCandidate() {
       qc.invalidateQueries({ queryKey: ['election-candidates'] });
     },
     onError: () => toast.error('Failed to remove candidate'),
+  });
+}
+
+export function useTogglePositionActive() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+      const { error } = await supabase.from('election_positions').update({ is_active }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['election-positions'] });
+    },
+    onError: () => toast.error('Failed to toggle position'),
   });
 }
 

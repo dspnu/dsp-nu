@@ -592,6 +592,7 @@ export type Database = {
           created_at: string
           election_id: string
           id: string
+          is_active: boolean
           position_name: string
           sort_order: number
         }
@@ -599,6 +600,7 @@ export type Database = {
           created_at?: string
           election_id: string
           id?: string
+          is_active?: boolean
           position_name: string
           sort_order?: number
         }
@@ -606,6 +608,7 @@ export type Database = {
           created_at?: string
           election_id?: string
           id?: string
+          is_active?: boolean
           position_name?: string
           sort_order?: number
         }
