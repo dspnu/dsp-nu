@@ -13,7 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, CalendarCheck, Shield, Eye, Search, Calendar, Vote, Trophy, Settings, ClipboardList, Award } from 'lucide-react';
+import { Users, CalendarCheck, Shield, Eye, Search, Calendar, Vote, Trophy, Settings, ClipboardList, Award, CheckCircle2, XCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMembers } from '@/hooks/useMembers';
