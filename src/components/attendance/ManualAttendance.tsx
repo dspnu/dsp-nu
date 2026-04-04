@@ -259,6 +259,7 @@ export function ManualAttendance({ event }: ManualAttendanceProps) {
                   </Button>
                 )}
               </div>
+              </div>
             );
           })}
         </div>
