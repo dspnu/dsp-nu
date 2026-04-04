@@ -185,12 +185,21 @@ export function ManualAttendance({ event }: ManualAttendanceProps) {
 
       <ScrollArea className="h-[400px] pr-2">
         <div className="space-y-1">
-          {filteredMembers.map((member) => {
+          {filteredMembers.map((member, idx) => {
             const status = statusMap[member.user_id] || (isChapterEvent ? 'present' : 'none');
+            const prevMember = idx > 0 ? filteredMembers[idx - 1] : null;
+            const showNewMemberHeader = isChapterEvent && member.status === 'new_member' && (!prevMember || prevMember.status !== 'new_member');
+            const showActiveMemberHeader = isChapterEvent && idx === 0 && member.status !== 'new_member';
 
             return (
-              <div
-                key={member.id}
+              <div key={member.id}>
+                {showActiveMemberHeader && (
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider py-1.5 px-1">Active Members</div>
+                )}
+                {showNewMemberHeader && (
+                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider py-1.5 px-1 mt-3 border-t border-border/40 pt-3">New Members</div>
+                )}
+                <div
                 className={`flex items-center gap-3 p-2.5 rounded-lg border transition-colors ${
                   status === 'present' ? 'bg-emerald-500/5 border-emerald-500/20' :
                   status === 'excused' ? 'bg-amber-500/5 border-amber-500/20' :
