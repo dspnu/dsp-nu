@@ -27,7 +27,7 @@ const COMMON_POSITIONS = [
   'VP of Finance',
   'VP of Community Service',
   'VP of Alumni Relations',
-  'VP of Scholarship',
+  'VP of Scholarship & Awards',
   'VP of Brotherhood',
   'VP of DEI',
   'VP of Fundraising',

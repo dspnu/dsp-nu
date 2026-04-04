@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -84,6 +85,24 @@ export function useElectionCandidates(positionIds?: string[]) {
 }
 
 export function useElectionVotes(positionIds?: string[]) {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!positionIds || positionIds.length === 0) return;
+    const channel = supabase
+      .channel('election-votes-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'election_votes' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['election-votes'] });
+          queryClient.invalidateQueries({ queryKey: ['my-election-votes'] });
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient, positionIds]);
+
   return useQuery({
     queryKey: ['election-votes', positionIds],
     queryFn: async () => {

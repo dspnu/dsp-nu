@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, Pencil, Trash2 } from 'lucide-react';
+import { Users, Pencil, Trash2, CheckCircle2, XCircle } from 'lucide-react';
 import { useRealtimeCandidates, useRealtimeVoteCounts } from '@/hooks/useEOPRealtime';
 import { useDeleteCandidate } from '@/hooks/useEOP';
 import { useChapterSetting } from '@/hooks/useChapterSettings';
@@ -18,6 +18,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useState } from 'react';
 
 export function ChancellorDashboard() {
   const { data: candidates = [] } = useRealtimeCandidates();
@@ -25,6 +27,21 @@ export function ChancellorDashboard() {
   const deleteCandidate = useDeleteCandidate();
   const { data: baseVoters } = useChapterSetting('eop_base_voters');
   const currentBase = typeof baseVoters === 'number' ? baseVoters : (typeof baseVoters === 'string' ? parseInt(baseVoters as string) : 0);
+  const [resultsOpen, setResultsOpen] = useState(false);
+
+  // Calculate results for each candidate
+  const candidateResults = candidates.map((candidate) => {
+    const counts = voteCounts?.[candidate.id];
+    const yesVotes = counts?.yes || 0;
+    const absentMembers: string[] = (candidate as any).absent_members || [];
+    const eligibleVoters = Math.max(0, currentBase - absentMembers.length);
+    const requiredYes = eligibleVoters > 0 ? Math.ceil(eligibleVoters * 0.8) : 0;
+    const isApproved = eligibleVoters > 0 && yesVotes >= requiredYes;
+    const totalVotes = counts?.total || 0;
+    return { ...candidate, yesVotes, eligibleVoters, requiredYes, isApproved, totalVotes, noVotes: counts?.no || 0, abstainVotes: counts?.abstain || 0 };
+  });
+
+  const approvedCount = candidateResults.filter(c => c.isApproved).length;
 
   return (
     <div className="space-y-6">
@@ -32,6 +49,40 @@ export function ChancellorDashboard() {
         <h3 className="font-display text-lg font-bold text-foreground">Chancellor</h3>
         <p className="text-sm text-muted-foreground">Manage PNM candidates for EOP</p>
       </div>
+
+      {/* EOP Results */}
+      {candidates.length > 0 && (
+        <Collapsible open={resultsOpen} onOpenChange={setResultsOpen}>
+          <Card>
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors py-3">
+                <CardTitle className="text-base flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                    EOP Results ({approvedCount}/{candidates.length} approved)
+                  </span>
+                  <Badge variant={approvedCount > 0 ? 'default' : 'secondary'}>{approvedCount}</Badge>
+                </CardTitle>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-0 space-y-2">
+                {candidateResults.map((c) => (
+                  <div key={c.id} className={`flex items-center justify-between p-2.5 rounded-lg border ${c.isApproved ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
+                    <div className="flex items-center gap-2">
+                      {c.isApproved ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <XCircle className="h-4 w-4 text-red-500" />}
+                      <span className="text-sm font-medium">{c.first_name} {c.last_name}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {c.yesVotes}/{c.eligibleVoters} yes ({c.eligibleVoters > 0 ? Math.round((c.yesVotes / c.eligibleVoters) * 100) : 0}%)
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+      )}
 
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <div>
