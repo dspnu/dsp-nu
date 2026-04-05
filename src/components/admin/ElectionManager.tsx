@@ -227,7 +227,7 @@ function ElectionDetail({ election }: { election: Election }) {
                           size="icon" variant="ghost" className="h-6 w-6 text-destructive"
                           onClick={() => deletePosition.mutate({ id: position.id, electionId: election.id })}
                         >
-                          <X className="h-3 w-3" />
+                          <Trash2 className="h-3 w-3" />
                         </Button>
                       )}
                     </div>
@@ -243,7 +243,7 @@ function ElectionDetail({ election }: { election: Election }) {
                           {election.status === 'draft' && (
                             <Button size="icon" variant="ghost" className="h-5 w-5 text-muted-foreground hover:text-destructive"
                               onClick={() => deleteCandidate.mutate(c.id)}>
-                              <X className="h-3 w-3" />
+                              <Trash2 className="h-3 w-3" />
                             </Button>
                           )}
                         </div>
