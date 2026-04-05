@@ -87,7 +87,7 @@ function ResultsView({ election }: { election: Election }) {
                           {c.voteCount} ({Math.round(pct)}%)
                         </span>
                       </div>
-                      <Progress value={pct} className="h-1.5 [&>div]:bg-foreground/40" />
+                      <Progress value={pct} className="h-1.5 bg-muted [&>div]:bg-primary" />
                     </div>
                   );
                 })}
