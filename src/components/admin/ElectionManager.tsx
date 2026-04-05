@@ -12,7 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Vote, Plus, Trash2, Play, Square, BarChart3,
+  Vote, Plus, X, Play, Square, BarChart3,
   Users, UserPlus, Trophy, Eye, EyeOff
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -41,14 +41,14 @@ function ResultsView({ election }: { election: Election }) {
     <div className="space-y-4">
       <div className="flex items-center gap-4 text-sm p-3 rounded-lg bg-muted/50">
         <div className="flex items-center gap-1.5">
-          <Users className="h-3.5 w-3.5 text-primary" />
+          <Users className="h-3.5 w-3.5 text-muted-foreground" />
           <span className="font-medium">{totalVoters}</span>
           <span className="text-muted-foreground">/ {activeMembers} voted</span>
         </div>
         <div className="flex-1">
-          <Progress value={turnout} className="h-2" />
+          <Progress value={turnout} className="h-2 [&>div]:bg-muted-foreground" />
         </div>
-        <span className="font-semibold text-primary">{turnout}%</span>
+        <span className="font-semibold text-foreground">{turnout}%</span>
       </div>
 
       {positions.map(position => {
@@ -63,13 +63,12 @@ function ResultsView({ election }: { election: Election }) {
         return (
           <div key={position.id} className="border rounded-lg p-3 space-y-2">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold flex items-center gap-2">
-                <Trophy className="h-3.5 w-3.5 text-primary" />
+              <h4 className="text-sm font-semibold">
                 {position.position_name}
               </h4>
-              <Badge variant="outline" className="text-xs">
+              <span className="text-xs text-muted-foreground">
                 {totalPosVotes} vote{totalPosVotes !== 1 ? 's' : ''}
-              </Badge>
+              </span>
             </div>
             {ranked.length === 0 ? (
               <p className="text-xs text-muted-foreground">No candidates</p>
@@ -81,15 +80,14 @@ function ResultsView({ election }: { election: Election }) {
                   return (
                     <div key={c.id} className="space-y-1">
                       <div className="flex items-center justify-between text-sm">
-                        <span className={`flex items-center gap-1.5 ${isWinner ? 'font-semibold' : ''}`}>
-                          {isWinner && <Trophy className="h-3 w-3 text-yellow-500" />}
+                        <span className={isWinner ? 'font-semibold' : ''}>
                           {c.candidate_name}
                         </span>
                         <span className="text-muted-foreground text-xs">
                           {c.voteCount} ({Math.round(pct)}%)
                         </span>
                       </div>
-                      <Progress value={pct} className="h-2" />
+                      <Progress value={pct} className="h-1.5 [&>div]:bg-foreground/40" />
                     </div>
                   );
                 })}
@@ -173,7 +171,7 @@ function ElectionDetail({ election }: { election: Election }) {
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive">
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <X className="h-3.5 w-3.5" />
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -229,7 +227,7 @@ function ElectionDetail({ election }: { election: Election }) {
                           size="icon" variant="ghost" className="h-6 w-6 text-destructive"
                           onClick={() => deletePosition.mutate({ id: position.id, electionId: election.id })}
                         >
-                          <Trash2 className="h-3 w-3" />
+                          <X className="h-3 w-3" />
                         </Button>
                       )}
                     </div>
@@ -245,7 +243,7 @@ function ElectionDetail({ election }: { election: Election }) {
                           {election.status === 'draft' && (
                             <Button size="icon" variant="ghost" className="h-5 w-5 text-muted-foreground hover:text-destructive"
                               onClick={() => deleteCandidate.mutate(c.id)}>
-                              <Trash2 className="h-3 w-3" />
+                              <X className="h-3 w-3" />
                             </Button>
                           )}
                         </div>
