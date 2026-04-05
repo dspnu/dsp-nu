@@ -46,7 +46,7 @@ function ResultsView({ election }: { election: Election }) {
           <span className="text-muted-foreground">/ {activeMembers} voted</span>
         </div>
         <div className="flex-1">
-          <Progress value={turnout} className="h-2 [&>div]:bg-muted-foreground" />
+          <Progress value={turnout} className="h-2 bg-muted [&>div]:bg-primary" />
         </div>
         <span className="font-semibold text-foreground">{turnout}%</span>
       </div>
@@ -87,7 +87,7 @@ function ResultsView({ election }: { election: Election }) {
                           {c.voteCount} ({Math.round(pct)}%)
                         </span>
                       </div>
-                      <Progress value={pct} className="h-1.5 [&>div]:bg-foreground/40" />
+                      <Progress value={pct} className="h-1.5 bg-muted [&>div]:bg-primary" />
                     </div>
                   );
                 })}
