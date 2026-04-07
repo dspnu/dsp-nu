@@ -13,11 +13,8 @@ export function UpcomingEventCard() {
   const { user } = useAuth();
   const { data: allEvents } = useEvents();
   const now = new Date();
-  
-  // Get next upcoming event
   const nextEvent = allEvents?.filter(e => isAfter(new Date(e.start_time), now))?.[0];
-  
-  // Fetch user's RSVP for this event
+
   const { data: myRsvp } = useQuery({
     queryKey: ['my-rsvp', nextEvent?.id, user?.id],
     queryFn: async () => {
@@ -37,12 +34,12 @@ export function UpcomingEventCard() {
   if (!nextEvent) {
     return (
       <Card className="border-border/60">
-        <CardContent className="p-4 sm:p-5">
-          <div className="flex items-center gap-2 text-muted-foreground mb-2 sm:mb-3">
-            <Calendar className="h-4 w-4" />
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2 text-muted-foreground mb-2">
+            <Calendar className="h-3.5 w-3.5" />
             <span className="text-xs font-medium uppercase tracking-wider">Next Event</span>
           </div>
-          <p className="text-muted-foreground text-sm">No upcoming events scheduled</p>
+          <p className="text-muted-foreground text-sm">Nothing scheduled</p>
         </CardContent>
       </Card>
     );
@@ -53,61 +50,56 @@ export function UpcomingEventCard() {
     ? 'Today' 
     : isTomorrow(eventDate) 
       ? 'Tomorrow' 
-      : format(eventDate, 'EEEE, MMM d');
+      : format(eventDate, 'EEE, MMM d');
 
-  const getRsvpStatus = () => {
-    if (!myRsvp) return null;
-    const statusMap: Record<string, { label: string; className: string }> = {
-      going: { label: 'Going', className: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
-      maybe: { label: 'Maybe', className: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
-      not_going: { label: "Can't Go", className: 'bg-muted text-muted-foreground border-border' },
-    };
-    return statusMap[myRsvp.response];
+  const rsvpMap: Record<string, { label: string; className: string }> = {
+    going: { label: 'Going', className: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
+    maybe: { label: 'Maybe', className: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
+    not_going: { label: "Can't Go", className: 'bg-muted text-muted-foreground border-border' },
   };
-
-  const rsvpStatus = getRsvpStatus();
+  const rsvpStatus = myRsvp ? rsvpMap[myRsvp.response] : null;
 
   return (
     <Link to="/events">
-      <Card className="border-border/60 hover:border-primary/30 hover:shadow-sm transition-all cursor-pointer group active:scale-[0.98]">
-        <CardContent className="p-4 sm:p-5">
-          <div className="flex items-center justify-between mb-2 sm:mb-3">
+      <Card className="border-border/60 hover:border-primary/20 transition-all cursor-pointer group active:scale-[0.98]">
+        <CardContent className="p-4 space-y-2.5">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Calendar className="h-4 w-4" />
+              <Calendar className="h-3.5 w-3.5" />
               <span className="text-xs font-medium uppercase tracking-wider">Next Event</span>
             </div>
             {nextEvent.is_required && (
-              <Badge variant="destructive" className="text-[10px] px-1.5 py-0.5">Required</Badge>
+              <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4">Req</Badge>
             )}
           </div>
           
-          <h3 className="font-semibold text-foreground mb-1.5 sm:mb-2 group-hover:text-primary transition-colors line-clamp-2 text-sm sm:text-base">
+          <h3 className="font-semibold text-foreground text-sm group-hover:text-primary transition-colors line-clamp-1">
             {nextEvent.title}
           </h3>
           
-          <div className="space-y-1 text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">
-            <div className="flex items-center gap-2">
-              <Clock className="h-3.5 w-3.5 shrink-0" />
-              <span>{dateLabel} at {format(eventDate, 'h:mm a')}</span>
+          <div className="space-y-0.5 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <Clock className="h-3 w-3 shrink-0" />
+              <span>{dateLabel} • {format(eventDate, 'h:mm a')}</span>
             </div>
             {nextEvent.location && (
-              <div className="flex items-center gap-2">
-                <MapPin className="h-3.5 w-3.5 shrink-0" />
+              <div className="flex items-center gap-1.5">
+                <MapPin className="h-3 w-3 shrink-0" />
                 <span className="truncate">{nextEvent.location}</span>
               </div>
             )}
           </div>
 
-          <div className="flex items-center justify-between">
-            <Badge variant="outline" className="capitalize text-[10px] sm:text-xs">
+          <div className="flex items-center justify-between pt-0.5">
+            <Badge variant="outline" className="capitalize text-[10px]">
               {nextEvent.category}
             </Badge>
             {rsvpStatus ? (
-              <Badge variant="outline" className={`text-[10px] sm:text-xs ${rsvpStatus.className}`}>
+              <Badge variant="outline" className={`text-[10px] ${rsvpStatus.className}`}>
                 {rsvpStatus.label}
               </Badge>
             ) : (
-              <span className="text-xs text-muted-foreground">RSVP →</span>
+              <span className="text-[10px] text-muted-foreground">RSVP →</span>
             )}
           </div>
         </CardContent>

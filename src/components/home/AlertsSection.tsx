@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Vote, Coffee, ChevronRight, Bell } from 'lucide-react';
+import { Vote, Coffee, ChevronRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useMyCoffeeChats } from '@/hooks/useCoffeeChats';
@@ -21,50 +21,41 @@ export function AlertsSection() {
   });
   const hasActiveVoting = (eopCandidates?.length || 0) > 0;
 
-  if (!hasActiveVoting && pendingCoffeeChats.length === 0) {
-    return null;
-  }
+  if (!hasActiveVoting && pendingCoffeeChats.length === 0) return null;
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2 text-muted-foreground mb-1">
-        <Bell className="h-4 w-4" />
-        <span className="text-xs font-medium uppercase tracking-wider">Notifications</span>
-      </div>
+    <div className="space-y-1.5">
+      {hasActiveVoting && (
+        <Link to="/eop" className="block">
+          <div className="flex items-center gap-3 p-3 rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary/8 active:scale-[0.98] transition-all">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <Vote className="h-4 w-4 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium">EOP Voting is Open</p>
+              <p className="text-xs text-muted-foreground">Cast your vote for candidates</p>
+            </div>
+            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+          </div>
+        </Link>
+      )}
       
-      <div className="space-y-2">
-        {hasActiveVoting && (
-          <Link to="/eop" className="block">
-            <div className="flex items-center gap-3 p-3 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 active:scale-[0.98] transition-all">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <Vote className="h-4 w-4 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground">EOP Voting is Open</p>
-                <p className="text-xs text-muted-foreground line-clamp-1">Cast your vote for new member candidates</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+      {pendingCoffeeChats.length > 0 && (
+        <Link to="/chapter" className="block">
+          <div className="flex items-center gap-3 p-3 rounded-xl border border-border/60 bg-card hover:bg-muted/40 active:scale-[0.98] transition-all">
+            <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+              <Coffee className="h-4 w-4 text-muted-foreground" />
             </div>
-          </Link>
-        )}
-        
-        {pendingCoffeeChats.length > 0 && (
-          <Link to="/chapter" className="block">
-            <div className="flex items-center gap-3 p-3 rounded-lg border border-category-brotherhood/20 bg-category-brotherhood/5 hover:bg-category-brotherhood/10 active:scale-[0.98] transition-all">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-category-brotherhood/10 flex items-center justify-center">
-                <Coffee className="h-4 w-4 text-category-brotherhood" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground">
-                  {pendingCoffeeChats.length} Pending Coffee Chat{pendingCoffeeChats.length !== 1 ? 's' : ''}
-                </p>
-                <p className="text-xs text-muted-foreground line-clamp-1">Waiting for confirmation</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium">
+                {pendingCoffeeChats.length} Pending Coffee Chat{pendingCoffeeChats.length !== 1 ? 's' : ''}
+              </p>
+              <p className="text-xs text-muted-foreground">Waiting for confirmation</p>
             </div>
-          </Link>
-        )}
-      </div>
+            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+          </div>
+        </Link>
+      )}
     </div>
   );
 }

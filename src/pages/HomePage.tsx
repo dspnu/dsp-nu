@@ -12,24 +12,24 @@ import { ElectionVotingCards } from '@/components/elections/ElectionVotingCard';
 export default function HomePage() {
   return (
     <AppLayout>
-      <div className="max-w-2xl mx-auto space-y-5 sm:space-y-6">
-        {/* Welcome Section */}
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* Welcome */}
         <WelcomeHeader />
 
-        {/* Alerts / Notifications */}
+        {/* Alerts */}
         <AlertsSection />
 
         {/* PDP Progress for New Members */}
         <PDPProgressCard />
 
-        {/* Paddle Submission (toggled by admin) */}
+        {/* Paddle Submission */}
         <PaddleSubmissionCard />
 
         {/* Active Elections */}
         <ElectionVotingCards />
 
-        {/* Primary Cards */}
-        <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
+        {/* At-a-glance cards */}
+        <div className="grid gap-3 sm:grid-cols-2">
           <UpcomingEventCard />
           <StandingCard />
         </div>
@@ -37,7 +37,7 @@ export default function HomePage() {
         {/* Quick Actions */}
         <QuickActions />
 
-        {/* Upcoming Timeline */}
+        {/* Timeline */}
         <UpcomingTimeline />
       </div>
     </AppLayout>
