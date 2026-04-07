@@ -531,113 +531,102 @@ export default function ChapterPage() {
         </TabsContent>
 
         {/* ========== STANDING TAB ========== */}
-        <TabsContent value="standing" className="space-y-4 sm:space-y-6">
-          {/* Status Banner */}
-          <Card className={`border-2 ${isGoodStanding ? 'border-green-500/30 bg-green-500/5' : 'border-amber-500/30 bg-amber-500/5'}`}>
-            <CardContent className="py-3 sm:py-4 px-4">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                  {isGoodStanding ? (
-                    <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
-                      <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
-                    </div>
-                  ) : (
-                    <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                      <Target className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600" />
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <p className="font-semibold text-sm sm:text-base">
-                      {isGoodStanding ? "You're in Good Standing!" : 'Keep Going!'}
-                    </p>
-                    <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">
-                      {isGoodStanding
-                        ? 'All semester requirements met'
-                        : `${POINTS_REQUIREMENT - myTotal > 0 ? `${POINTS_REQUIREMENT - myTotal} pts` : ''} ${POINTS_REQUIREMENT - myTotal > 0 && SERVICE_HOURS_REQUIREMENT - myVerifiedHours > 0 ? '& ' : ''}${SERVICE_HOURS_REQUIREMENT - myVerifiedHours > 0 ? `${(SERVICE_HOURS_REQUIREMENT - myVerifiedHours).toFixed(1)} hrs` : ''} to go`
-                      }
-                    </p>
-                  </div>
-                </div>
-                {myFamilyRank > 0 && (
-                  <div className="text-right flex-shrink-0">
-                    <p className="text-xl sm:text-2xl font-bold text-primary">#{myFamilyRank}</p>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">Family Rank</p>
-                  </div>
-                )}
+        <TabsContent value="standing" className="space-y-5">
+          {/* Compact status + stats row */}
+          <div className="flex items-center gap-3 p-3 rounded-xl border border-border/60 bg-card">
+            <div className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 ${isGoodStanding ? 'bg-emerald-500/15' : 'bg-amber-500/15'}`}>
+              {isGoodStanding ? <Check className="h-4 w-4 text-emerald-600" /> : <Target className="h-4 w-4 text-amber-600" />}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold">
+                {isGoodStanding ? 'Good Standing' : 'In Progress'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {isGoodStanding
+                  ? 'All requirements met'
+                  : `${POINTS_REQUIREMENT - myTotal > 0 ? `${POINTS_REQUIREMENT - myTotal} pts` : ''}${POINTS_REQUIREMENT - myTotal > 0 && SERVICE_HOURS_REQUIREMENT - myVerifiedHours > 0 ? ' & ' : ''}${SERVICE_HOURS_REQUIREMENT - myVerifiedHours > 0 ? `${(SERVICE_HOURS_REQUIREMENT - myVerifiedHours).toFixed(1)} hrs remaining` : ''}`
+                }
+              </p>
+            </div>
+            {myFamilyRank > 0 && (
+              <div className="text-right shrink-0 pl-2 border-l border-border/60">
+                <p className="text-lg font-bold text-primary">#{myFamilyRank}</p>
+                <p className="text-[10px] text-muted-foreground">Family</p>
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </div>
 
-          {/* Progress Cards */}
-          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
-            {/* Points */}
-            <Card>
-              <CardHeader className="pb-2 px-4 pt-4 sm:px-6 sm:pt-6">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm sm:text-base font-medium flex items-center gap-2">
-                    <Trophy className="h-4 w-4 text-primary" />Points
-                  </CardTitle>
-                  <span className="text-xl sm:text-2xl font-bold">{myTotal}</span>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3 sm:space-y-4 px-4 pb-4 sm:px-6 sm:pb-6">
-                <div className="space-y-1.5 sm:space-y-2">
-                  <div className="flex justify-between text-xs sm:text-sm">
-                    <span className="text-muted-foreground">Progress to {POINTS_REQUIREMENT}</span>
-                    <span className="font-medium">{Math.round(pointsProgress)}%</span>
+          {/* Points + Service in one card */}
+          <Card className="border-border/60">
+            <CardContent className="p-0">
+              {/* Points section */}
+              <div className="p-4 sm:p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Trophy className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">Points</span>
                   </div>
-                  <Progress value={pointsProgress} className="h-2" />
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-bold">{myTotal}</span>
+                    <span className="text-xs text-muted-foreground">/ {POINTS_REQUIREMENT}</span>
+                  </div>
                 </div>
-                <div className="grid grid-cols-4 gap-1.5 sm:gap-2 pt-1 sm:pt-2">
-                  {categories.filter(c => c !== 'new_member').map(cat => (
-                    <div key={cat} className="text-center">
-                      <div className={`flex justify-center ${(myByCategory[cat] || 0) >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
-                        {(myByCategory[cat] || 0) >= 1 ? (
-                          <Check className="h-4 w-4 sm:h-5 sm:w-5" />
-                        ) : (
-                          <X className="h-4 w-4 sm:h-5 sm:w-5" />
-                        )}
+                <Progress value={pointsProgress} className="h-1.5 mb-3" />
+                <div className="flex flex-wrap gap-1.5">
+                  {categories.filter(c => c !== 'new_member').map(cat => {
+                    const earned = (myByCategory[cat] || 0) >= 1;
+                    return (
+                      <Badge
+                        key={cat}
+                        variant="outline"
+                        className={`text-[10px] px-2 py-0.5 capitalize ${
+                          earned
+                            ? 'bg-primary/10 text-primary border-primary/30'
+                            : 'text-muted-foreground border-border/60'
+                        }`}
+                      >
+                        {earned && <Check className="h-2.5 w-2.5 mr-0.5" />}
+                        {cat === 'dei' ? 'DE&I' : cat}
+                      </Badge>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="border-t border-border/40" />
+
+              {/* Service hours section */}
+              <div className="p-4 sm:p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium">Service Hours</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {myVerifiedHours >= SERVICE_HOURS_REQUIREMENT ? (
+                      <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/25 hover:bg-emerald-500/20 text-xs">
+                        <Check className="h-2.5 w-2.5 mr-1" />Done
+                      </Badge>
+                    ) : (
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-bold">{myVerifiedHours.toFixed(1)}</span>
+                        <span className="text-xs text-muted-foreground">/ {SERVICE_HOURS_REQUIREMENT}</span>
                       </div>
-                      <div className="text-[9px] sm:text-[10px] text-muted-foreground capitalize truncate">{cat === 'dei' ? 'DE&I' : cat}</div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Service Hours */}
-            <Card>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base font-medium flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-primary" />Service Hours
-                  </CardTitle>
-                  {myVerifiedHours >= SERVICE_HOURS_REQUIREMENT ? (
-                    <Badge className="bg-green-500/20 text-green-700 border-green-300 hover:bg-green-500/30">
-                      <Check className="h-3 w-3 mr-1" />Completed
-                    </Badge>
-                  ) : (
-                    <span className="text-2xl font-bold">{myVerifiedHours.toFixed(1)}</span>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Progress to {SERVICE_HOURS_REQUIREMENT} hrs</span>
-                    <span className="font-medium">{myVerifiedHours.toFixed(1)} / {SERVICE_HOURS_REQUIREMENT}</span>
+                    )}
                   </div>
-                  <Progress value={hoursProgress} className="h-2" />
                 </div>
-                <div className="flex items-center justify-between pt-2">
+                <Progress value={hoursProgress} className="h-1.5 mb-3" />
+                <div className="flex items-center justify-between">
                   {myPendingHours > 0 && (
-                    <Badge variant="outline" className="text-amber-600 border-amber-300">
-                      {myPendingHours.toFixed(1)} hrs pending verification
-                    </Badge>
+                    <span className="text-xs text-amber-600">
+                      {myPendingHours.toFixed(1)} hrs pending
+                    </span>
                   )}
                   <Dialog open={logHoursOpen} onOpenChange={setLogHoursOpen}>
                     <DialogTrigger asChild>
-                      <Button size="sm" variant="outline" className="ml-auto"><Plus className="h-4 w-4 mr-1" />Log Hours</Button>
+                      <Button size="sm" variant="outline" className="ml-auto h-7 text-xs gap-1.5">
+                        <Plus className="h-3 w-3" />Log Hours
+                      </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader><DialogTitle>Log Service Hours</DialogTitle></DialogHeader>
@@ -694,85 +683,77 @@ export default function ChapterPage() {
                     </DialogContent>
                   </Dialog>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Recent Activity & Family Leaderboard */}
-          <div className="grid gap-6 lg:grid-cols-5">
-            <Card className="lg:col-span-2">
-              <CardHeader className="pb-3"><CardTitle className="text-base font-medium">Recent Points</CardTitle></CardHeader>
-              <CardContent>
-                {myPoints && myPoints.length > 0 ? (
-                  <div className="space-y-3">
-                    {myPoints.slice(0, 4).map((entry) => (
-                      <div key={entry.id} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <CategoryBadge category={entry.category} />
-                          <span className="text-sm truncate">{entry.reason}</span>
-                        </div>
-                        <Badge variant={entry.points > 0 ? 'default' : 'destructive'} className="shrink-0">
-                          {entry.points > 0 ? '+' : ''}{entry.points}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-4">No points earned yet. Attend events to start earning!</p>
-                )}
-              </CardContent>
-            </Card>
+          {/* Recent Points + Family Leaderboard side by side */}
+          <div className="grid gap-4 lg:grid-cols-2">
+            {/* Recent Points */}
+            <div className="space-y-2.5">
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Recent Activity</span>
+              {myPoints && myPoints.length > 0 ? (
+                <div className="space-y-1">
+                  {myPoints.slice(0, 5).map((entry) => (
+                    <div key={entry.id} className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-muted/40 transition-colors">
+                      <CategoryBadge category={entry.category} />
+                      <span className="text-sm flex-1 min-w-0 truncate">{entry.reason}</span>
+                      <span className={`text-xs font-semibold tabular-nums ${entry.points > 0 ? 'text-primary' : 'text-destructive'}`}>
+                        {entry.points > 0 ? '+' : ''}{entry.points}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground py-4 text-center">No points earned yet</p>
+              )}
+            </div>
 
             {/* Family Leaderboard */}
-            <Card className="lg:col-span-3">
-              <CardHeader className="pb-3 flex flex-row items-center justify-between">
-                <CardTitle className="text-base font-medium flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4" />Family Games
-                </CardTitle>
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <TrendingUp className="h-3.5 w-3.5" />Family Games
+                </span>
                 {isAdminOrOfficer && (
-                  <Button variant="ghost" size="sm" onClick={handleExportPoints} className="h-8 gap-1">
+                  <Button variant="ghost" size="sm" onClick={handleExportPoints} className="h-6 text-xs gap-1 text-muted-foreground hover:text-foreground">
                     <Download className="h-3 w-3" />Export
                   </Button>
                 )}
-              </CardHeader>
-              <CardContent>
-                {familyTotals.length === 0 ? (
-                  <EmptyState icon={Award} title="No points yet" description="Points will appear as members earn them." />
-                ) : (
-                  <div className="space-y-2">
-                    {familyTotals.slice(0, 8).map(({ family, score, memberCount }, index) => {
-                      const isMyFamily = family === myFamily;
-                      return (
-                        <div
-                          key={family}
-                          className={`flex items-center gap-3 p-2 rounded-lg transition-colors ${isMyFamily ? 'bg-primary/5 border border-primary/20' : ''}`}
-                        >
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                            index === 0 ? 'bg-yellow-500 text-yellow-950' :
-                            index === 1 ? 'bg-gray-300 text-gray-700' :
-                            index === 2 ? 'bg-amber-600 text-amber-50' :
-                            'bg-muted text-muted-foreground'
-                          }`}>
-                            {index + 1}
-                          </div>
-                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                            <Users className="h-4 w-4 text-primary" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">
-                              {family}
-                              {isMyFamily && <span className="text-primary ml-1">(Yours)</span>}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{memberCount} members</p>
-                          </div>
-                          <span className="text-sm font-semibold">{score.toFixed(1)} pts</span>
+              </div>
+              {familyTotals.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">No family data yet</p>
+              ) : (
+                <div className="space-y-1">
+                  {familyTotals.slice(0, 8).map(({ family, score, memberCount }, index) => {
+                    const isMyFamily = family === myFamily;
+                    return (
+                      <div
+                        key={family}
+                        className={`flex items-center gap-2.5 p-2 rounded-lg transition-colors ${isMyFamily ? 'bg-primary/5 ring-1 ring-primary/15' : 'hover:bg-muted/40'}`}
+                      >
+                        <span className={`w-5 text-center text-xs font-bold tabular-nums ${
+                          index === 0 ? 'text-amber-500' :
+                          index === 1 ? 'text-muted-foreground' :
+                          index === 2 ? 'text-amber-700' :
+                          'text-muted-foreground/60'
+                        }`}>
+                          {index + 1}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {family}
+                            {isMyFamily && <span className="text-primary text-xs ml-1">•</span>}
+                          </p>
                         </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                        <span className="text-xs text-muted-foreground">{memberCount}m</span>
+                        <span className="text-sm font-semibold tabular-nums w-12 text-right">{score.toFixed(1)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </TabsContent>
 
