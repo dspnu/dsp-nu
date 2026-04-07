@@ -387,7 +387,8 @@ export default function ChapterPage() {
     });
   };
 
-  const tabCount = 4 + (isAdminOrOfficer ? 1 : 0);
+  const showAdminTab = hasExecPosition || isAdminOrOfficer;
+  const tabCount = 4 + (showAdminTab ? 1 : 0);
 
   return (
     <AppLayout>
@@ -414,7 +415,7 @@ export default function ChapterPage() {
             <FolderOpen className="h-4 w-4 hidden sm:block" />
             Resources
           </TabsTrigger>
-          {isAdminOrOfficer && (
+          {showAdminTab && (
             <TabsTrigger value="admin" className="gap-2">
               <Shield className="h-4 w-4 hidden sm:block" />
               Admin
@@ -849,7 +850,7 @@ export default function ChapterPage() {
         </TabsContent>
 
         {/* ========== ADMIN TAB ========== */}
-        {isAdminOrOfficer && (
+        {showAdminTab && (
           <TabsContent value="admin" className="space-y-8">
             {/* Each officer only sees their own dashboard */}
             {isVPChapterOps && <VPChapterOpsDashboard />}
