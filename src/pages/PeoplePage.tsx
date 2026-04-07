@@ -11,6 +11,7 @@ import { MemberCard } from '@/components/members/MemberCard';
 import { ProfileEditDialog } from '@/components/members/ProfileEditDialog';
 import { MemberProfileDialog } from '@/components/members/MemberProfileDialog';
 import { AdminPositionsDialog } from '@/components/members/AdminPositionsDialog';
+import { AdminRoleDialog } from '@/components/members/AdminRoleDialog';
 import { AlumniForm } from '@/components/alumni/AlumniForm';
 import { AlumniCard } from '@/components/alumni/AlumniCard';
 import { AlumniImportDialog } from '@/components/alumni/AlumniImportDialog';
@@ -24,7 +25,7 @@ import { Card } from '@/components/ui/card';
 type Profile = Tables<'profiles'>;
 
 export default function PeoplePage() {
-  const { isAdminOrOfficer, isDeveloper, user } = useAuth();
+  const { isAdmin, isAdminOrOfficer, isDeveloper, user } = useAuth();
   const { data: members, isLoading: membersLoading } = useMembers();
   const { data: alumni, isLoading: alumniLoading } = useAlumni();
   const { data: myProfile } = useMemberByUserId(user?.id || '');
@@ -36,6 +37,9 @@ export default function PeoplePage() {
   const [selectedMember, setSelectedMember] = useState<Profile | null>(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('members');
+
+  const canManageAdminRoles =
+    isAdmin || user?.email?.toLowerCase() === 'jacobtart8@gmail.com';
 
   const filteredMembers = useMemo(() => {
     if (!members) return [];
@@ -163,9 +167,10 @@ export default function PeoplePage() {
                   <div onClick={() => handleMemberClick(member)} className="cursor-pointer active:scale-[0.98] transition-transform">
                     <MemberCard member={member} />
                   </div>
-                  {isDeveloper && (
-                    <div className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <AdminPositionsDialog member={member} />
+                  {(isDeveloper || canManageAdminRoles) && (
+                    <div className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1.5 items-end">
+                      {canManageAdminRoles && <AdminRoleDialog member={member} />}
+                      {isDeveloper && <AdminPositionsDialog member={member} />}
                     </div>
                   )}
                 </div>
