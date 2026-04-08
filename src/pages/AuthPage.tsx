@@ -15,8 +15,14 @@ export default function AuthPage() {
   const { user, loading, signIn, signUp, profile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const authRedirectBase =
-    import.meta.env.VITE_AUTH_REDIRECT_URL?.replace(/\/$/, '') || 'https://dsp.jacobtartabini.com';
+  const currentOrigin = window.location.origin.replace(/\/$/, '');
+  const isLocalOrigin = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(currentOrigin);
+  const configuredRedirectBase = import.meta.env.VITE_AUTH_REDIRECT_URL?.replace(/\/$/, '');
+  const authRedirectBase = isLocalOrigin
+    ? currentOrigin
+    : configuredRedirectBase && !configuredRedirectBase.includes('lovable')
+      ? configuredRedirectBase
+      : 'https://dsp.jacobtartabini.com';
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
