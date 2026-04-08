@@ -1,10 +1,9 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Users, Calendar, Building, Vote, GraduationCap, Settings, Briefcase, MoreHorizontal } from 'lucide-react';
+import { Home, Users, Calendar, Building, Vote, GraduationCap, Settings, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useChapterSetting } from '@/hooks/useChapterSettings';
 import { useState } from 'react';
-import { NotificationBell } from '@/components/notifications/NotificationBell';
 
 export function MobileNav() {
   const location = useLocation();
@@ -127,10 +126,6 @@ export function MobileNav() {
             </span>
           </button>
 
-          {/* Notification bell in nav */}
-          <div className="relative flex flex-col items-center justify-center py-2 px-2">
-            <NotificationBell />
-          </div>
         </div>
       </nav>
     </>
