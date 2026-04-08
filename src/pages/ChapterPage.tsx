@@ -51,11 +51,11 @@ import { VPScholarshipDashboard } from '@/components/admin/VPScholarshipDashboar
 import { PresidentDashboard } from '@/components/admin/PresidentDashboard';
 import { VPFinanceDashboard } from '@/components/admin/VPFinanceDashboard';
 import { ChancellorDashboard } from '@/components/admin/ChancellorDashboard';
+import { org, allCategories } from '@/config/org';
 
-
-const categories = ['chapter', 'rush', 'fundraising', 'service', 'brotherhood', 'professionalism', 'dei', 'new_member'] as const;
-const POINTS_REQUIREMENT = 7;
-const SERVICE_HOURS_REQUIREMENT = 3;
+const categories = allCategories;
+const POINTS_REQUIREMENT = org.standing.minPoints;
+const SERVICE_HOURS_REQUIREMENT = org.standing.minServiceHours;
 
 const jobTypes = [
   { value: 'all', label: 'All Types' },
@@ -185,7 +185,7 @@ export default function ChapterPage() {
     },
   });
 
-  const SCORED_CATEGORIES = ['chapter', 'professionalism', 'brotherhood', 'fundraising', 'service'] as const;
+  const SCORED_CATEGORIES = org.scoredCategories;
 
   // Family-based leaderboard with weighted scoring
   const familyTotals = useMemo(() => {

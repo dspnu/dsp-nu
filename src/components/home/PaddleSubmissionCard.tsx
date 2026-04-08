@@ -11,6 +11,7 @@ import { useMyPaddleSubmission, useSubmitPaddle } from '@/hooks/usePaddleSubmiss
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { org } from '@/config/org';
 
 type SubmitMode = 'link' | 'upload';
 
@@ -115,7 +116,7 @@ export function PaddleSubmissionCard() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold">🎬 Paddle Time!</p>
                 <p className="text-xs text-muted-foreground">
-                  Submit a funny video of a brother
+                  Submit a funny video of a {org.terms.member.toLowerCase()}
                 </p>
               </div>
               <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />

@@ -17,6 +17,7 @@ import { ManualAttendance } from '@/components/attendance/ManualAttendance';
 import { downloadICS } from '@/lib/calendar';
 import { Tables } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
+import { org } from '@/config/org';
 
 type Event = Tables<'events'>;
 
@@ -58,7 +59,7 @@ export default function EventsPage() {
 
   const handleExportCalendar = () => {
     if (events) {
-      downloadICS(events, 'dsp-nu-events');
+      downloadICS(events, org.calendar.exportFilename);
       toast({ title: 'Calendar exported successfully' });
     }
   };

@@ -10,34 +10,41 @@ import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
+import { lovable } from '@/integrations/lovable';
+import { org } from '@/config/org';
 
 export default function AuthPage() {
   const { user, loading, signIn, signUp, profile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const currentOrigin = window.location.origin.replace(/\/$/, '');
-  const isLocalOrigin = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(currentOrigin);
-  const configuredRedirectBase = import.meta.env.VITE_AUTH_REDIRECT_URL?.replace(/\/$/, '');
-  const authRedirectBase = isLocalOrigin
-    ? currentOrigin
-    : configuredRedirectBase && !configuredRedirectBase.includes('lovable')
-      ? configuredRedirectBase
-      : 'https://dsp.jacobtartabini.com';
+
+  const getRedirectUri = () => {
+    const origin = window.location.origin.replace(/\/$/, '');
+    const isLocal = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+    return isLocal ? `${origin}/auth/callback` : `https://${org.domain}/auth/callback`;
+  };
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${authRedirectBase}/auth/callback`,
-        queryParams: {
+    try {
+      const result = await lovable.auth.signInWithOAuth('google', {
+        redirect_uri: getRedirectUri(),
+        extraParams: {
           access_type: 'offline',
           prompt: 'consent',
         },
-      },
-    });
-    if (error) {
-      toast.error(error.message);
+      });
+
+      if (result.redirected) {
+        return;
+      }
+
+      if (result.error) {
+        toast.error(result.error instanceof Error ? result.error.message : String(result.error));
+        setIsGoogleLoading(false);
+      }
+    } catch (err) {
+      toast.error('Google sign in failed. Please try again.');
       setIsGoogleLoading(false);
     }
   };
@@ -95,10 +102,10 @@ export default function AuthPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center mx-auto mb-4 shadow-purple">
-            <span className="text-primary-foreground font-display font-bold text-2xl">ΔΣΠ</span>
+            <span className="text-primary-foreground font-display font-bold text-2xl">{org.greekLetters}</span>
           </div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Delta Sigma Pi</h1>
-          <p className="text-muted-foreground">Nu Chapter Portal</p>
+          <h1 className="font-display text-2xl font-bold text-foreground">{org.name}</h1>
+          <p className="text-muted-foreground">{org.tagline}</p>
         </div>
 
         <Card>
@@ -142,7 +149,7 @@ export default function AuthPage() {
                   <form onSubmit={handleSignIn} className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="signin-email">Email</Label>
-                      <Input id="signin-email" name="email" type="email" required placeholder="brother@dsp.org" />
+                      <Input id="signin-email" name="email" type="email" required placeholder={org.auth.emailPlaceholder} />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="signin-password">Password</Label>
@@ -197,7 +204,7 @@ export default function AuthPage() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-email">Email</Label>
-                      <Input id="signup-email" name="email" type="email" required placeholder="brother@dsp.org" />
+                      <Input id="signup-email" name="email" type="email" required placeholder={org.auth.emailPlaceholder} />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-password">Password</Label>

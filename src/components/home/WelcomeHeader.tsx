@@ -1,5 +1,6 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
+import { org } from '@/config/org';
 
 export function WelcomeHeader() {
   const { profile } = useAuth();
@@ -20,10 +21,10 @@ export function WelcomeHeader() {
     <div className="flex items-center justify-between">
       <div className="space-y-0.5">
         <h1 className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight">
-          {greeting()}, {profile?.first_name || 'Brother'}
+          {greeting()}, {profile?.first_name || org.terms.member}
         </h1>
         <p className="text-muted-foreground text-xs sm:text-sm">
-          {semester} {year} • Nu Chapter
+          {semester} {year} • {org.chapterName}
         </p>
       </div>
       {profile?.status && (

@@ -12,20 +12,15 @@ import { useServiceHours } from '@/hooks/useServiceHours';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { allCategories, categoryLabels as orgCategoryLabels } from '@/config/org';
 
 type Profile = Tables<'profiles'>;
 
-const categories = ['chapter', 'rush', 'fundraising', 'service', 'brotherhood', 'professionalism', 'dei', 'new_member'] as const;
+const categories = allCategories;
 
-const categoryLabels: Record<string, string> = {
-  chapter: 'Chapter',
-  rush: 'Rush',
-  fundraising: 'Fundraising',
-  service: 'Service',
-  brotherhood: 'Brotherhood',
+const localCategoryLabels: Record<string, string> = {
+  ...orgCategoryLabels,
   professionalism: 'Prof.',
-  dei: 'DE&I',
-  new_member: 'New Member',
 };
 
 interface MemberProfileDialogProps {
@@ -236,7 +231,7 @@ export function MemberProfileDialog({ member, open, onOpenChange }: MemberProfil
                   <div className="grid grid-cols-4 gap-2">
                     {categories.map(cat => (
                       <div key={cat} className="text-center">
-                        <div className="text-[10px] font-medium text-muted-foreground">{categoryLabels[cat]}</div>
+                        <div className="text-[10px] font-medium text-muted-foreground">{localCategoryLabels[cat]}</div>
                         <div className="text-sm font-bold mt-0.5">{displayPointsByCategory[cat] || 0}</div>
                       </div>
                     ))}

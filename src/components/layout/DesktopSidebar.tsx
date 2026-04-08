@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { useChapterSetting } from '@/hooks/useChapterSettings';
+import { org } from '@/config/org';
 
 export function DesktopSidebar() {
   const location = useLocation();
@@ -22,9 +23,7 @@ export function DesktopSidebar() {
   const { data: eopVisible } = useChapterSetting('eop_visible');
 
   const isNewMember = profile?.status === 'new_member';
-  const isVP = profile?.positions?.includes('VP of New Member Development') ||
-    profile?.positions?.includes('VP of Pledge Education') ||
-    profile?.positions?.includes('VP of New Member Education');
+  const isVP = org.pdpOfficerTitles.some(t => profile?.positions?.includes(t));
   const showPDP = isNewMember || isVP;
 
   const navItems = [
@@ -69,11 +68,11 @@ export function DesktopSidebar() {
       <div className="p-6 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-display font-bold text-lg">ΔΣΠ</span>
+            <span className="text-primary-foreground font-display font-bold text-lg">{org.greekLetters}</span>
           </div>
           <div>
-            <h1 className="font-display font-semibold text-foreground">Delta Sigma Pi</h1>
-            <p className="text-xs text-muted-foreground">Nu Chapter</p>
+            <h1 className="font-display font-semibold text-foreground">{org.name}</h1>
+            <p className="text-xs text-muted-foreground">{org.chapterName}</p>
           </div>
         </Link>
         <NotificationBell />

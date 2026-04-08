@@ -10,6 +10,7 @@ import {
   Clock, Shield, Vote, FolderOpen, Clapperboard, HelpCircle,
   BookOpen, MessageCircle, TrendingUp
 } from 'lucide-react';
+import { org } from '@/config/org';
 
 interface FaqItem {
   q: string;
@@ -50,17 +51,17 @@ const sections: { title: string; icon: React.ReactNode; faqs: FaqItem[] }[] = [
     faqs: [
       {
         q: 'How are points calculated?',
-        a: 'Points are awarded based on event attendance — each event has a point value tied to its category (Chapter, Rush, Fundraising, Service, Brotherhood, Professionalism, DE&I). Officers can also grant points manually for special contributions.',
+        a: `Points are awarded based on event attendance — each event has a point value tied to its category (${org.eventCategories.map(c => c.label).join(', ')}). Officers can also grant points manually for special contributions.`,
         tags: ['points', 'standing'],
       },
       {
         q: 'What do I need for good standing?',
-        a: 'You need at least 7 total points across all categories and 3 verified service hours. Your Standing card on the Chapter page tracks your progress toward both requirements in real time.',
+        a: `You need at least ${org.standing.minPoints} total points across all categories and ${org.standing.minServiceHours} verified service hours. Your Standing card on the ${org.terms.chapter} page tracks your progress toward both requirements in real time.`,
         tags: ['points', 'standing', 'requirements'],
       },
       {
         q: 'What are the 7 point categories?',
-        a: 'The categories are: Chapter, Rush, Fundraising, Service, Brotherhood, Professionalism, and DE&I. Your points breakdown is visible on the Chapter → Standing tab, showing a checkmark for each category where you\'ve earned at least 1 point.',
+        a: `The categories are: ${org.eventCategories.map(c => c.label).join(', ')}. Your points breakdown is visible on the ${org.terms.chapter} → Standing tab, showing a checkmark for each category where you've earned at least 1 point.`,
         tags: ['points', 'categories'],
       },
       {
@@ -86,7 +87,7 @@ const sections: { title: string; icon: React.ReactNode; faqs: FaqItem[] }[] = [
       },
       {
         q: 'How many service hours do I need?',
-        a: 'You need 3 verified service hours per semester. Once you hit 3 hours, the service section on your Standing card will show "Completed."',
+        a: `You need ${org.standing.minServiceHours} verified service hours per semester. Once you hit ${org.standing.minServiceHours} hours, the service section on your Standing card will show "Completed."`,
         tags: ['service', 'hours', 'requirements'],
       },
     ],
@@ -107,7 +108,7 @@ const sections: { title: string; icon: React.ReactNode; faqs: FaqItem[] }[] = [
       },
       {
         q: 'Who counts as an approved coffee chat partner?',
-        a: 'The approved members list is managed by officers and typically includes active brothers and sometimes alumni. You can browse the full directory on the Coffee Chat Directory page.',
+        a: `The approved members list is managed by officers and typically includes active ${org.terms.members.toLowerCase()} and sometimes alumni. You can browse the full directory on the Coffee Chat Directory page.`,
         tags: ['coffee chats', 'directory'],
       },
     ],
@@ -134,7 +135,7 @@ const sections: { title: string; icon: React.ReactNode; faqs: FaqItem[] }[] = [
     faqs: [
       {
         q: 'How are Family Games scores calculated?',
-        a: 'Each of the 5 main categories (Chapter, Professionalism, Brotherhood, Fundraising, Service) is scored as: (members with a point in that category ÷ total family members) × category weight. Weights are set by the VP of Chapter Operations. Bonus points can also be added manually.',
+        a: `Each of the ${org.scoredCategories.length} main categories (${org.scoredCategories.map(c => { const found = org.eventCategories.find(e => e.key === c); return found ? found.label : c; }).join(', ')}) is scored as: (members with a point in that category ÷ total family members) × category weight. Weights are set by the VP of ${org.terms.chapter} Operations. Bonus points can also be added manually.`,
         tags: ['family', 'games', 'scoring'],
       },
       {
@@ -182,7 +183,7 @@ const sections: { title: string; icon: React.ReactNode; faqs: FaqItem[] }[] = [
     faqs: [
       {
         q: 'What is a paddle submission?',
-        a: 'Paddles are funny videos of your brothers! When the VP of Scholarship & Awards enables submissions, a "Paddle Time" card appears on your Home page. Submit the name of who\'s in the video and a link to the video.',
+        a: `Paddles are funny videos of your ${org.terms.members.toLowerCase()}! When the VP of Scholarship & Awards enables submissions, a "Paddle Time" card appears on your Home page. Submit the name of who's in the video and a link to the video.`,
         tags: ['paddle', 'videos'],
       },
     ],

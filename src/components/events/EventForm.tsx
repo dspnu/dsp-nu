@@ -10,20 +10,14 @@ import { useCreateEvent, useUpdateEvent } from '@/hooks/useEvents';
 import { useAuth } from '@/contexts/AuthContext';
 import { Plus, Pencil } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
+import { org, type EventCategory } from '@/config/org';
 
 type Event = Tables<'events'>;
-type EventCategory = 'chapter' | 'rush' | 'fundraising' | 'service' | 'brotherhood' | 'professionalism' | 'dei' | 'new_member' | 'exec';
 
 const categories: { value: EventCategory; label: string }[] = [
-  { value: 'chapter', label: 'Chapter' },
-  { value: 'rush', label: 'Rush' },
-  { value: 'fundraising', label: 'Fundraising' },
-  { value: 'service', label: 'Service' },
-  { value: 'brotherhood', label: 'Brotherhood' },
-  { value: 'professionalism', label: 'Professionalism' },
-  { value: 'dei', label: 'DE&I' },
-  { value: 'new_member', label: 'New Member / PDP' },
-  { value: 'exec', label: 'Exec (Officers Only)' },
+  ...org.eventCategories.map(c => ({ value: c.key as EventCategory, label: c.label })),
+  { value: 'new_member' as EventCategory, label: `${org.newMemberCategory.label} / PDP` },
+  { value: 'exec' as EventCategory, label: 'Exec (Officers Only)' },
 ];
 
 interface EventFormProps {

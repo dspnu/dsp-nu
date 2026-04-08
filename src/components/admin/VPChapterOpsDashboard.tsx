@@ -23,10 +23,11 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useRealtimeCandidates, useRealtimeVoteCounts } from '@/hooks/useEOPRealtime';
 import { toast } from 'sonner';
+import { org } from '@/config/org';
 
-const categories = ['chapter', 'rush', 'fundraising', 'service', 'brotherhood', 'professionalism', 'dei'] as const;
-const POINTS_REQUIREMENT = 7;
-const SERVICE_HOURS_REQUIREMENT = 3;
+const categories = org.eventCategories.map(c => c.key);
+const POINTS_REQUIREMENT = org.standing.minPoints;
+const SERVICE_HOURS_REQUIREMENT = org.standing.minServiceHours;
 
 export function VPChapterOpsDashboard() {
   const { data: members = [] } = useMembers();

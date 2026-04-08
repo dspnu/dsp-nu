@@ -16,8 +16,9 @@ import {
   useAddFamilyBonusPoints,
   useDeleteFamilyBonusPoints,
 } from '@/hooks/useFamilyGames';
+import { org } from '@/config/org';
 
-const SCORED_CATEGORIES = ['chapter', 'professionalism', 'brotherhood', 'fundraising', 'service'] as const;
+const SCORED_CATEGORIES = org.scoredCategories;
 
 export function FamilyGamesManager() {
   const { user } = useAuth();

@@ -23,9 +23,10 @@ import {
 } from '@/hooks/useAttendanceEarners';
 import { useMembers } from '@/hooks/useMembers';
 import { useAuth } from '@/contexts/AuthContext';
+import { org } from '@/config/org';
 
-const categories = ['chapter', 'rush', 'fundraising', 'service', 'brotherhood', 'professionalism', 'dei'] as const;
-type CategoryType = typeof categories[number];
+const categories = org.eventCategories.map(c => c.key);
+type CategoryType = string;
 
 function EarnerForm({ earner, onClose }: { earner?: AttendanceEarner; onClose: () => void }) {
   const { user } = useAuth();

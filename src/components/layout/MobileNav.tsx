@@ -3,6 +3,7 @@ import { Home, Users, Calendar, Building, Vote, GraduationCap, Settings, MoreHor
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useChapterSetting } from '@/hooks/useChapterSettings';
+import { org } from '@/config/org';
 import { useEffect, useState } from 'react';
 
 export function MobileNav() {
@@ -13,9 +14,7 @@ export function MobileNav() {
   const [showMore, setShowMore] = useState(false);
 
   const isNewMember = profile?.status === 'new_member';
-  const isVP = profile?.positions?.includes('VP of New Member Development') ||
-    profile?.positions?.includes('VP of Pledge Education') ||
-    profile?.positions?.includes('VP of New Member Education');
+  const isVP = org.pdpOfficerTitles.some(t => profile?.positions?.includes(t));
   const showPDP = isNewMember || isVP;
 
   const allItems = [

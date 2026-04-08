@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+import { org } from '@/config/org';
 
 interface CalendarEvent {
   id: string;
@@ -22,7 +23,7 @@ export function generateICS(events: CalendarEvent[]): string {
     const endTime = event.end_time || new Date(new Date(event.start_time).getTime() + 60 * 60 * 1000).toISOString();
     
     return `BEGIN:VEVENT
-UID:${event.id}@dsp-nu.app
+UID:${event.id}${org.calendar.uidSuffix}
 DTSTAMP:${formatDate(new Date().toISOString())}
 DTSTART:${formatDate(event.start_time)}
 DTEND:${formatDate(endTime)}
@@ -34,15 +35,15 @@ END:VEVENT`;
 
   return `BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//DSP Nu Chapter//Chapter App//EN
+PRODID:-//${org.calendar.prodId}//Chapter App//EN
 CALSCALE:GREGORIAN
 METHOD:PUBLISH
-X-WR-CALNAME:DSP Nu Chapter Events
+X-WR-CALNAME:${org.calendar.calName}
 ${icsEvents}
 END:VCALENDAR`;
 }
 
-export function downloadICS(events: CalendarEvent[], filename: string = 'dsp-events') {
+export function downloadICS(events: CalendarEvent[], filename: string = org.calendar.exportFilename) {
   const ics = generateICS(events);
   const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
   const link = document.createElement('a');

@@ -9,6 +9,7 @@ import { Shield, X, Plus } from 'lucide-react';
 import { useUpdateMember } from '@/hooks/useMembers';
 import { Tables, Enums } from '@/integrations/supabase/types';
 import { Constants } from '@/integrations/supabase/types';
+import { org } from '@/config/org';
 
 type Profile = Tables<'profiles'>;
 type MemberStatus = Enums<'member_status'>;
@@ -17,23 +18,7 @@ interface AdminPositionsDialogProps {
   member: Profile;
 }
 
-const COMMON_POSITIONS = [
-  'President',
-  'Senior Vice President',
-  'VP of Chapter Operations',
-  'VP of Pledge Education',
-  'VP of New Member Education',
-  'VP of Professional Activities',
-  'VP of Finance',
-  'VP of Community Service',
-  'VP of Alumni Relations',
-  'VP of Scholarship & Awards',
-  'VP of Brotherhood',
-  'VP of DEI',
-  'VP of Fundraising',
-  'Chancellor',
-  'Historian',
-];
+const COMMON_POSITIONS = org.positions;
 
 export function AdminPositionsDialog({ member }: AdminPositionsDialogProps) {
   const [open, setOpen] = useState(false);

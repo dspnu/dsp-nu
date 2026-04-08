@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { CategoryBadge } from '@/components/ui/category-badge';
+import { org } from '@/config/org';
 import { EmptyState } from '@/components/ui/empty-state';
 import { 
   Mail, Phone, GraduationCap, Linkedin, MapPin, Users, Heart, 
@@ -288,7 +289,7 @@ export default function MemberProfilePage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
-                  {['chapter', 'rush', 'fundraising', 'service', 'brotherhood', 'professionalism', 'dei'].map((cat) => (
+                  {org.eventCategories.map(c => c.key).map((cat) => (
                     <div key={cat} className="text-center p-3 rounded-lg bg-muted/50">
                       <CategoryBadge category={cat as any} />
                       <div className="text-xl font-bold mt-2">{pointsByCategory[cat] || 0}</div>

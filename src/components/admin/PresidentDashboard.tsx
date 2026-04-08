@@ -20,8 +20,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useState } from 'react';
+import { org } from '@/config/org';
 
-const POINTS_REQUIREMENT = 7;
+const POINTS_REQUIREMENT = org.standing.minPoints;
 const SERVICE_HOURS_REQUIREMENT = 10;
 
 export function PresidentDashboard() {

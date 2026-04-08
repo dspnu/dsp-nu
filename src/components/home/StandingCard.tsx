@@ -5,9 +5,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useMemberPoints } from '@/hooks/useMembers';
 import { useServiceHours } from '@/hooks/useServiceHours';
 import { Progress } from '@/components/ui/progress';
+import { org } from '@/config/org';
 
-const POINTS_REQUIREMENT = 7;
-const SERVICE_HOURS_REQUIREMENT = 3;
+const POINTS_REQUIREMENT = org.standing.minPoints;
+const SERVICE_HOURS_REQUIREMENT = org.standing.minServiceHours;
 
 export function StandingCard() {
   const { user } = useAuth();

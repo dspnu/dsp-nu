@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { org } from '@/config/org';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const TOTAL_STEPS = 5;
@@ -142,7 +143,7 @@ export default function OnboardingPage() {
 
   const handleFinish = () => {
     navigate('/', { replace: true });
-    toast.success('Welcome to Delta Sigma Pi! 🎉');
+    toast.success(`Welcome to ${org.name}! 🎉`);
   };
 
   const initials = `${firstName?.[0] || ''}${lastName?.[0] || ''}`;
@@ -154,7 +155,7 @@ export default function OnboardingPage() {
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-display font-bold text-sm">ΔΣΠ</span>
+              <span className="text-primary-foreground font-display font-bold text-sm">{org.greekLetters}</span>
             </div>
             <span className="font-display font-semibold text-foreground text-sm">Welcome</span>
           </div>
@@ -184,10 +185,10 @@ export default function OnboardingPage() {
                     transition={{ delay: 0.15, type: 'spring', stiffness: 300 }}
                     className="w-24 h-24 rounded-2xl gradient-primary flex items-center justify-center mx-auto shadow-purple"
                   >
-                    <span className="text-primary-foreground font-display font-bold text-4xl">ΔΣΠ</span>
+                    <span className="text-primary-foreground font-display font-bold text-4xl">{org.greekLetters}</span>
                   </motion.div>
                   <div>
-                    <h1 className="font-display text-3xl font-bold text-foreground">Welcome, {firstName || 'Brother'}!</h1>
+                    <h1 className="font-display text-3xl font-bold text-foreground">Welcome, {firstName || org.terms.member}!</h1>
                     <p className="text-muted-foreground mt-2 max-w-md mx-auto">
                       Let's get your profile set up and show you around the chapter portal. This will only take a couple minutes.
                     </p>
@@ -203,7 +204,7 @@ export default function OnboardingPage() {
                 <div className="space-y-6">
                   <div className="text-center">
                     <h2 className="font-display text-2xl font-bold text-foreground">Complete Your Profile</h2>
-                    <p className="text-muted-foreground mt-1">Help your brothers get to know you.</p>
+                    <p className="text-muted-foreground mt-1">Help your {org.terms.members.toLowerCase()} get to know you.</p>
                   </div>
                   <Card>
                     <CardContent className="pt-6 space-y-6">
@@ -331,8 +332,8 @@ export default function OnboardingPage() {
                     {[
                       { icon: Award, title: 'Points System', desc: 'Earn points by attending events across 8 categories. Track progress toward your semester goal.' },
                       { icon: Clock, title: 'Service Hours', desc: 'Log community service hours with photo proof. 3 verified hours = 1 bonus service point.' },
-                      { icon: Coffee, title: 'Coffee Chats', desc: 'Schedule and track coffee chats with brothers. Hit milestones set by leadership.' },
-                      { icon: Briefcase, title: 'Job Board', desc: 'Browse and post internships, full-time roles, and other opportunities shared by brothers.' },
+                      { icon: Coffee, title: 'Coffee Chats', desc: `Schedule and track coffee chats with ${org.terms.members.toLowerCase()}. Hit milestones set by leadership.` },
+                      { icon: Briefcase, title: 'Job Board', desc: `Browse and post internships, full-time roles, and other opportunities shared by ${org.terms.members.toLowerCase()}.` },
                       { icon: GraduationCap, title: 'PDP', desc: 'New members: complete assignments, access resources, and track your pledge development progress.' },
                       { icon: CheckCircle, title: 'Good Standing', desc: 'Meet your points and service hour requirements to stay in good standing each semester.' },
                     ].map((item, i) => (
@@ -379,7 +380,7 @@ export default function OnboardingPage() {
                   <div>
                     <h2 className="font-display text-2xl font-bold text-foreground">You're All Set!</h2>
                     <p className="text-muted-foreground mt-2 max-w-md mx-auto">
-                      Your profile is complete and you're ready to dive in. Check out upcoming events, connect with brothers, and start earning points.
+                      Your profile is complete and you're ready to dive in. Check out upcoming events, connect with {org.terms.members.toLowerCase()}, and start earning points.
                     </p>
                   </div>
                   <div className="flex flex-col items-center gap-3">

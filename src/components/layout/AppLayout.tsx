@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { MobileNav } from './MobileNav';
 import { DesktopSidebar } from './DesktopSidebar';
 import { Loader2 } from 'lucide-react';
+import { org } from '@/config/org';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -17,7 +18,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center animate-pulse">
-            <span className="text-primary-foreground font-display font-bold text-xl">ΔΣΠ</span>
+            <span className="text-primary-foreground font-display font-bold text-xl">{org.greekLetters}</span>
           </div>
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
