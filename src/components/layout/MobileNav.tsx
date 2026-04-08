@@ -3,9 +3,10 @@ import { Home, Users, Calendar, Building, Vote, GraduationCap, Settings, MoreHor
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useChapterSetting } from '@/hooks/useChapterSettings';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export function MobileNav() {
+  const MAX_NAV_SLOTS = 5;
   const location = useLocation();
   const { profile } = useAuth();
   const { data: eopVisible } = useChapterSetting('eop_visible');
@@ -17,20 +18,29 @@ export function MobileNav() {
     profile?.positions?.includes('VP of New Member Education');
   const showPDP = isNewMember || isVP;
 
-  // Primary tabs (always visible)
-  const primaryItems = [
+  const allItems = [
     { icon: Home, label: 'Home', path: '/' },
     { icon: Calendar, label: 'Events', path: '/events' },
     { icon: Building, label: 'Chapter', path: '/chapter' },
     { icon: Users, label: 'People', path: '/people' },
-  ];
-
-  // More menu items
-  const moreItems = [
+    { icon: Settings, label: 'Settings', path: '/settings' },
     ...(showPDP ? [{ icon: GraduationCap, label: 'PDP', path: '/pdp' }] : []),
     ...(eopVisible ? [{ icon: Vote, label: 'EOP', path: '/eop' }] : []),
-    { icon: Settings, label: 'Settings', path: '/settings' },
   ];
+
+  const hasOverflow = allItems.length > MAX_NAV_SLOTS;
+  const visibleItems = hasOverflow
+    ? allItems.slice(0, MAX_NAV_SLOTS - 1)
+    : allItems;
+  const moreItems = hasOverflow
+    ? allItems.slice(MAX_NAV_SLOTS - 1)
+    : [];
+
+  useEffect(() => {
+    if (!hasOverflow && showMore) {
+      setShowMore(false);
+    }
+  }, [hasOverflow, showMore]);
 
   // Check if a "more" item is currently active
   const moreIsActive = moreItems.some(item =>
@@ -40,7 +50,7 @@ export function MobileNav() {
   return (
     <>
       {/* More menu overlay */}
-      {showMore && (
+      {hasOverflow && showMore && (
         <div
           className="fixed inset-0 z-[90] md:hidden"
           onClick={() => setShowMore(false)}
@@ -80,7 +90,7 @@ export function MobileNav() {
         <div className="flex items-center justify-around rounded-2xl bg-card/80 backdrop-blur-2xl border border-border/30 shadow-lg px-2 py-1.5"
           style={{ boxShadow: '0 8px 32px hsl(270 50% 40% / 0.08), 0 2px 8px hsl(0 0% 0% / 0.06)' }}
         >
-          {primaryItems.map(({ icon: Icon, label, path }) => {
+          {visibleItems.map(({ icon: Icon, label, path }) => {
             const isActive = location.pathname === path ||
               (path !== '/' && location.pathname.startsWith(path));
             return (
@@ -107,24 +117,26 @@ export function MobileNav() {
           })}
 
           {/* More button */}
-          <button
-            onClick={() => setShowMore(v => !v)}
-            className={cn(
-              'relative flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all active:scale-90',
-              (showMore || moreIsActive) ? 'text-primary' : 'text-muted-foreground'
-            )}
-          >
-            {(showMore || moreIsActive) && (
-              <div className="absolute inset-0 rounded-xl bg-primary/10" />
-            )}
-            <MoreHorizontal className={cn("h-5 w-5 relative z-10", (showMore || moreIsActive) && "stroke-[2.5px]")} />
-            <span className={cn(
-              "text-[10px] mt-0.5 relative z-10",
-              (showMore || moreIsActive) ? "font-semibold" : "font-medium"
-            )}>
-              More
-            </span>
-          </button>
+          {hasOverflow && (
+            <button
+              onClick={() => setShowMore(v => !v)}
+              className={cn(
+                'relative flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all active:scale-90',
+                (showMore || moreIsActive) ? 'text-primary' : 'text-muted-foreground'
+              )}
+            >
+              {(showMore || moreIsActive) && (
+                <div className="absolute inset-0 rounded-xl bg-primary/10" />
+              )}
+              <MoreHorizontal className={cn("h-5 w-5 relative z-10", (showMore || moreIsActive) && "stroke-[2.5px]")} />
+              <span className={cn(
+                "text-[10px] mt-0.5 relative z-10",
+                (showMore || moreIsActive) ? "font-semibold" : "font-medium"
+              )}>
+                More
+              </span>
+            </button>
+          )}
 
         </div>
       </nav>
