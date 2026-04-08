@@ -15,13 +15,15 @@ export default function AuthPage() {
   const { user, loading, signIn, signUp, profile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const authRedirectBase =
+    import.meta.env.VITE_AUTH_REDIRECT_URL?.replace(/\/$/, '') || 'https://dsp.jacobtartabini.com';
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${authRedirectBase}/auth/callback`,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',

@@ -10,8 +10,12 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       const params = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
       const code = params.get('code');
       const errorDescription = params.get('error_description');
+      const hashError = hashParams.get('error_description') || hashParams.get('error');
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
 
       if (errorDescription) {
         toast.error(decodeURIComponent(errorDescription));
@@ -19,8 +23,29 @@ export default function AuthCallbackPage() {
         return;
       }
 
+      if (hashError) {
+        toast.error(decodeURIComponent(hashError));
+        navigate('/auth', { replace: true });
+        return;
+      }
+
+      if (accessToken && refreshToken) {
+        const { error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        if (error) {
+          toast.error(error.message);
+          navigate('/auth', { replace: true });
+          return;
+        }
+
+        navigate('/', { replace: true });
+        return;
+      }
+
       if (!code) {
-        toast.error('Google sign in failed: missing authorization code.');
+        toast.error('Google sign in failed: missing authorization response.');
         navigate('/auth', { replace: true });
         return;
       }
