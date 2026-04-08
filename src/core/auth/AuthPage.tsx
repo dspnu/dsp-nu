@@ -10,7 +10,6 @@ import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
-import { lovable } from '@/integrations/lovable';
 import { org } from '@/config/org';
 
 export default function AuthPage() {
@@ -18,7 +17,7 @@ export default function AuthPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  const getRedirectUri = () => {
+  const getRedirectUrl = () => {
     const origin = window.location.origin.replace(/\/$/, '');
     const isLocal = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
     return isLocal ? `${origin}/auth/callback` : `https://${org.domain}/auth/callback`;
@@ -26,25 +25,18 @@ export default function AuthPage() {
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
-    try {
-      const result = await lovable.auth.signInWithOAuth('google', {
-        redirect_uri: getRedirectUri(),
-        extraParams: {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: getRedirectUrl(),
+        queryParams: {
           access_type: 'offline',
           prompt: 'consent',
         },
-      });
-
-      if (result.redirected) {
-        return;
-      }
-
-      if (result.error) {
-        toast.error(result.error instanceof Error ? result.error.message : String(result.error));
-        setIsGoogleLoading(false);
-      }
-    } catch (err) {
-      toast.error('Google sign in failed. Please try again.');
+      },
+    });
+    if (error) {
+      toast.error(error.message);
       setIsGoogleLoading(false);
     }
   };
