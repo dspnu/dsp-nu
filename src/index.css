@@ -228,5 +228,5 @@
 
 /* PWA Install banner */
 .install-banner {
-  @apply fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:bottom-4 md:w-80;
+  @apply fixed bottom-24 left-4 right-4 md:left-auto md:right-4 md:bottom-4 md:w-80;
 }
