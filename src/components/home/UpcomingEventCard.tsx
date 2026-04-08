@@ -3,10 +3,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, MapPin, Calendar } from 'lucide-react';
 import { format, isToday, isTomorrow } from 'date-fns';
-import { useEvents } from '@/hooks/useEvents';
+import { useEvents } from '@/features/events/hooks/useEvents';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth/AuthContext';
 import { isAfter } from 'date-fns';
 
 export function UpcomingEventCard() {

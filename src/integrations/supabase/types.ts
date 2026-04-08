@@ -69,7 +69,7 @@ export type Database = {
         Row: {
           big: string | null
           created_at: string
-          dsp_position: string | null
+          org_position: string | null
           family: string | null
           first_name: string
           fun_facts: string | null
@@ -92,7 +92,7 @@ export type Database = {
         Insert: {
           big?: string | null
           created_at?: string
-          dsp_position?: string | null
+          org_position?: string | null
           family?: string | null
           first_name: string
           fun_facts?: string | null
@@ -115,7 +115,7 @@ export type Database = {
         Update: {
           big?: string | null
           created_at?: string
-          dsp_position?: string | null
+          org_position?: string | null
           family?: string | null
           first_name?: string
           fun_facts?: string | null

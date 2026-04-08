@@ -6,7 +6,26 @@
 
 @layer base {
   :root {
-    /* Delta Sigma Pi Colors - Purple and Gold */
+    /*
+     * =============================================
+     * TEMPLATE: ORG THEME — LIGHT MODE
+     * =============================================
+     * To customize for a new org, change the HSL values below.
+     * Format: HUE SATURATION% LIGHTNESS%  (no commas, no hsl() wrapper)
+     *
+     * Current org: Delta Sigma Pi — Purple (hue ~270) and Gold (hue ~45)
+     *
+     * Quick guide for a new org:
+     *   1. Pick your primary hue (e.g. 210 for blue, 150 for green, 0 for red)
+     *   2. Pick your secondary hue (accent/complement)
+     *   3. Find-and-replace "270" with your primary hue in this section
+     *   4. Find-and-replace "45" with your secondary hue where marked
+     *   5. Update gradients and shadows to match
+     *   6. Repeat for the .dark section below
+     * =============================================
+     */
+
+    /* TEMPLATE: Background & text — secondary hue tint */
     --background: 45 20% 98%;
     --foreground: 270 30% 15%;
 
@@ -16,31 +35,33 @@
     --popover: 0 0% 100%;
     --popover-foreground: 270 30% 15%;
 
-    /* Royal Purple - Primary */
+    /* TEMPLATE: Primary color — org's main brand color */
     --primary: 270 50% 40%;
     --primary-foreground: 45 100% 97%;
 
-    /* Gold - Secondary */
+    /* TEMPLATE: Secondary color — org's accent/complement */
     --secondary: 45 90% 55%;
     --secondary-foreground: 270 30% 15%;
 
+    /* TEMPLATE: Muted tones — derived from primary hue */
     --muted: 270 10% 94%;
     --muted-foreground: 270 15% 45%;
 
-    /* Accent - Lighter Purple */
+    /* TEMPLATE: Accent — lighter version of primary */
     --accent: 270 40% 95%;
     --accent-foreground: 270 50% 35%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
+    /* TEMPLATE: Borders & inputs — derived from primary hue */
     --border: 270 15% 88%;
     --input: 270 15% 88%;
     --ring: 270 50% 40%;
 
     --radius: 0.75rem;
 
-    /* Category Colors */
+    /* TEMPLATE: Event category colors — customize per org's categories */
     --chapter: 270 50% 40%;
     --rush: 45 90% 55%;
     --fundraising: 142 71% 45%;
@@ -49,18 +70,19 @@
     --professionalism: 24 95% 53%;
     --dei: 280 65% 60%;
 
-    /* Gradients */
+    /* TEMPLATE: Gradients — update hue values to match primary/secondary */
     --gradient-primary: linear-gradient(135deg, hsl(270 50% 40%), hsl(270 60% 55%));
     --gradient-gold: linear-gradient(135deg, hsl(45 90% 55%), hsl(40 95% 65%));
     --gradient-hero: linear-gradient(180deg, hsl(270 50% 40%) 0%, hsl(270 40% 25%) 100%);
 
-    /* Shadows */
+    /* TEMPLATE: Shadows — update hue values to match primary/secondary */
     --shadow-sm: 0 1px 2px 0 hsl(270 30% 15% / 0.05);
     --shadow-md: 0 4px 6px -1px hsl(270 30% 15% / 0.1), 0 2px 4px -2px hsl(270 30% 15% / 0.1);
     --shadow-lg: 0 10px 15px -3px hsl(270 30% 15% / 0.1), 0 4px 6px -4px hsl(270 30% 15% / 0.1);
     --shadow-gold: 0 4px 14px 0 hsl(45 90% 55% / 0.3);
     --shadow-purple: 0 4px 14px 0 hsl(270 50% 40% / 0.25);
 
+    /* TEMPLATE: Sidebar — derived from primary hue */
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 270 30% 25%;
     --sidebar-primary: 270 50% 40%;
@@ -71,7 +93,16 @@
     --sidebar-ring: 270 50% 40%;
   }
 
+  /*
+   * =============================================
+   * TEMPLATE: ORG THEME — DARK MODE
+   * =============================================
+   * Mirror the light mode changes above with darker/lighter adjustments.
+   * Primary hues stay the same; adjust saturation and lightness for dark bg.
+   * =============================================
+   */
   .dark {
+    /* TEMPLATE: Background & text — dark versions of primary hue */
     --background: 270 25% 8%;
     --foreground: 45 20% 95%;
 
@@ -81,9 +112,11 @@
     --popover: 270 20% 12%;
     --popover-foreground: 45 20% 95%;
 
+    /* TEMPLATE: Primary — brighter in dark mode */
     --primary: 270 45% 55%;
     --primary-foreground: 270 30% 10%;
 
+    /* TEMPLATE: Secondary — slightly desaturated in dark mode */
     --secondary: 45 85% 50%;
     --secondary-foreground: 270 30% 10%;
 
@@ -100,6 +133,7 @@
     --input: 270 20% 20%;
     --ring: 270 45% 55%;
 
+    /* TEMPLATE: Sidebar dark — derived from primary hue */
     --sidebar-background: 270 20% 10%;
     --sidebar-foreground: 45 20% 90%;
     --sidebar-primary: 270 45% 55%;

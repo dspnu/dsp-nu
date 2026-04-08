@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { ChevronRight, Clock, Calendar } from 'lucide-react';
 import { format, isToday, isTomorrow, isAfter } from 'date-fns';
-import { useEvents } from '@/hooks/useEvents';
+import { useEvents } from '@/features/events/hooks/useEvents';
 
 export function UpcomingTimeline() {
   const { data: allEvents } = useEvents();

@@ -53,6 +53,10 @@ export const org = {
     "VP of New Member Education",
   ],
 
+  chapterOpsPositions: [
+    "VP of Chapter Operations",
+  ],
+
   features: {
     eop: true,
     pdp: true,
@@ -71,6 +75,10 @@ export const org = {
     minServiceHours: 3,
   },
 
+  superAdmins: [
+    "jacobtart8@gmail.com",
+  ],
+
   auth: {
     allowGoogle: true,
     allowEmail: true,
@@ -82,6 +90,13 @@ export const org = {
     calName: "DSP Nu Chapter Events",
     uidSuffix: "@dsp-nu.app",
     exportFilename: "dsp-nu-events",
+  },
+
+  meta: {
+    themeColor: "#6b21a8",
+    backgroundColor: "#faf9f7",
+    description: "Chapter management app for Delta Sigma Pi Nu Chapter",
+    companyName: "Tartabini Enterprises LLC",
   },
 } as const;
 
@@ -104,3 +119,15 @@ export const categoryLabels: Record<string, string> = Object.fromEntries([
   [org.newMemberCategory.key, org.newMemberCategory.label],
   [org.execCategory.key, org.execCategory.label],
 ]);
+
+export function hasPosition(profile: { positions?: string[] | null } | null, ...titles: string[]): boolean {
+  return titles.some(t => profile?.positions?.includes(t));
+}
+
+export function isPDPOfficer(profile: { positions?: string[] | null } | null): boolean {
+  return org.pdpOfficerTitles.some(t => profile?.positions?.includes(t));
+}
+
+export function isChapterOps(profile: { positions?: string[] | null } | null): boolean {
+  return org.chapterOpsPositions.some(t => profile?.positions?.includes(t));
+}

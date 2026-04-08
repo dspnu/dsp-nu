@@ -1,4 +1,4 @@
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/core/auth/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { org } from '@/config/org';
 

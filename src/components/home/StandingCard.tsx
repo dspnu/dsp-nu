@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Award, Clock, Check, TrendingUp } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useMemberPoints } from '@/hooks/useMembers';
-import { useServiceHours } from '@/hooks/useServiceHours';
+import { useAuth } from '@/core/auth/AuthContext';
+import { useMemberPoints } from '@/core/members/hooks/useMembers';
+import { useServiceHours } from '@/features/service-hours/hooks/useServiceHours';
 import { Progress } from '@/components/ui/progress';
 import { org } from '@/config/org';
 

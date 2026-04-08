@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Vote, Coffee, ChevronRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useMyCoffeeChats } from '@/hooks/useCoffeeChats';
+import { useMyCoffeeChats } from '@/features/coffee-chats/hooks/useCoffeeChats';
 
 export function AlertsSection() {
   const { data: myCoffeeChats } = useMyCoffeeChats();
