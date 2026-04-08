@@ -37,7 +37,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="min-h-screen bg-background">
       <DesktopSidebar />
-      <main className="md:ml-64 pb-24 md:pb-0">
+      <main className="md:ml-64 pb-28 md:pb-0">
         <div className="px-4 sm:px-6 lg:px-8 py-5 md:py-8 max-w-7xl mx-auto">
           {children}
         </div>

@@ -166,7 +166,14 @@
 
   /* Mobile bottom nav safe area */
   .pb-safe {
-    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  /* Mobile-friendly form inputs */
+  @media (max-width: 768px) {
+    input, select, textarea, button {
+      font-size: 16px !important; /* Prevent iOS zoom on focus */
+    }
   }
 }
 
