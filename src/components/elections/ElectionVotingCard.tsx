@@ -87,8 +87,27 @@ function VotingSection({ election }: { election: Election }) {
 }
 
 export function ElectionVotingCards() {
+  const queryClient = useQueryClient();
   const { data: elections = [] } = useElections();
   const openElections = elections.filter(e => e.status === 'open');
+
+  // Realtime: refresh when elections, positions, or candidates change
+  useEffect(() => {
+    const channel = supabase
+      .channel('home-election-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'elections' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['elections'] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'election_positions' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['election-positions'] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'election_candidates' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['election-candidates'] });
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient]);
 
   if (openElections.length === 0) return null;
 
