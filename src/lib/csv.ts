@@ -1,7 +1,11 @@
 import Papa from 'papaparse';
 
+export function toCSV<T extends Record<string, unknown>>(data: T[]): string {
+  return Papa.unparse(data);
+}
+
 export function exportToCSV<T extends Record<string, unknown>>(data: T[], filename: string) {
-  const csv = Papa.unparse(data);
+  const csv = toCSV(data);
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);

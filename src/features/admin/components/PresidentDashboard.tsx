@@ -21,6 +21,7 @@ import { useAuth } from '@/core/auth/AuthContext';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { org } from '@/config/org';
+import { DataExportCard } from '@/features/admin/components/DataExportCard';
 
 const POINTS_REQUIREMENT = org.standing.minPoints;
 const SERVICE_HOURS_REQUIREMENT = 10;
@@ -210,6 +211,8 @@ export function PresidentDashboard() {
           </CardContent>
         </Card>
       )}
+
+      <DataExportCard />
     </div>
   );
 }
