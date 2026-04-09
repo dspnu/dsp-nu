@@ -12,7 +12,7 @@ import { useMemberByUserId } from '@/core/members/hooks/useMembers';
 import { useNotificationPreferences, useUpdateNotificationPreferences } from '@/features/notifications/hooks/useNotifications';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { LogOut, Bell, User, Palette } from 'lucide-react';
+import { LogOut, Bell, User, Palette, Info, ExternalLink } from 'lucide-react';
 
 export default function SettingsPage() {
   const { profile, roles, user, signOut } = useAuth();
@@ -143,6 +143,49 @@ export default function SettingsPage() {
                 </div>
               </>
             )}
+          </CardContent>
+        </Card>
+
+        {/* About */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Info className="h-5 w-5 text-muted-foreground" />
+              <CardTitle>About</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              DSP is the chapter management platform for Delta Sigma Pi — helping members stay connected, track progress, and manage chapter operations in one place.
+            </p>
+            <Separator />
+            <div>
+              <p className="text-sm font-medium mb-2">Legal</p>
+              <div className="flex flex-col gap-2">
+                <a
+                  href="https://enterprises.jacobtartabini.com/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+                >
+                  Privacy Policy
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+                <a
+                  href="https://enterprises.jacobtartabini.com/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+                >
+                  Terms of Service
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              </div>
+            </div>
+            <Separator />
+            <p className="text-xs text-muted-foreground">
+              &copy; 2026 Tartabini Enterprises LLC. All rights reserved.
+            </p>
           </CardContent>
         </Card>
 
