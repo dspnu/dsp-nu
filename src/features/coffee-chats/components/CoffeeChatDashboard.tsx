@@ -159,7 +159,13 @@ export function CoffeeChatDashboard() {
   };
 
   if (isLoading) {
-    return <div className="text-center py-8 text-muted-foreground">Loading...</div>;
+    return (
+      <div className="space-y-3">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="h-14 animate-pulse rounded-lg bg-muted/80" />
+        ))}
+      </div>
+    );
   }
 
   const totalCompleted = memberStats.reduce((sum, m) => sum + m.completed, 0);
@@ -168,7 +174,7 @@ export function CoffeeChatDashboard() {
   const behindCount = memberStats.filter(m => m.status === 'behind').length;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Compact Summary Bar — replaces large KPI cards */}
       {isVP && (
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
