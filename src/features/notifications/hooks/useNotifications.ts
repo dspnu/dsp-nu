@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tansta
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/core/auth/AuthContext';
 import { useEffect } from 'react';
+import { toast } from 'sonner';
 
 export interface Notification {
   id: string;
@@ -259,15 +260,32 @@ export function useUpdateNotificationPreferences() {
     mutationFn: async (updates: Partial<Omit<NotificationPreferences, 'id' | 'user_id'>>) => {
       if (!user) throw new Error('Not authenticated');
 
-      const { error } = await supabase
+      // Update can be a no-op if the row doesn't exist yet (0 rows, no error).
+      // Upsert ensures the preference row is created and updated reliably.
+      const { data, error } = await supabase
         .from('notification_preferences')
-        .update(updates)
-        .eq('user_id', user.id);
+        .upsert(
+          {
+            user_id: user.id,
+            ...updates,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'user_id' }
+        )
+        .select('*')
+        .single();
 
       if (error) throw error;
+      return data as NotificationPreferences;
     },
-    onSuccess: () => {
+    onSuccess: (updated) => {
+      if (user) {
+        queryClient.setQueryData(['notification-preferences', user.id], updated);
+      }
       queryClient.invalidateQueries({ queryKey: ['notification-preferences'] });
+    },
+    onError: (err: any) => {
+      toast.error(err?.message ?? 'Failed to update preferences');
     },
   });
 }
