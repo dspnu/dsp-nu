@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
+import { org, hasPosition } from '@/config/org';
 import { supabase } from '@/integrations/supabase/client';
 
 type AppRole = 'admin' | 'officer' | 'member' | 'developer' | 'exec';
@@ -33,7 +34,7 @@ interface AuthContextType {
   isAdminOrOfficer: boolean;
   /** Matches DB `is_admin_or_officer` for event RLS: admin/officer/exec roles or any exec position */
   canManageEvents: boolean;
-  /** Exec app role or at least one chapter executive position (chapter Resources add, etc.) */
+  /** `exec` app role or at least one title in org.positions (chapter Resources add, etc.) */
   isExecBoard: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<{ error: Error | null }>;
@@ -148,10 +149,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isOfficer = roles.includes('officer');
   const isDeveloper = roles.includes('developer');
   const isAdminOrOfficer = isAdmin || isOfficer;
-  const hasExecPosition = (profile?.positions?.length ?? 0) > 0;
-  const isExecBoard = roles.includes('exec') || hasExecPosition;
+  const hasChapterExecTitle = hasPosition(profile, ...org.positions);
+  const isExecBoard = roles.includes('exec') || hasChapterExecTitle;
   const canManageEvents =
-    isAdmin || isOfficer || roles.includes('exec') || hasExecPosition;
+    isAdmin || isOfficer || roles.includes('exec') || hasChapterExecTitle;
 
   return (
     <AuthContext.Provider
