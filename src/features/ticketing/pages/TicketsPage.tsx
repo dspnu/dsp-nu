@@ -64,6 +64,7 @@ export default function TicketsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab');
   const verifyParam = searchParams.get('verify');
+  const ticketedEventIdParam = searchParams.get('ticketedEventId');
 
   const defaultTab = canManageEvents ? 'browse' : 'browse';
   const [tab, setTab] = useState(tabParam === 'my' || tabParam === 'admin' ? tabParam : defaultTab);
@@ -92,6 +93,10 @@ export default function TicketsPage() {
   }, [tabParam]);
 
   useEffect(() => {
+    if (ticketedEventIdParam) setTab('browse');
+  }, [ticketedEventIdParam]);
+
+  useEffect(() => {
     if (verifyParam && canManageEvents) {
       setTab('admin');
     }
@@ -102,6 +107,18 @@ export default function TicketsPage() {
       setAdminEventId(adminEvents[0].id);
     }
   }, [adminEvents, adminEventId]);
+
+  useEffect(() => {
+    if (ticketedEventIdParam && canManageEvents) {
+      setAdminEventId(ticketedEventIdParam);
+    }
+  }, [ticketedEventIdParam, canManageEvents]);
+
+  const effectiveBrowseEvents = useMemo(() => {
+    if (!browseEvents) return browseEvents;
+    if (!ticketedEventIdParam) return browseEvents;
+    return browseEvents.filter((e) => e.id === ticketedEventIdParam);
+  }, [browseEvents, ticketedEventIdParam]);
 
   const onTabChange = (v: string) => {
     setTab(v);
@@ -153,7 +170,7 @@ export default function TicketsPage() {
         </div>
       );
     }
-    if (!browseEvents?.length) {
+    if (!effectiveBrowseEvents?.length) {
       return (
         <EmptyState
           icon={TicketIcon}
@@ -164,7 +181,7 @@ export default function TicketsPage() {
     }
     return (
       <div className="grid gap-4 sm:grid-cols-2">
-        {browseEvents.map((ev) => {
+        {effectiveBrowseEvents.map((ev) => {
           const hasTicket = myEventIds.has(ev.id);
           return (
             <Card key={ev.id}>
@@ -506,6 +523,27 @@ export default function TicketsPage() {
   return (
     <AppLayout>
       <PageHeader title="Brotherhood tickets" className="mb-4" />
+
+      {ticketedEventIdParam && (
+        <Card className="mb-4 border-primary/20 bg-primary/[0.05]">
+          <CardContent className="p-4 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-foreground">Showing tickets for an event</p>
+              <p className="text-xs text-muted-foreground truncate">{ticketedEventIdParam}</p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => {
+                const next = new URLSearchParams(searchParams);
+                next.delete('ticketedEventId');
+                setSearchParams(next, { replace: true });
+              }}
+            >
+              Clear
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs value={tab} onValueChange={onTabChange} className="space-y-4">
         <TabsList>

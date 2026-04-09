@@ -14,7 +14,10 @@ export function useTicketedEvents() {
         .eq('published', true)
         .order('starts_at', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        if ((error as any)?.status === 404) return [] as TicketedEvent[];
+        throw error;
+      }
       return data as TicketedEvent[];
     },
   });
@@ -29,7 +32,10 @@ export function useTicketedEventAdmin() {
         .select('*')
         .order('starts_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        if ((error as any)?.status === 404) return [] as TicketedEvent[];
+        throw error;
+      }
       return data as TicketedEvent[];
     },
   });
