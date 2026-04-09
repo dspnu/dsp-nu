@@ -3,7 +3,7 @@ import type { Notification } from '@/features/notifications/hooks/useNotificatio
 import { formatNotificationTimestamp } from '@/features/notifications/lib/formatNotificationTime';
 import { getNotificationGroupId, GROUP_ICONS } from '@/features/notifications/lib/notificationGroups';
 import { cn } from '@/lib/utils';
-import { Bell, BookOpen, Briefcase, Clock, Coffee, type LucideIcon } from 'lucide-react';
+import { Bell, BookOpen, Briefcase, Clock, Coffee, DollarSign, type LucideIcon } from 'lucide-react';
 
 const TYPE_ICONS: Partial<Record<string, LucideIcon>> = {
   pdp: BookOpen,
@@ -11,6 +11,8 @@ const TYPE_ICONS: Partial<Record<string, LucideIcon>> = {
   coffee_chat: Coffee,
   job_board: Briefcase,
   general: Bell,
+  dues_reminder: DollarSign,
+  dues_overdue: DollarSign,
 };
 
 export function getNotificationVisual(type: string): { Icon: LucideIcon } {
