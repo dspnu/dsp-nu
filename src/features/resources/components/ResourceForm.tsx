@@ -36,7 +36,7 @@ interface ResourceFormProps {
 
 export function ResourceForm({ resource, trigger }: ResourceFormProps) {
   const [open, setOpen] = useState(false);
-  const { isAdminOrOfficer } = useAuth();
+  const { isAdminOrOfficer, isExecBoard } = useAuth();
   const createResource = useCreateResource();
   const updateResource = useUpdateResource();
   const isEditing = !!resource;
@@ -154,7 +154,7 @@ export function ResourceForm({ resource, trigger }: ResourceFormProps) {
               )}
             />
 
-            {isAdminOrOfficer && (
+            {(isAdminOrOfficer || isExecBoard) && (
               <FormField
                 control={form.control}
                 name="is_officer_only"

@@ -10,7 +10,7 @@ import { ResourceForm } from '@/features/resources/components/ResourceForm';
 import { ResourceCard } from '@/features/resources/components/ResourceCard';
 
 export function ResourcesTab() {
-  const { isAdminOrOfficer } = useAuth();
+  const { isAdminOrOfficer, isExecBoard } = useAuth();
   const { data: resources, isLoading: resourcesLoading } = useResources();
   const [resourceSearch, setResourceSearch] = useState('');
   const [activeFolder, setActiveFolder] = useState('all');
@@ -69,9 +69,11 @@ export function ResourcesTab() {
             className="pl-9"
           />
         </div>
-        <div className="shrink-0 sm:self-stretch flex sm:items-center">
-          <ResourceForm />
-        </div>
+        {isExecBoard && (
+          <div className="shrink-0 sm:self-stretch flex sm:items-center">
+            <ResourceForm />
+          </div>
+        )}
       </div>
 
       {resourcesLoading ? (
@@ -144,7 +146,11 @@ export function ResourcesTab() {
           <EmptyState
             icon={FolderOpen}
             title="No resources yet"
-            description={isAdminOrOfficer ? 'Add documents and links so the chapter can find them in one place.' : 'Officers can add chapter documents and links here.'}
+            description={
+              isExecBoard
+                ? 'Add documents and links so the chapter can find them in one place.'
+                : 'Executive board members can add chapter documents and links here.'
+            }
           />
         </div>
       )}
