@@ -100,7 +100,7 @@ async function fetchAllFromTable<T extends Record<string, unknown>>(opts: {
   return normalizeRows(all);
 }
 
-export const exportDatasets: ExportDataset[] = [
+export const exportDatasets = ([
   {
     id: 'profiles',
     label: 'Members (profiles)',
@@ -225,5 +225,5 @@ export const exportDatasets: ExportDataset[] = [
     dateColumn: 'created_at',
     fetchRows: (filters) => fetchAllFromTable<Tables<'audit_logs'>>({ table: 'audit_logs', filters, dateColumn: 'created_at' }),
   },
-].filter((d) => d.enabled !== false);
+] as const satisfies readonly ExportDataset[]).filter((d): d is ExportDataset => d.enabled !== false);
 
