@@ -1695,7 +1695,7 @@ export type Database = {
       }
       is_admin_or_officer: { Args: { _user_id: string }; Returns: boolean }
       broadcast_chapter_announcement: {
-        Args: { p_message: string; p_title: string }
+        Args: { p_link?: string | null; p_message: string; p_title: string }
         Returns: undefined
       }
       notify_event_rsvps_updated: {

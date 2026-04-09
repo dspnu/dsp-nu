@@ -10,7 +10,6 @@ import { JobsTab } from '@/features/chapter/components/JobsTab';
 import { CoffeeChatsTab } from '@/features/chapter/components/CoffeeChatsTab';
 import { ResourcesTab } from '@/features/chapter/components/ResourcesTab';
 import { AdminTab } from '@/features/chapter/components/AdminTab';
-import { ChapterAnnouncementCard } from '@/features/chapter/components/ChapterAnnouncementCard';
 
 interface TabDef {
   key: string;
@@ -53,8 +52,6 @@ export default function ChapterPage() {
         title="Chapter"
         description="Your one-stop hub for chapter life"
       />
-
-      <ChapterAnnouncementCard />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <div className="max-w-3xl w-full overflow-x-auto pb-1 -mx-1 px-1">
