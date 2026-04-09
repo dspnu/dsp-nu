@@ -68,6 +68,7 @@ export const org = {
     jobBoard: true,
     alumni: true,
     paddleSubmissions: true,
+    ticketing: true,
   },
 
   standing: {

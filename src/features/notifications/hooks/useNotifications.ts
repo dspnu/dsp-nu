@@ -13,6 +13,7 @@ export interface Notification {
   is_read: boolean;
   created_at: string;
   event_id: string | null;
+  ticketed_event_id?: string | null;
 }
 
 interface NotificationPreferences {
