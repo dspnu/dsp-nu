@@ -53,8 +53,8 @@ function normalizeRows<T extends Record<string, unknown>>(rows: T[]): Record<str
   });
 }
 
-async function fetchAllFromTable<T extends Record<string, unknown>>(opts: {
-  table: Parameters<typeof supabase.from>[0];
+async function fetchAllFromTable(opts: {
+  table: string;
   select?: string;
   dateColumn?: string;
   semesterColumn?: string;
@@ -63,34 +63,24 @@ async function fetchAllFromTable<T extends Record<string, unknown>>(opts: {
 }): Promise<Record<string, unknown>[]> {
   const { table, select = '*', filters, dateColumn, semesterColumn, pageSize = 1000 } = opts;
 
-  const all: T[] = [];
+  const all: Record<string, unknown>[] = [];
   let offset = 0;
 
-  // Convert date-only input to full-day inclusive window.
   const fromISO = filters.fromDate ? `${filters.fromDate}T00:00:00.000Z` : undefined;
   const toISO = filters.toDate ? `${filters.toDate}T23:59:59.999Z` : undefined;
 
   while (true) {
-    type QueryChain = {
-      range: (from: number, to: number) => unknown;
-      gte: (col: string, val: string) => unknown;
-      lte: (col: string, val: string) => unknown;
-      eq: (col: string, val: string) => unknown;
-    };
-    type QueryResult<R> = { data: R[] | null; error: unknown };
-    type QueryPromise<R> = Promise<QueryResult<R>>;
+    let q = supabase.from(table as any).select(select) as any;
+    q = q.range(offset, offset + pageSize - 1);
 
-    let q = supabase.from(table).select(select) as unknown as QueryChain;
-    let qAny = q.range(offset, offset + pageSize - 1) as unknown as QueryChain;
+    if (dateColumn && fromISO) q = q.gte(dateColumn, fromISO);
+    if (dateColumn && toISO) q = q.lte(dateColumn, toISO);
+    if (semesterColumn && filters.semester) q = q.eq(semesterColumn, filters.semester);
 
-    if (dateColumn && fromISO) qAny = qAny.gte(dateColumn, fromISO) as unknown as QueryChain;
-    if (dateColumn && toISO) qAny = qAny.lte(dateColumn, toISO) as unknown as QueryChain;
-    if (semesterColumn && filters.semester) qAny = qAny.eq(semesterColumn, filters.semester) as unknown as QueryChain;
-
-    const { data, error } = await (qAny as unknown as QueryPromise<T>);
+    const { data, error } = await q;
     if (error) throw error;
 
-    const rows = (data ?? []) as T[];
+    const rows = (data ?? []) as Record<string, unknown>[];
     all.push(...rows);
 
     if (rows.length < pageSize) break;
@@ -100,130 +90,130 @@ async function fetchAllFromTable<T extends Record<string, unknown>>(opts: {
   return normalizeRows(all);
 }
 
-export const exportDatasets: ExportDataset[] = [
+export const exportDatasets: ExportDataset[] = ([
   {
-    id: 'profiles',
+    id: 'profiles' as ExportDatasetId,
     label: 'Members (profiles)',
     sheetName: 'Members',
     defaultSelected: true,
     dateColumn: 'updated_at',
-    fetchRows: (filters) => fetchAllFromTable<Tables<'profiles'>>({ table: 'profiles', filters, dateColumn: 'updated_at' }),
+    fetchRows: (filters) => fetchAllFromTable({ table: 'profiles', filters, dateColumn: 'updated_at' }),
   },
   {
-    id: 'events',
+    id: 'events' as ExportDatasetId,
     label: 'Events',
     sheetName: 'Events',
     defaultSelected: true,
     dateColumn: 'start_time',
-    fetchRows: (filters) => fetchAllFromTable<Tables<'events'>>({ table: 'events', filters, dateColumn: 'start_time' }),
+    fetchRows: (filters) => fetchAllFromTable({ table: 'events', filters, dateColumn: 'start_time' }),
   },
   {
-    id: 'event_rsvps',
+    id: 'event_rsvps' as ExportDatasetId,
     label: 'Event RSVPs',
     sheetName: 'Event_RSVPs',
     defaultSelected: true,
     dateColumn: 'updated_at',
-    fetchRows: (filters) => fetchAllFromTable<Tables<'event_rsvps'>>({ table: 'event_rsvps', filters, dateColumn: 'updated_at' }),
+    fetchRows: (filters) => fetchAllFromTable({ table: 'event_rsvps', filters, dateColumn: 'updated_at' }),
   },
   {
-    id: 'attendance',
+    id: 'attendance' as ExportDatasetId,
     label: 'Attendance records',
     sheetName: 'Attendance',
     defaultSelected: true,
     dateColumn: 'checked_in_at',
-    fetchRows: (filters) => fetchAllFromTable<Tables<'attendance'>>({ table: 'attendance', filters, dateColumn: 'checked_in_at' }),
+    fetchRows: (filters) => fetchAllFromTable({ table: 'attendance', filters, dateColumn: 'checked_in_at' }),
   },
   {
-    id: 'service_hours',
+    id: 'service_hours' as ExportDatasetId,
     label: 'Service hours',
     sheetName: 'Service_Hours',
     defaultSelected: true,
     dateColumn: 'service_date',
-    fetchRows: (filters) => fetchAllFromTable<Tables<'service_hours'>>({ table: 'service_hours', filters, dateColumn: 'service_date' }),
+    fetchRows: (filters) => fetchAllFromTable({ table: 'service_hours', filters, dateColumn: 'service_date' }),
   },
   {
-    id: 'points_ledger',
+    id: 'points_ledger' as ExportDatasetId,
     label: 'Points ledger',
     sheetName: 'Points_Ledger',
     defaultSelected: true,
     dateColumn: 'created_at',
-    fetchRows: (filters) => fetchAllFromTable<Tables<'points_ledger'>>({ table: 'points_ledger', filters, dateColumn: 'created_at' }),
+    fetchRows: (filters) => fetchAllFromTable({ table: 'points_ledger', filters, dateColumn: 'created_at' }),
   },
   {
-    id: 'dues_payments',
+    id: 'dues_payments' as ExportDatasetId,
     label: 'Dues payments',
     sheetName: 'Dues_Payments',
     defaultSelected: true,
     dateColumn: 'paid_at',
     semesterColumn: 'semester',
     enabled: org.features.dues,
-    fetchRows: (filters) => fetchAllFromTable<Tables<'dues_payments'>>({ table: 'dues_payments', filters, dateColumn: 'paid_at', semesterColumn: 'semester' }),
+    fetchRows: (filters) => fetchAllFromTable({ table: 'dues_payments', filters, dateColumn: 'paid_at', semesterColumn: 'semester' }),
   },
   {
-    id: 'dues_line_items',
+    id: 'dues_line_items' as ExportDatasetId,
     label: 'Dues line items',
     sheetName: 'Dues_Line_Items',
     defaultSelected: true,
     dateColumn: 'created_at',
     semesterColumn: 'semester',
     enabled: org.features.dues,
-    fetchRows: (filters) => fetchAllFromTable<Tables<'dues_line_items'>>({ table: 'dues_line_items', filters, dateColumn: 'created_at', semesterColumn: 'semester' }),
+    fetchRows: (filters) => fetchAllFromTable({ table: 'dues_line_items', filters, dateColumn: 'created_at', semesterColumn: 'semester' }),
   },
   {
-    id: 'dues_installments',
+    id: 'dues_installments' as ExportDatasetId,
     label: 'Dues installments',
     sheetName: 'Dues_Installments',
     defaultSelected: true,
     dateColumn: 'created_at',
     semesterColumn: 'semester',
     enabled: org.features.dues,
-    fetchRows: (filters) => fetchAllFromTable<Tables<'dues_installments'>>({ table: 'dues_installments', filters, dateColumn: 'created_at', semesterColumn: 'semester' }),
+    fetchRows: (filters) => fetchAllFromTable({ table: 'dues_installments', filters, dateColumn: 'created_at', semesterColumn: 'semester' }),
   },
   {
-    id: 'dues_late_fees',
+    id: 'dues_late_fees' as ExportDatasetId,
     label: 'Dues late fees',
     sheetName: 'Dues_Late_Fees',
     defaultSelected: true,
     dateColumn: 'created_at',
     semesterColumn: 'semester',
     enabled: org.features.dues,
-    fetchRows: (filters) => fetchAllFromTable<Tables<'dues_late_fees'>>({ table: 'dues_late_fees', filters, dateColumn: 'created_at', semesterColumn: 'semester' }),
+    fetchRows: (filters) => fetchAllFromTable({ table: 'dues_late_fees', filters, dateColumn: 'created_at', semesterColumn: 'semester' }),
   },
   {
-    id: 'dues_config',
+    id: 'dues_config' as ExportDatasetId,
     label: 'Dues config',
     sheetName: 'Dues_Config',
     defaultSelected: true,
     dateColumn: 'updated_at',
     semesterColumn: 'semester',
     enabled: org.features.dues,
-    fetchRows: (filters) => fetchAllFromTable<Tables<'dues_config'>>({ table: 'dues_config', filters, dateColumn: 'updated_at', semesterColumn: 'semester' }),
+    fetchRows: (filters) => fetchAllFromTable({ table: 'dues_config', filters, dateColumn: 'updated_at', semesterColumn: 'semester' }),
   },
   {
-    id: 'ticketed_events',
+    id: 'ticketed_events' as ExportDatasetId,
     label: 'Ticketed events',
     sheetName: 'Ticketed_Events',
     defaultSelected: false,
     dateColumn: 'starts_at',
     enabled: org.features.ticketing,
-    fetchRows: (filters) => fetchAllFromTable<Tables<'ticketed_events'>>({ table: 'ticketed_events', filters, dateColumn: 'starts_at' }),
+    fetchRows: (filters) => fetchAllFromTable({ table: 'ticketed_events', filters, dateColumn: 'starts_at' }),
   },
   {
-    id: 'event_tickets',
+    id: 'event_tickets' as ExportDatasetId,
     label: 'Event tickets',
     sheetName: 'Event_Tickets',
     defaultSelected: false,
     dateColumn: 'created_at',
     enabled: org.features.ticketing,
-    fetchRows: (filters) => fetchAllFromTable<Tables<'event_tickets'>>({ table: 'event_tickets', filters, dateColumn: 'created_at' }),
+    fetchRows: (filters) => fetchAllFromTable({ table: 'event_tickets', filters, dateColumn: 'created_at' }),
   },
   {
-    id: 'audit_logs',
+    id: 'audit_logs' as ExportDatasetId,
     label: 'Audit logs',
     sheetName: 'Audit_Logs',
     defaultSelected: false,
     dateColumn: 'created_at',
-    fetchRows: (filters) => fetchAllFromTable<Tables<'audit_logs'>>({ table: 'audit_logs', filters, dateColumn: 'created_at' }),
+    fetchRows: (filters) => fetchAllFromTable({ table: 'audit_logs', filters, dateColumn: 'created_at' }),
   },
-].filter((d) => d.enabled !== false);
+] as ExportDataset[]).filter((d) => d.enabled !== false);
 

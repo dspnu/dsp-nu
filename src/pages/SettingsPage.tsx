@@ -151,7 +151,7 @@ export default function SettingsPage() {
         supabase.from('attendance').select('*').eq('user_id', user.id),
         supabase.from('service_hours').select('*').eq('user_id', user.id),
         supabase.from('points_ledger').select('*').eq('user_id', user.id),
-        supabase.from('coffee_chats').select('*').eq('user_id', user.id),
+        supabase.from('coffee_chats').select('*').or(`initiator_id.eq.${user.id},partner_id.eq.${user.id}`),
         supabase.from('dues_payments').select('*').eq('user_id', user.id),
         supabase.from('event_rsvps').select('*').eq('user_id', user.id),
         supabase.from('notification_preferences').select('*').eq('user_id', user.id),
@@ -163,7 +163,7 @@ export default function SettingsPage() {
         supabase.from('paddle_submissions').select('*').eq('user_id', user.id),
         supabase.from('pdp_comments').select('*').eq('user_id', user.id),
         supabase.from('eop_ready').select('*').eq('user_id', user.id),
-        supabase.from('eop_votes').select('*').eq('user_id', user.id),
+        supabase.from('eop_votes').select('*').eq('voter_id', user.id),
       ]);
 
       const collect = (label: string, res: { error: { message: string } | null; data: unknown }) => {
