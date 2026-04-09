@@ -31,7 +31,7 @@ export default function EventsPage() {
   const [showEventDetail, setShowEventDetail] = useState(false);
   
   const { data: events, isLoading } = useEvents();
-  const { isAdminOrOfficer, profile } = useAuth();
+  const { canManageEvents, profile } = useAuth();
   const { toast } = useToast();
 
   // Check if user has positions (for exec events visibility)
@@ -118,7 +118,7 @@ export default function EventsPage() {
             <TooltipContent side="bottom">Export .ics</TooltipContent>
           </Tooltip>
 
-          {isAdminOrOfficer && <EventForm />}
+          {canManageEvents && <EventForm />}
         </div>
       </div>
 

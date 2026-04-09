@@ -102,9 +102,12 @@ export function useDeleteEvent() {
         .eq('id', id);
       
       if (error) throw error;
+      return id;
     },
-    onSuccess: () => {
+    onSuccess: (id) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.removeQueries({ queryKey: ['events', id] });
+      queryClient.invalidateQueries({ queryKey: ['event-rsvps', id] });
       toast({ title: 'Event deleted successfully' });
     },
     onError: (error) => {

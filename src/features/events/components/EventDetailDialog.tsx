@@ -7,6 +7,7 @@ import { Calendar, Clock, MapPin, Users } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { useAuth } from '@/core/auth/AuthContext';
 import { EventRSVP } from './EventRSVP';
+import { DeleteEventButton } from './EventForm';
 
 type Event = Tables<'events'>;
 
@@ -18,7 +19,7 @@ interface EventDetailDialogProps {
 }
 
 export function EventDetailDialog({ event, open, onOpenChange, onOpenAttendance }: EventDetailDialogProps) {
-  const { isAdminOrOfficer, user } = useAuth();
+  const { canManageEvents, user } = useAuth();
 
   if (!event) return null;
 
@@ -81,12 +82,19 @@ export function EventDetailDialog({ event, open, onOpenChange, onOpenAttendance 
             </div>
           )}
 
-          {isAdminOrOfficer && onOpenAttendance && (
-            <div className="pt-4 border-t flex gap-2">
-              <Button onClick={onOpenAttendance} variant="outline" className="gap-2">
-                <Users className="h-4 w-4" />
-                Record Attendance
-              </Button>
+          {canManageEvents && (
+            <div className="pt-4 border-t flex flex-wrap gap-2">
+              {onOpenAttendance && (
+                <Button onClick={onOpenAttendance} variant="outline" className="gap-2">
+                  <Users className="h-4 w-4" />
+                  Record Attendance
+                </Button>
+              )}
+              <DeleteEventButton
+                event={event}
+                variant="outline"
+                onDeleted={() => onOpenChange(false)}
+              />
             </div>
           )}
         </div>

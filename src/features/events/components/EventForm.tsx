@@ -6,11 +6,22 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useCreateEvent, useUpdateEvent } from '@/features/events/hooks/useEvents';
+import { useCreateEvent, useUpdateEvent, useDeleteEvent } from '@/features/events/hooks/useEvents';
 import { useAuth } from '@/core/auth/AuthContext';
-import { Plus, Pencil } from 'lucide-react';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Tables } from '@/integrations/supabase/types';
 import { org, type EventCategory } from '@/config/org';
+import { cn } from '@/lib/utils';
 
 type Event = Tables<'events'>;
 
@@ -217,13 +228,24 @@ export function EventForm({ event, trigger }: EventFormProps) {
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 sm:col-span-2 sm:pt-1">
-            <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" size="sm" disabled={createEvent.isPending || updateEvent.isPending}>
-              {event ? 'Save' : 'Create'}
-            </Button>
+          <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between sm:pt-1">
+            {event && (
+              <DeleteEventButton
+                event={event}
+                variant="outline"
+                disabled={createEvent.isPending || updateEvent.isPending}
+                onDeleted={() => setOpen(false)}
+                triggerClassName="self-start sm:order-first"
+              />
+            )}
+            <div className="flex justify-end gap-2 sm:ml-auto">
+              <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" disabled={createEvent.isPending || updateEvent.isPending}>
+                {event ? 'Save' : 'Create'}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>
@@ -241,5 +263,79 @@ export function EditEventButton({ event }: { event: Event }) {
         </Button>
       }
     />
+  );
+}
+
+interface DeleteEventButtonProps {
+  event: Event;
+  onDeleted?: () => void;
+  disabled?: boolean;
+  /** e.g. icon on cards vs text in forms */
+  variant?: 'icon' | 'outline';
+  triggerClassName?: string;
+}
+
+export function DeleteEventButton({
+  event,
+  onDeleted,
+  disabled,
+  variant = 'icon',
+  triggerClassName,
+}: DeleteEventButtonProps) {
+  const { canManageEvents } = useAuth();
+  const deleteEvent = useDeleteEvent();
+
+  if (!canManageEvents) return null;
+
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        {variant === 'icon' ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className={triggerClassName}
+            disabled={disabled}
+            aria-label="Delete event"
+          >
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className={cn('text-destructive hover:text-destructive', triggerClassName)}
+            disabled={disabled}
+          >
+            <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+            Delete
+          </Button>
+        )}
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete this event?</AlertDialogTitle>
+          <AlertDialogDescription>
+            &ldquo;{event.title}&rdquo; will be removed from the calendar. Related RSVPs and attendance
+            records will be deleted. This cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <Button
+            variant="destructive"
+            disabled={deleteEvent.isPending}
+            onClick={async () => {
+              await deleteEvent.mutateAsync(event.id);
+              onDeleted?.();
+            }}
+          >
+            {deleteEvent.isPending ? 'Deleting…' : 'Delete event'}
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
