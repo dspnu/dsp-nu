@@ -1,4 +1,4 @@
-import { Vote, GraduationCap, Coffee, Briefcase } from 'lucide-react';
+import { Vote, GraduationCap, Coffee, Briefcase, Ticket } from 'lucide-react';
 import { registerFeature } from './featureRegistry';
 import { org } from './org';
 
@@ -9,6 +9,13 @@ import { PDPProgressCard } from '@/features/pdp/components/PDPProgressCard';
 import { PaddleSubmissionCard } from '@/features/paddle-submissions/components/PaddleSubmissionCard';
 import { ElectionVotingCards } from '@/features/elections/components/ElectionVotingCard';
 import { DuesDueStatusCard } from '@/components/home/DuesDueStatusCard';
+import TicketsPage from '@/features/ticketing/pages/TicketsPage';
+
+registerFeature({
+  key: 'ticketing',
+  route: { path: '/tickets', component: TicketsPage },
+  navItem: { icon: Ticket, label: 'Tickets', path: '/tickets', position: 38 },
+});
 
 registerFeature({
   key: 'eop',

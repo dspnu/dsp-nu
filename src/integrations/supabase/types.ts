@@ -856,6 +856,56 @@ export type Database = {
           },
         ]
       }
+      event_tickets: {
+        Row: {
+          assigned_by: string | null
+          cancelled_at: string | null
+          check_in_code: string
+          checked_in_at: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          payment_status: string
+          ticketed_event_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          cancelled_at?: string | null
+          check_in_code?: string
+          checked_in_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_status?: string
+          ticketed_event_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_by?: string | null
+          cancelled_at?: string | null
+          check_in_code?: string
+          checked_in_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_status?: string
+          ticketed_event_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_tickets_ticketed_event_id_fkey"
+            columns: ["ticketed_event_id"]
+            isOneToOne: false
+            referencedRelation: "ticketed_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           attendance_open: boolean
@@ -1094,6 +1144,7 @@ export type Database = {
           is_read: boolean
           link: string | null
           message: string
+          ticketed_event_id: string | null
           title: string
           type: string
           user_id: string
@@ -1105,6 +1156,7 @@ export type Database = {
           is_read?: boolean
           link?: string | null
           message: string
+          ticketed_event_id?: string | null
           title: string
           type?: string
           user_id: string
@@ -1116,6 +1168,7 @@ export type Database = {
           is_read?: boolean
           link?: string | null
           message?: string
+          ticketed_event_id?: string | null
           title?: string
           type?: string
           user_id?: string
@@ -1553,6 +1606,60 @@ export type Database = {
         }
         Relationships: []
       }
+      ticketed_events: {
+        Row: {
+          capacity: number | null
+          created_at: string
+          created_by: string
+          description: string | null
+          ends_at: string | null
+          id: string
+          location: string | null
+          payment_url: string | null
+          payment_url_internal: boolean
+          price_cents: number
+          published: boolean
+          registrations_open: boolean
+          starts_at: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          location?: string | null
+          payment_url?: string | null
+          payment_url_internal?: boolean
+          price_cents?: number
+          published?: boolean
+          registrations_open?: boolean
+          starts_at: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          location?: string | null
+          payment_url?: string | null
+          payment_url_internal?: boolean
+          price_cents?: number
+          published?: boolean
+          registrations_open?: boolean
+          starts_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1596,6 +1703,17 @@ export type Database = {
         Returns: undefined
       }
       notify_members_new_event: { Args: { p_event_id: string }; Returns: undefined }
+      notify_ticket_holders_ticketed_event_updated: {
+        Args: { p_message: string; p_ticketed_event_id: string; p_title: string }
+        Returns: undefined
+      }
+      claim_ticketed_event_ticket: { Args: { p_ticketed_event_id: string }; Returns: Json }
+      admin_assign_ticketed_event_ticket: {
+        Args: { p_ticketed_event_id: string; p_user_id: string; p_waive_payment?: boolean }
+        Returns: Json
+      }
+      cancel_own_event_ticket: { Args: { p_ticket_id: string }; Returns: Json }
+      check_in_ticket_by_code: { Args: { p_code: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "officer" | "member" | "developer"

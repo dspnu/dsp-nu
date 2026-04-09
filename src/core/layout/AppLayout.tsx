@@ -7,6 +7,7 @@ import { Loader2 } from 'lucide-react';
 import { org } from '@/config/org';
 import { AppCopyrightFooter } from '@/components/layout/AppCopyrightFooter';
 import { EventReminderSync } from '@/features/notifications/components/EventReminderSync';
+import { TicketPaymentReminderSync } from '@/features/notifications/components/TicketPaymentReminderSync';
 import { DuesReminderSync } from '@/features/dues/components/DuesReminderSync';
 
 interface AppLayoutProps {
@@ -41,6 +42,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="min-h-screen bg-background">
       <EventReminderSync />
+      {org.features.ticketing && <TicketPaymentReminderSync />}
       <DuesReminderSync />
       <DesktopSidebar />
       <main className="md:ml-64 pb-28 md:pb-0">
