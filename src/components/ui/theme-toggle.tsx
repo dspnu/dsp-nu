@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import { useTheme } from "next-themes"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { Moon, Sun, Monitor } from "lucide-react"
 
@@ -31,48 +30,35 @@ export function ThemeToggle() {
   if (!mounted) return null
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Theme</CardTitle>
-        <CardDescription>Choose your interface color theme</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {themes.map((themeOption) => {
-            const Icon = themeOption.icon
-            const isSelected = theme === themeOption.value
+    <div className="grid gap-2 grid-cols-3">
+      {themes.map((themeOption) => {
+        const Icon = themeOption.icon
+        const isSelected = theme === themeOption.value
 
-            return (
-              <button
-                key={themeOption.value}
-                onClick={() => setTheme(themeOption.value)}
-                className={cn(
-                  "relative flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-all hover:bg-accent",
-                  isSelected
-                    ? "border-primary bg-accent"
-                    : "border-border"
-                )}
-              >
-                <div className={cn(
-                  "rounded-full p-3",
-                  isSelected ? "bg-primary text-primary-foreground" : "bg-muted"
-                )}>
-                  <Icon className="h-5 w-5" />
-                </div>
-                <span className={cn(
-                  "text-sm font-medium",
-                  isSelected ? "text-primary" : "text-muted-foreground"
-                )}>
-                  {themeOption.label}
-                </span>
-                {isSelected && (
-                  <div className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary" />
-                )}
-              </button>
-            )
-          })}
-        </div>
-      </CardContent>
-    </Card>
+        return (
+          <button
+            key={themeOption.value}
+            onClick={() => setTheme(themeOption.value)}
+            className={cn(
+              "flex flex-col items-center gap-1.5 rounded-lg border-2 p-3 transition-all hover:bg-accent/50",
+              isSelected
+                ? "border-primary bg-primary/5"
+                : "border-transparent bg-muted/50"
+            )}
+          >
+            <Icon className={cn(
+              "h-5 w-5",
+              isSelected ? "text-primary" : "text-muted-foreground"
+            )} />
+            <span className={cn(
+              "text-xs font-medium",
+              isSelected ? "text-primary" : "text-muted-foreground"
+            )}>
+              {themeOption.label}
+            </span>
+          </button>
+        )
+      })}
+    </div>
   )
 }
