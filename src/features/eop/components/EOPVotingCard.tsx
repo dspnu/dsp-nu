@@ -1,12 +1,10 @@
-import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ThumbsUp, ThumbsDown, Hand, CheckCircle2, Lock, Unlock, Users, RotateCcw, RefreshCw, CheckCircle, XCircle, AlertTriangle, Edit2, Check, X, UserMinus, Plus } from 'lucide-react';
+import { useState } from 'react';
+import { ThumbsUp, ThumbsDown, Hand, CheckCircle2, Lock, Unlock, Users, RotateCcw, RefreshCw, CheckCircle, XCircle, AlertTriangle, Edit2, Check } from 'lucide-react';
 import { useMyVoteForCandidate, useCastVoteRealtime, useToggleReady, useToggleVotingRealtime, useClearVotes, useChangeVote } from '@/features/eop/hooks/useEOPRealtime';
-import { useUpdateCandidate } from '@/features/eop/hooks/useEOP';
 import { useAuth } from '@/core/auth/AuthContext';
 import { useChapterSetting } from '@/hooks/useChapterSettings';
 import type { Tables } from '@/integrations/supabase/types';
@@ -21,11 +19,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
 
 type EOPCandidate = Tables<'eop_candidates'>;
 
@@ -51,18 +44,15 @@ export function EOPVotingCard({
   const toggleReady = useToggleReady();
   const toggleVoting = useToggleVotingRealtime();
   const clearVotes = useClearVotes();
-  const updateCandidate = useUpdateCandidate();
   const { data: baseVoters } = useChapterSetting('eop_base_voters');
 
   const [isChangingVote, setIsChangingVote] = useState(false);
-  const [absentName, setAbsentName] = useState('');
-  const [absentPopoverOpen, setAbsentPopoverOpen] = useState(false);
 
   const isReady = readyCount?.userIds.includes(user?.id || '') || false;
   
   // Calculate base number: base - absent members
   const baseNumber = typeof baseVoters === 'number' ? baseVoters : (typeof baseVoters === 'string' ? parseInt(baseVoters as string) : 0);
-  const absentMembers: string[] = (candidate as any).absent_members || [];
+  const absentMembers: string[] = candidate.absent_members ?? [];
   const eligibleVoters = Math.max(0, baseNumber - absentMembers.length);
   
   const yesVotes = voteCounts?.yes || 0;
@@ -72,27 +62,6 @@ export function EOPVotingCard({
   const yesPercentage = eligibleVoters > 0 ? Math.round((yesVotes / eligibleVoters) * 100) : 0;
   const isApproved = eligibleVoters > 0 && yesVotes >= requiredYes;
   const needsMoreYes = requiredYes - yesVotes;
-
-  const handleAddAbsent = () => {
-    const name = absentName.trim();
-    if (!name) return;
-    const updated = [...absentMembers, name];
-    updateCandidate.mutate({ 
-      id: candidate.id, 
-      absent_members: updated,
-      eligible_voters: Math.max(0, baseNumber - updated.length),
-    });
-    setAbsentName('');
-  };
-
-  const handleRemoveAbsent = (index: number) => {
-    const updated = absentMembers.filter((_, i) => i !== index);
-    updateCandidate.mutate({ 
-      id: candidate.id, 
-      absent_members: updated,
-      eligible_voters: Math.max(0, baseNumber - updated.length),
-    });
-  };
 
   const hasVoted = !!myVote;
 
@@ -289,69 +258,6 @@ export function EOPVotingCard({
                 )}
               </div>
             </div>
-
-            {/* Quick Absent Member Tracker */}
-            <Popover open={absentPopoverOpen} onOpenChange={setAbsentPopoverOpen}>
-              <PopoverTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full gap-2 relative"
-                >
-                  <UserMinus className="h-4 w-4" />
-                  Out of Room
-                  {absentMembers.length > 0 && (
-                    <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-xs">
-                      {absentMembers.length}
-                    </Badge>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-72 p-3" align="start">
-                <div className="space-y-3">
-                  <p className="text-xs font-medium text-muted-foreground">Members out of the room</p>
-                  <form 
-                    onSubmit={(e) => { e.preventDefault(); handleAddAbsent(); }}
-                    className="flex gap-1.5"
-                  >
-                    <Input
-                      value={absentName}
-                      onChange={(e) => setAbsentName(e.target.value)}
-                      placeholder="Name..."
-                      className="h-8 text-sm"
-                      autoFocus
-                    />
-                    <Button 
-                      type="submit" 
-                      size="sm" 
-                      className="h-8 px-2 shrink-0"
-                      disabled={!absentName.trim()}
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                    </Button>
-                  </form>
-                  {absentMembers.length > 0 ? (
-                    <div className="space-y-1 max-h-40 overflow-y-auto">
-                      {absentMembers.map((name, i) => (
-                        <div key={i} className="flex items-center justify-between py-1 px-2 rounded bg-muted/50 text-sm">
-                          <span className="truncate">{name}</span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive"
-                            onClick={() => handleRemoveAbsent(i)}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground text-center py-2">No one marked as absent</p>
-                  )}
-                </div>
-              </PopoverContent>
-            </Popover>
 
             {candidate.voting_open && (
               <>
