@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Vote, Users, UserCheck } from 'lucide-react';
 import { useRealtimeCandidates, useRealtimeVoteCounts, useRealtimeReadyCounts, useIsVPChapterOps } from '@/features/eop/hooks/useEOPRealtime';
 import { EOPVotingCard } from '@/features/eop/components/EOPVotingCard';
+import { EOPOutOfRoomControl } from '@/features/eop/components/EOPOutOfRoomControl';
 
 export default function EOPPage() {
   const { isVPChapterOps } = useIsVPChapterOps();
@@ -59,7 +60,12 @@ export default function EOPPage() {
                   Currently voting on: <span className="font-semibold text-foreground">{activeCandidate.first_name} {activeCandidate.last_name}</span>
                 </p>
               </div>
-              <Badge variant="default" className="bg-emerald-600">Active</Badge>
+              <div className="flex items-center gap-2">
+                {isVPChapterOps && (
+                  <EOPOutOfRoomControl candidate={activeCandidate} className="shrink-0" />
+                )}
+                <Badge variant="default" className="bg-emerald-600">Active</Badge>
+              </div>
             </div>
           </CardContent>
         </Card>
