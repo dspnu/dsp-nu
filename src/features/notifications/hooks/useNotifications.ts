@@ -25,6 +25,8 @@ interface NotificationPreferences {
   event_notifications: boolean;
   announcement_notifications: boolean;
   event_reminder_24h: boolean;
+  data_usage_consent: boolean;
+  data_usage_consent_updated_at: string | null;
 }
 
 function invalidateNotificationQueries(queryClient: QueryClient, userId: string) {

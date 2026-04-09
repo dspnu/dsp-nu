@@ -13,7 +13,7 @@ import { uploadCroppedAvatar } from '@/core/members/lib/uploadCroppedAvatar';
 import { useNotificationPreferences, useUpdateNotificationPreferences } from '@/features/notifications/hooks/useNotifications';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { LogOut, Bell, Palette, ExternalLink, ChevronRight, Download, Trash2, Shield, Loader2, Upload } from 'lucide-react';
+import { LogOut, Bell, Palette, ExternalLink, ChevronRight, Download, Trash2, Shield, ShieldCheck, Loader2, Upload } from 'lucide-react';
 import { legal } from '@/config/legal';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -57,6 +57,13 @@ export default function SettingsPage() {
 
   const handlePrefChange = (key: string, value: boolean) => {
     updatePrefs.mutate({ [key]: value });
+  };
+
+  const handleDataUsageConsentChange = (value: boolean) => {
+    updatePrefs.mutate({
+      data_usage_consent: value,
+      data_usage_consent_updated_at: new Date().toISOString(),
+    });
   };
 
   const handleSettingsPhotoPick = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -329,6 +336,52 @@ export default function SettingsPage() {
                   />
                 </div>
               ))}
+            </div>
+          )}
+        </section>
+
+        {/* ── Consent Preferences ── */}
+        <section>
+          <SectionLabel icon={ShieldCheck} label="Consent Preferences" />
+          {prefs && (
+            <div className="rounded-xl border bg-card divide-y overflow-hidden">
+              <div className="px-4 py-3.5 sm:px-5">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="min-w-0 pr-4 flex-1">
+                    <Label htmlFor="data-usage-consent" className="text-sm font-medium cursor-pointer">
+                      Data usage consent
+                    </Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Allow us to use your activity and usage data to improve features, personalize your experience,
+                      and inform product improvements. You can turn this on or off anytime.{' '}
+                      <a
+                        href={legal.privacyUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-0.5 text-primary hover:underline font-medium"
+                      >
+                        Privacy Policy
+                        <ExternalLink className="h-3 w-3 shrink-0 opacity-80" />
+                      </a>
+                    </p>
+                    <p className="text-xs text-muted-foreground/90 mt-2">
+                      {prefs.data_usage_consent_updated_at
+                        ? `Last updated ${new Date(prefs.data_usage_consent_updated_at).toLocaleString(undefined, {
+                            dateStyle: 'medium',
+                            timeStyle: 'short',
+                          })}`
+                        : 'Last updated will appear here after you change this setting.'}
+                    </p>
+                  </div>
+                  <Switch
+                    id="data-usage-consent"
+                    checked={prefs.data_usage_consent}
+                    onCheckedChange={handleDataUsageConsentChange}
+                    disabled={updatePrefs.isPending}
+                    className="shrink-0"
+                  />
+                </div>
+              </div>
             </div>
           )}
         </section>
