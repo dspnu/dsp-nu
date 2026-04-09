@@ -206,9 +206,18 @@ export default function SettingsPage() {
 
   return (
     <AppLayout>
-      <PageHeader title="Settings" description="Manage your account" />
+      <PageHeader title="Settings" description="Manage your account">
+        <Button
+          variant="ghost"
+          className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
+          onClick={signOut}
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          Sign Out
+        </Button>
+      </PageHeader>
 
-      <div className="max-w-2xl space-y-8 pb-8">
+      <div className="w-full space-y-8 pb-8">
         {/* ── Profile ── */}
         <div className="rounded-xl border bg-card overflow-hidden">
           <div className="p-5 sm:p-6">
@@ -397,16 +406,6 @@ export default function SettingsPage() {
             </div>
           </div>
         </section>
-
-        {/* ── Sign Out ── */}
-        <Button
-          variant="ghost"
-          className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 h-11"
-          onClick={signOut}
-        >
-          <LogOut className="h-4 w-4 mr-2" />
-          Sign Out
-        </Button>
       </div>
 
       {/* ── Delete Account Confirmation ── */}
