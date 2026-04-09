@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
-type AppRole = 'admin' | 'officer' | 'member' | 'developer';
+type AppRole = 'admin' | 'officer' | 'member' | 'developer' | 'exec';
 
 interface Profile {
   id: string;
@@ -31,6 +31,8 @@ interface AuthContextType {
   isOfficer: boolean;
   isDeveloper: boolean;
   isAdminOrOfficer: boolean;
+  /** Matches DB `is_admin_or_officer` for event RLS: admin/officer/exec roles or any exec position */
+  canManageEvents: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -144,6 +146,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isOfficer = roles.includes('officer');
   const isDeveloper = roles.includes('developer');
   const isAdminOrOfficer = isAdmin || isOfficer;
+  const hasExecPosition = (profile?.positions?.length ?? 0) > 0;
+  const canManageEvents =
+    isAdmin || isOfficer || roles.includes('exec') || hasExecPosition;
 
   return (
     <AuthContext.Provider
@@ -157,6 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isOfficer,
         isDeveloper,
         isAdminOrOfficer,
+        canManageEvents,
         signIn,
         signUp,
         signOut,

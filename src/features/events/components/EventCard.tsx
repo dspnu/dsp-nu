@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { CategoryBadge } from '@/components/ui/category-badge';
 import { Calendar, MapPin, Clock, Users, ExternalLink } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
-import { EditEventButton } from './EventForm';
+import { DeleteEventButton, EditEventButton } from './EventForm';
 import { useAuth } from '@/core/auth/AuthContext';
 import { generateGoogleCalendarUrl, generateOutlookUrl } from '@/lib/calendar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -18,7 +18,7 @@ interface EventCardProps {
 }
 
 export function EventCard({ event, onOpenAttendance }: EventCardProps) {
-  const { isAdminOrOfficer } = useAuth();
+  const { canManageEvents } = useAuth();
 
   return (
     <Card className="transition-shadow hover:shadow-md">
@@ -33,7 +33,12 @@ export function EventCard({ event, onOpenAttendance }: EventCardProps) {
             </div>
             <CardTitle className="text-base leading-snug sm:text-lg">{event.title}</CardTitle>
           </div>
-          {isAdminOrOfficer && <EditEventButton event={event} />}
+          {canManageEvents && (
+            <div className="flex shrink-0 items-center gap-0.5">
+              <EditEventButton event={event} />
+              <DeleteEventButton event={event} />
+            </div>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-2 pb-4 pt-0">
@@ -85,7 +90,7 @@ export function EventCard({ event, onOpenAttendance }: EventCardProps) {
             </DropdownMenuContent>
           </DropdownMenu>
           
-          {isAdminOrOfficer && onOpenAttendance && (
+          {canManageEvents && onOpenAttendance && (
             <Button variant="outline" size="sm" className="gap-1" onClick={onOpenAttendance}>
               <Users className="h-3 w-3" />
               Attendance

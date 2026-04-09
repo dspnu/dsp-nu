@@ -26,14 +26,14 @@ export function ManualAttendance({ event }: ManualAttendanceProps) {
   const { data: members } = useMembers();
   const { data: existingAttendance } = useEventAttendance(event.id);
   const saveAttendance = useSaveAttendance();
-  const { user, isAdminOrOfficer } = useAuth();
+  const { user, canManageEvents } = useAuth();
   const { isVPChapterOps } = useIsVPChapterOps();
 
   const isChapterEvent = event.category === 'chapter';
   const isExecEvent = event.category === 'exec';
   
   // Permission check: chapter events = VP of Chapter Operations only, others = any exec
-  const canRecord = isChapterEvent ? isVPChapterOps : isAdminOrOfficer;
+  const canRecord = isChapterEvent ? isVPChapterOps : canManageEvents;
 
   const [statusMap, setStatusMap] = useState<Record<string, AttendanceStatus>>({});
 
