@@ -57,14 +57,16 @@ export default function ChapterPage() {
       <ChapterAnnouncementCard />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="w-full max-w-2xl grid" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
-          {tabs.map(({ key, label, icon: Icon }) => (
-            <TabsTrigger key={key} value={key} className="gap-2">
-              <Icon className="h-4 w-4 hidden sm:block" />
-              {label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <div className="max-w-3xl w-full overflow-x-auto pb-1 -mx-1 px-1">
+          <TabsList className="inline-flex h-10 w-max min-w-full sm:min-w-0 flex-nowrap justify-start gap-0.5 rounded-md bg-muted/70 p-1">
+            {tabs.map(({ key, label, icon: Icon }) => (
+              <TabsTrigger key={key} value={key} className="shrink-0 gap-1.5 px-3">
+                <Icon className="h-4 w-4 opacity-80 hidden sm:block" />
+                <span className="whitespace-nowrap">{label}</span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
 
         {tabs.map(({ key, component: Component }) => (
           <TabsContent key={key} value={key} className="space-y-6">

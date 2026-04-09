@@ -1,17 +1,13 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { FolderOpen, FileText, Folder, Search } from 'lucide-react';
+import { FolderOpen, Folder, Search } from 'lucide-react';
 import { useAuth } from '@/core/auth/AuthContext';
 import { useResources } from '@/features/resources/hooks/useResources';
 import { ResourceForm } from '@/features/resources/components/ResourceForm';
 import { ResourceCard } from '@/features/resources/components/ResourceCard';
-
-const FOLDER_ICONS: Record<string, string> = {
-  General: '📁', Forms: '📋', Bylaws: '📜', Templates: '📝', Training: '🎓', Marketing: '📢',
-};
 
 export function ResourcesTab() {
   const { isAdminOrOfficer } = useAuth();
@@ -24,96 +20,133 @@ export function ResourcesTab() {
     return [...new Set(resources.map(r => r.folder))].sort();
   }, [resources]);
 
-  const filteredResources = useMemo(() => {
+  const searchMatched = useMemo(() => {
     if (!resources) return [];
+    const q = resourceSearch.toLowerCase().trim();
     return resources.filter(resource => {
-      const matchesSearch = resourceSearch === '' ||
-        resource.title.toLowerCase().includes(resourceSearch.toLowerCase()) ||
-        resource.description?.toLowerCase().includes(resourceSearch.toLowerCase());
-      const matchesFolder = activeFolder === 'all' || resource.folder === activeFolder;
-      return matchesSearch && matchesFolder;
+      if (q === '') return true;
+      return (
+        resource.title.toLowerCase().includes(q) ||
+        (resource.description?.toLowerCase().includes(q) ?? false)
+      );
     });
-  }, [resources, resourceSearch, activeFolder]);
+  }, [resources, resourceSearch]);
 
-  const groupedResources = useMemo(() => {
-    const groups: Record<string, typeof filteredResources> = {};
-    filteredResources.forEach(resource => {
+  const groupedForAllTab = useMemo(() => {
+    const groups: Record<string, typeof searchMatched> = {};
+    searchMatched.forEach(resource => {
       if (!groups[resource.folder]) groups[resource.folder] = [];
       groups[resource.folder].push(resource);
     });
     return groups;
-  }, [filteredResources]);
+  }, [searchMatched]);
+
+  const folderMatchCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    searchMatched.forEach(r => {
+      counts[r.folder] = (counts[r.folder] || 0) + 1;
+    });
+    return counts;
+  }, [searchMatched]);
+
+  useEffect(() => {
+    if (activeFolder !== 'all' && folders.length > 0 && !folders.includes(activeFolder)) {
+      setActiveFolder('all');
+    }
+  }, [folders, activeFolder]);
+
+  const listEmptyAfterSearch = resources && resources.length > 0 && searchMatched.length === 0;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="grid gap-4 md:grid-cols-2 flex-1 mr-4">
-          <Card>
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <FileText className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{resources?.length || 0}</p>
-                <p className="text-sm text-muted-foreground">Resources</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="h-10 w-10 rounded-full bg-amber-500/10 flex items-center justify-center">
-                <Folder className="h-5 w-5 text-amber-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{folders.length}</p>
-                <p className="text-sm text-muted-foreground">Folders</p>
-              </div>
-            </CardContent>
-          </Card>
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1 min-w-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Input
+            placeholder="Search by title or description…"
+            value={resourceSearch}
+            onChange={(e) => setResourceSearch(e.target.value)}
+            className="pl-9"
+          />
         </div>
-        <ResourceForm />
+        <div className="shrink-0 sm:self-stretch flex sm:items-center">
+          <ResourceForm />
+        </div>
       </div>
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Search resources..." value={resourceSearch} onChange={(e) => setResourceSearch(e.target.value)} className="pl-9" />
-      </div>
+
       {resourcesLoading ? (
-        <div className="space-y-4">{[1, 2, 3].map(i => (<Card key={i} className="h-20 animate-pulse bg-muted" />))}</div>
+        <div className="space-y-3">{[1, 2, 3, 4].map(i => (<Card key={i} className="h-16 animate-pulse bg-muted/80" />))}</div>
       ) : resources && resources.length > 0 ? (
-        <Tabs value={activeFolder} onValueChange={setActiveFolder} className="space-y-4">
-          <TabsList className="flex-wrap h-auto gap-1">
-            <TabsTrigger value="all">All</TabsTrigger>
-            {folders.map((folder) => (
-              <TabsTrigger key={folder} value={folder}>
-                <span className="mr-1">{FOLDER_ICONS[folder] || '📁'}</span>{folder}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <TabsContent value="all" className="space-y-6">
-            {Object.entries(groupedResources).map(([folder, folderResources]) => (
-              <div key={folder}>
-                <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-                  <span>{FOLDER_ICONS[folder] || '📁'}</span>{folder}
-                  <span className="text-xs">({folderResources.length})</span>
-                </h3>
-                <div className="space-y-3">
-                  {folderResources.map((resource) => (
-                    <ResourceCard key={resource.id} resource={resource} isOfficer={isAdminOrOfficer} />
-                  ))}
+        listEmptyAfterSearch ? (
+          <EmptyState
+            icon={FolderOpen}
+            title="No matches"
+            description="Try another search or clear the filter."
+          />
+        ) : (
+          <Tabs value={activeFolder} onValueChange={setActiveFolder} className="space-y-4">
+            <div className="-mx-1 px-1 overflow-x-auto pb-1">
+              <TabsList className="inline-flex h-9 w-max min-w-full sm:min-w-0 flex-nowrap justify-start gap-1 bg-muted/60 p-1">
+                <TabsTrigger value="all" className="shrink-0 gap-1.5">
+                  <FolderOpen className="h-3.5 w-3.5 opacity-70" />
+                  All
+                  <span className="text-muted-foreground tabular-nums">({searchMatched.length})</span>
+                </TabsTrigger>
+                {folders.map((folder) => (
+                  <TabsTrigger key={folder} value={folder} className="shrink-0 gap-1.5">
+                    <Folder className="h-3.5 w-3.5 opacity-70" />
+                    {folder}
+                    <span className="text-muted-foreground tabular-nums">
+                      ({folderMatchCounts[folder] ?? 0})
+                    </span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
+            <TabsContent value="all" className="mt-0 space-y-6">
+              {Object.entries(groupedForAllTab).map(([folder, folderResources]) => (
+                <div key={folder}>
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3 flex items-center gap-2">
+                    <Folder className="h-3.5 w-3.5" />
+                    {folder}
+                    <span className="font-normal normal-case tabular-nums">· {folderResources.length}</span>
+                  </h3>
+                  <div className="space-y-2">
+                    {folderResources.map((resource) => (
+                      <ResourceCard key={resource.id} resource={resource} isOfficer={isAdminOrOfficer} />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </TabsContent>
-          {folders.map((folder) => (
-            <TabsContent key={folder} value={folder} className="space-y-3">
-              {groupedResources[folder]?.map((resource) => (
-                <ResourceCard key={resource.id} resource={resource} isOfficer={isAdminOrOfficer} />
               ))}
             </TabsContent>
-          ))}
-        </Tabs>
+            {folders.map((folder) => {
+              const inFolder = searchMatched.filter(r => r.folder === folder);
+              return (
+                <TabsContent key={folder} value={folder} className="mt-0 space-y-2">
+                  {inFolder.length === 0 ? (
+                    <EmptyState
+                      icon={FolderOpen}
+                      title="Nothing in this folder"
+                      description="Adjust your search or pick another folder."
+                    />
+                  ) : (
+                    inFolder.map((resource) => (
+                      <ResourceCard key={resource.id} resource={resource} isOfficer={isAdminOrOfficer} />
+                    ))
+                  )}
+                </TabsContent>
+              );
+            })}
+          </Tabs>
+        )
       ) : (
-        <EmptyState icon={FolderOpen} title="No resources yet" description={isAdminOrOfficer ? "Add documents and files for the chapter to access." : "Chapter resources will appear here when added by officers."} />
+        <div className="rounded-lg border border-dashed border-border/80 bg-muted/20 p-8">
+          <EmptyState
+            icon={FolderOpen}
+            title="No resources yet"
+            description={isAdminOrOfficer ? 'Add documents and links so the chapter can find them in one place.' : 'Officers can add chapter documents and links here.'}
+          />
+        </div>
       )}
     </div>
   );
