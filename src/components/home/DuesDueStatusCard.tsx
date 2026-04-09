@@ -2,14 +2,22 @@ import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertTriangle, CalendarClock, ChevronRight, DollarSign } from 'lucide-react';
+import { useChapterSetting } from '@/hooks/useChapterSettings';
 import { useDuesPersonalSchedule } from '@/features/dues/hooks/useDuesPersonalSchedule';
 import { cn } from '@/lib/utils';
+
+const DUES_HOME_WIDGET_KEY = 'dues_home_widget_visible';
 
 /**
  * Home dashboard card: highlights overdue installments and upcoming dues deadlines.
  */
 export function DuesDueStatusCard() {
+  const { data: widgetVisible, isLoading: settingLoading } = useChapterSetting(DUES_HOME_WIDGET_KEY, {
+    whenMissing: true,
+  });
   const { balanceInfo, overdueInstallments, upcomingInstallments, hasOverdue } = useDuesPersonalSchedule();
+
+  if (settingLoading || !widgetVisible) return null;
 
   if (!balanceInfo) return null;
 

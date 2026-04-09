@@ -21,9 +21,12 @@ import {
   Clock,
   CalendarRange,
   Scale,
+  LayoutGrid,
 } from 'lucide-react';
 import { useMembers } from '@/core/members/hooks/useMembers';
 import { useAuth } from '@/core/auth/AuthContext';
+import { useChapterSetting, useUpdateChapterSetting } from '@/hooks/useChapterSettings';
+import { Switch } from '@/components/ui/switch';
 import {
   useDuesConfig,
   useCreateDuesConfig,
@@ -53,9 +56,13 @@ const STATUS_LABELS = ['active', 'new_member', 'inactive', 'alumni'] as const;
 const DUES_LOG_TYPES = ['payment', 'credit'] as const;
 const FINE_LOG_TYPES = ['fine', 'late_fee'] as const;
 
+const DUES_HOME_WIDGET_KEY = 'dues_home_widget_visible';
+
 export function VPFinanceDashboard() {
   const { user } = useAuth();
   const { data: members = [] } = useMembers();
+  const { data: duesHomeWidgetVisible } = useChapterSetting(DUES_HOME_WIDGET_KEY, { whenMissing: true });
+  const updateChapterSetting = useUpdateChapterSetting();
   const [semester, setSemester] = useState(currentSemester());
 
   const { data: configs = [] } = useDuesConfig(semester);
@@ -294,6 +301,25 @@ export function VPFinanceDashboard() {
           <Label className="text-sm whitespace-nowrap">Semester</Label>
           <Input value={semester} onChange={(e) => setSemester(e.target.value)} className="w-36" />
         </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-3 rounded-lg border p-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <LayoutGrid className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <div className="min-w-0">
+            <Label className="text-sm font-medium">Dues card on Home</Label>
+            <p className="text-xs text-muted-foreground">
+              When off, members do not see the dues balance / installment reminder on the home screen.
+            </p>
+          </div>
+        </div>
+        <Switch
+          checked={!!duesHomeWidgetVisible}
+          onCheckedChange={(checked) =>
+            updateChapterSetting.mutate({ key: DUES_HOME_WIDGET_KEY, value: checked })
+          }
+          disabled={updateChapterSetting.isPending}
+        />
       </div>
 
       <Tabs defaultValue="dues" className="space-y-6">
