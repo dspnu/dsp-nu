@@ -8,14 +8,16 @@ import { useAuth } from '@/core/auth/AuthContext';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { ProfileEditDialog } from '@/core/members/components/ProfileEditDialog';
 import { AvatarCropDialog } from '@/core/members/components/AvatarCropDialog';
-import { useMemberByUserId, useUpdateMember } from '@/core/members/hooks/useMembers';
+import { useMemberByUserId, useUpdateMember, useMemberPoints } from '@/core/members/hooks/useMembers';
 import { uploadCroppedAvatar } from '@/core/members/lib/uploadCroppedAvatar';
 import { useNotificationPreferences, useUpdateNotificationPreferences } from '@/features/notifications/hooks/useNotifications';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { LogOut, Bell, Palette, ExternalLink, ChevronRight, Download, Trash2, Shield, ShieldCheck, Loader2, Upload } from 'lucide-react';
+import { LogOut, Bell, Palette, ExternalLink, ChevronRight, Download, Trash2, Shield, ShieldCheck, Loader2, Upload, Award, Clock, DollarSign, Coffee } from 'lucide-react';
 import { legal } from '@/config/legal';
 import { supabase } from '@/integrations/supabase/client';
+import { useServiceHours } from '@/features/service-hours/hooks/useServiceHours';
+import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -41,6 +43,8 @@ const NOTIFICATION_ITEMS = [
 export default function SettingsPage() {
   const { profile, roles, user, signOut, refreshProfile } = useAuth();
   const { data: fullProfile } = useMemberByUserId(user?.id || '');
+  const { data: memberPoints } = useMemberPoints(user?.id || '');
+  const { data: serviceHours } = useServiceHours(user?.id);
   const { data: prefs } = useNotificationPreferences();
   const updatePrefs = useUpdateNotificationPreferences();
   const updateMember = useUpdateMember();
@@ -54,6 +58,31 @@ export default function SettingsPage() {
   const [settingsCropFile, setSettingsCropFile] = useState<File | null>(null);
   const [settingsCropOpen, setSettingsCropOpen] = useState(false);
   const [settingsPhotoUploading, setSettingsPhotoUploading] = useState(false);
+
+  const { data: dues } = useQuery({
+    queryKey: ['member-dues', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('dues_payments')
+        .select('*')
+        .eq('user_id', user!.id)
+        .order('paid_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  const totalPoints = memberPoints?.reduce((sum, p) => sum + p.points, 0) ?? 0;
+  const verifiedServiceHours =
+    serviceHours?.filter((h) => h.verified).reduce((sum, h) => sum + Number(h.hours), 0) ?? 0;
+  const totalServiceHours =
+    serviceHours?.reduce((sum, h) => sum + Number(h.hours), 0) ?? 0;
+
+  const currentSemester = new Date().getMonth() < 6 ? 'Spring' : 'Fall';
+  const currentYear = new Date().getFullYear();
+  const semesterKey = `${currentSemester} ${currentYear}`;
+  const hasPaidDues = dues?.some((d) => d.semester === semesterKey);
 
   const handlePrefChange = (key: string, value: boolean) => {
     updatePrefs.mutate({ [key]: value });
@@ -238,18 +267,68 @@ export default function SettingsPage() {
                   {profile?.first_name?.[0]}{profile?.last_name?.[0]}
                 </AvatarFallback>
               </Avatar>
-              <div className="min-w-0 flex-1">
-                <h2 className="text-lg font-semibold truncate">
-                  {profile?.first_name} {profile?.last_name}
-                </h2>
-                <p className="text-sm text-muted-foreground truncate">{profile?.email}</p>
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {profile?.status && <StatusBadge status={profile.status} />}
-                  {roles.map(role => (
-                    <span key={role} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full capitalize font-medium">
-                      {role}
-                    </span>
-                  ))}
+              <div className="min-w-0 flex-1 space-y-2">
+                <div>
+                  <h2 className="text-lg font-semibold truncate">
+                    {profile?.first_name} {profile?.last_name}
+                  </h2>
+                  <p className="text-sm text-muted-foreground truncate">{profile?.email}</p>
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {profile?.status && <StatusBadge status={profile.status} />}
+                    {roles.map((role) => (
+                      <span
+                        key={role}
+                        className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full capitalize font-medium"
+                      >
+                        {role}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                  <div className="flex items-center gap-3 rounded-lg bg-muted/40 px-3 py-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <Award className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Points</p>
+                      <p className="text-sm font-semibold">{totalPoints}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 rounded-lg bg-muted/40 px-3 py-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <Clock className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Service</p>
+                      <p className="text-sm font-semibold">
+                        {verifiedServiceHours}h
+                        {totalServiceHours > verifiedServiceHours && (
+                          <span className="text-xs text-muted-foreground"> / {totalServiceHours}h</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 rounded-lg bg-muted/40 px-3 py-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <DollarSign className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Dues</p>
+                      <p className="text-sm font-semibold">
+                        {hasPaidDues === undefined ? '—' : hasPaidDues ? 'Paid' : 'Unpaid'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 rounded-lg bg-muted/40 px-3 py-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <Coffee className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Coffee Chats</p>
+                      <p className="text-sm font-semibold">From People tab</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
