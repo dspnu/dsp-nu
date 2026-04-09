@@ -34,7 +34,6 @@ export function AdminTab() {
 
   return (
     <div className="space-y-8">
-      <ChapterAnnouncementCard />
       {adminDashboards.map(({ positions, component: Dashboard, useHook }, idx) => {
         const hasPos = useHook
           ? isVPChapterOps
@@ -43,6 +42,7 @@ export function AdminTab() {
         if (!hasPos) return null;
         return <Dashboard key={idx} />;
       })}
+      <ChapterAnnouncementCard />
     </div>
   );
 }
