@@ -7,6 +7,7 @@ import { Loader2 } from 'lucide-react';
 import { org } from '@/config/org';
 import { AppCopyrightFooter } from '@/components/layout/AppCopyrightFooter';
 import { EventReminderSync } from '@/features/notifications/components/EventReminderSync';
+import { DuesReminderSync } from '@/features/dues/components/DuesReminderSync';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -40,6 +41,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="min-h-screen bg-background">
       <EventReminderSync />
+      <DuesReminderSync />
       <DesktopSidebar />
       <main className="md:ml-64 pb-28 md:pb-0">
         <div className="px-4 sm:px-6 lg:px-8 py-5 md:py-8 max-w-7xl mx-auto">

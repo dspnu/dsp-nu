@@ -8,6 +8,7 @@ import CoffeeChatDirectoryPage from '@/features/pdp/pages/CoffeeChatDirectoryPag
 import { PDPProgressCard } from '@/features/pdp/components/PDPProgressCard';
 import { PaddleSubmissionCard } from '@/features/paddle-submissions/components/PaddleSubmissionCard';
 import { ElectionVotingCards } from '@/features/elections/components/ElectionVotingCard';
+import { DuesDueStatusCard } from '@/components/home/DuesDueStatusCard';
 
 registerFeature({
   key: 'eop',
@@ -50,6 +51,7 @@ registerFeature({
 
 registerFeature({
   key: 'dues',
+  dashboardCard: DuesDueStatusCard,
 });
 
 registerFeature({
