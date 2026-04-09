@@ -106,6 +106,19 @@ export default function OnboardingPage() {
 
   const handleSaveProfile = async () => {
     if (!user || !profile) return;
+
+    const trimmedFirst = firstName.trim();
+    const trimmedLast = lastName.trim();
+    const trimmedPhone = phone.trim();
+    const trimmedMajor = major.trim();
+    const trimmedLinkedin = linkedinUrl.trim();
+    const trimmedHometown = hometown.trim();
+
+    if (!trimmedFirst || !trimmedLast || !trimmedPhone || !trimmedMajor || !gradYear) {
+      toast.error('Please fill out all required fields.');
+      return;
+    }
+
     setSaving(true);
     try {
       let finalAvatarUrl = profile.avatar_url;
@@ -123,13 +136,13 @@ export default function OnboardingPage() {
       const { error } = await supabase
         .from('profiles')
         .update({
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
-          phone: phone.trim() || null,
-          major: major.trim() || null,
-          graduation_year: gradYear ? parseInt(gradYear) : null,
-          linkedin_url: linkedinUrl.trim() || null,
-          hometown: hometown.trim() || null,
+          first_name: trimmedFirst,
+          last_name: trimmedLast,
+          phone: trimmedPhone,
+          major: trimmedMajor,
+          graduation_year: parseInt(gradYear, 10),
+          linkedin_url: trimmedLinkedin || null,
+          hometown: trimmedHometown || null,
           avatar_url: finalAvatarUrl,
         })
         .eq('user_id', user.id);
@@ -232,11 +245,15 @@ export default function OnboardingPage() {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>Major</Label>
-                          <Input value={major} onChange={(e) => setMajor(e.target.value)} placeholder="Finance" />
+                          <Label>
+                            Major <span className="text-destructive">*</span>
+                          </Label>
+                          <Input value={major} onChange={(e) => setMajor(e.target.value)} placeholder="Finance" required />
                         </div>
                         <div className="space-y-2">
-                          <Label>Graduation Year</Label>
+                          <Label>
+                            Graduation Year <span className="text-destructive">*</span>
+                          </Label>
                           <Select value={gradYear} onValueChange={setGradYear}>
                             <SelectTrigger><SelectValue placeholder="Select year" /></SelectTrigger>
                             <SelectContent>
@@ -249,8 +266,10 @@ export default function OnboardingPage() {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>Phone Number</Label>
-                          <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(555) 123-4567" />
+                          <Label>
+                            Phone Number <span className="text-destructive">*</span>
+                          </Label>
+                          <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(555) 123-4567" required />
                         </div>
                         <div className="space-y-2">
                           <Label>Hometown</Label>
@@ -267,7 +286,11 @@ export default function OnboardingPage() {
                     <Button variant="ghost" onClick={() => goTo(0)}>
                       <ChevronLeft className="h-4 w-4 mr-1" />Back
                     </Button>
-                    <Button onClick={handleSaveProfile} disabled={saving || !firstName.trim() || !lastName.trim()} className="gap-2">
+                    <Button
+                      onClick={handleSaveProfile}
+                      disabled={saving || !firstName.trim() || !lastName.trim() || !phone.trim() || !major.trim() || !gradYear}
+                      className="gap-2"
+                    >
                       {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                       {saving ? 'Saving...' : 'Save & Continue'}
                       {!saving && <ChevronRight className="h-4 w-4" />}
