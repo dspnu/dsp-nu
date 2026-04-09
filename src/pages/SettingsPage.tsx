@@ -256,7 +256,7 @@ export default function SettingsPage() {
     if (!user || deleteConfirmText !== 'DELETE') return;
     setDeleting(true);
     try {
-      const { error } = await supabase.rpc('delete_user_account');
+      const { error } = await supabase.rpc('delete_user_account', {});
       if (error) throw error;
 
       setDeleteDialogOpen(false);

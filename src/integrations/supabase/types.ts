@@ -1770,6 +1770,9 @@ export type Database = {
         Args: { p_datasets: string[]; p_from: string; p_to: string }
         Returns: Json
       }
+      cancel_own_event_ticket: { Args: { p_ticket_id: string }; Returns: Json }
+      check_in_ticket_by_code: { Args: { p_code: string }; Returns: Json }
+      delete_user_account: { Args: Record<PropertyKey, never>; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "officer" | "member" | "developer"
