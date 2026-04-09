@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { AppLayout } from '@/core/layout/AppLayout';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -9,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Users, Search, Download, GraduationCap } from 'lucide-react';
 import { MemberCard } from '@/core/members/components/MemberCard';
 import { ProfileEditDialog } from '@/core/members/components/ProfileEditDialog';
-import { MemberProfileDialog } from '@/core/members/components/MemberProfileDialog';
 import { AdminPositionsDialog } from '@/core/members/components/AdminPositionsDialog';
 import { AdminRoleDialog } from '@/core/members/components/AdminRoleDialog';
 import { AlumniForm } from '@/features/alumni/components/AlumniForm';
@@ -35,8 +35,6 @@ export default function PeoplePage() {
   const [alumniSearch, setAlumniSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [industryFilter, setIndustryFilter] = useState('all');
-  const [selectedMember, setSelectedMember] = useState<Profile | null>(null);
-  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('members');
 
   const canManageAdminRoles =
@@ -83,11 +81,6 @@ export default function PeoplePage() {
   const handleExportAlumni = () => {
     if (!alumni) return;
     exportToCSV(alumni, 'alumni-directory');
-  };
-
-  const handleMemberClick = (member: Profile) => {
-    setSelectedMember(member);
-    setProfileDialogOpen(true);
   };
 
   return (
@@ -165,9 +158,12 @@ export default function PeoplePage() {
             <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {filteredMembers.map((member) => (
                 <div key={member.id} className="relative group">
-                  <div onClick={() => handleMemberClick(member)} className="cursor-pointer active:scale-[0.98] transition-transform">
+                  <Link
+                    to={`/people/${member.id}`}
+                    className="block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.99] transition-transform"
+                  >
                     <MemberCard member={member} />
-                  </div>
+                  </Link>
                   {(isDeveloper || canManageAdminRoles) && (
                     <div className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1.5 items-end">
                       {canManageAdminRoles && <AdminRoleDialog member={member} />}
@@ -248,8 +244,6 @@ export default function PeoplePage() {
           )}
         </TabsContent>
       </Tabs>
-
-      <MemberProfileDialog member={selectedMember} open={profileDialogOpen} onOpenChange={setProfileDialogOpen} />
     </AppLayout>
   );
 }

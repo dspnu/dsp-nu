@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { CategoryBadge } from '@/components/ui/category-badge';
-import { org } from '@/config/org';
+import { org, categoryLabels } from '@/config/org';
 import { EmptyState } from '@/components/ui/empty-state';
 import { 
   Mail, Phone, GraduationCap, Linkedin, MapPin, Users, Heart, 
@@ -288,11 +288,18 @@ export default function MemberProfilePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
                   {org.eventCategories.map(c => c.key).map((cat) => (
-                    <div key={cat} className="text-center p-3 rounded-lg bg-muted/50">
-                      <CategoryBadge category={cat as any} />
-                      <div className="text-xl font-bold mt-2">{pointsByCategory[cat] || 0}</div>
+                    <div
+                      key={cat}
+                      className="text-center p-3 rounded-lg border border-border/60 bg-card/80"
+                    >
+                      <div className="text-xs font-medium text-muted-foreground">
+                        {categoryLabels[cat] ?? cat}
+                      </div>
+                      <div className="text-xl font-bold mt-2 tabular-nums text-foreground">
+                        {pointsByCategory[cat] || 0}
+                      </div>
                     </div>
                   ))}
                 </div>
