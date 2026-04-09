@@ -3,27 +3,27 @@ import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useNotifications, useUnreadCount, useMarkAsRead, useMarkAllAsRead } from '@/features/notifications/hooks/useNotifications';
-import { formatDistanceToNow } from 'date-fns';
+import {
+  useNotifications,
+  useUnreadCount,
+  useMarkAsRead,
+  useMarkAllAsRead,
+  type Notification,
+} from '@/features/notifications/hooks/useNotifications';
+import { NotificationItem } from '@/features/notifications/components/NotificationItem';
 import { useNavigate } from 'react-router-dom';
 
-const typeIcons: Record<string, string> = {
-  service_hours: '⏱️',
-  coffee_chat: '☕',
-  job_board: '💼',
-  event: '📅',
-  general: '🔔',
-};
+const PREVIEW_LIMIT = 12;
 
 export function NotificationBell() {
   const [open, setOpen] = useState(false);
-  const { data: notifications } = useNotifications();
+  const { data: notifications } = useNotifications(PREVIEW_LIMIT);
   const unreadCount = useUnreadCount();
   const markAsRead = useMarkAsRead();
   const markAllAsRead = useMarkAllAsRead();
   const navigate = useNavigate();
 
-  const handleClick = (notification: any) => {
+  const handleOpen = (notification: Notification) => {
     if (!notification.is_read) {
       markAsRead.mutate(notification.id);
     }
@@ -36,66 +36,54 @@ export function NotificationBell() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative shrink-0" aria-label="Notifications">
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+            <span className="absolute -top-0.5 -right-0.5 h-5 min-w-5 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
-        <div className="flex items-center justify-between px-4 py-3 border-b">
+      <PopoverContent className="w-[min(100vw-2rem,22rem)] p-0" align="end">
+        <div className="flex items-center justify-between gap-2 px-4 py-3 border-b">
           <h3 className="font-semibold text-sm">Notifications</h3>
-          {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs h-auto py-1"
-              onClick={() => markAllAsRead.mutate()}
-            >
-              Mark all read
-            </Button>
-          )}
+          <div className="flex items-center gap-1">
+            {unreadCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs h-auto py-1"
+                onClick={() => markAllAsRead.mutate()}
+              >
+                Mark all read
+              </Button>
+            )}
+          </div>
         </div>
         <ScrollArea className="max-h-80">
           {notifications && notifications.length > 0 ? (
-            <div className="divide-y">
+            <div className="p-1.5 space-y-0.5">
               {notifications.map((notification) => (
-                <button
+                <NotificationItem
                   key={notification.id}
-                  onClick={() => handleClick(notification)}
-                  className={`w-full text-left px-4 py-3 hover:bg-accent/50 transition-colors ${
-                    !notification.is_read ? 'bg-primary/5' : ''
-                  }`}
-                >
-                  <div className="flex gap-3">
-                    <span className="text-lg mt-0.5">{typeIcons[notification.type] || '🔔'}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm ${!notification.is_read ? 'font-semibold' : 'font-medium'}`}>
-                        {notification.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
-                        {notification.message}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground mt-1">
-                        {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-                      </p>
-                    </div>
-                    {!notification.is_read && (
-                      <div className="h-2 w-2 rounded-full bg-primary mt-2 flex-shrink-0" />
-                    )}
-                  </div>
-                </button>
+                  notification={notification}
+                  compact
+                  onOpen={handleOpen}
+                />
               ))}
             </div>
           ) : (
-            <div className="py-8 text-center text-sm text-muted-foreground">
+            <div className="py-8 text-center text-sm text-muted-foreground px-4">
               No notifications yet
             </div>
           )}
         </ScrollArea>
+        <div className="border-t p-2">
+          <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => { navigate('/notifications'); setOpen(false); }}>
+            Notification center
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
   );

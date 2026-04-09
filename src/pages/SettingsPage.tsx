@@ -29,11 +29,13 @@ import {
 import { Input } from '@/components/ui/input';
 
 const NOTIFICATION_ITEMS = [
-  { id: 'push', key: 'push_enabled', label: 'Push Notifications', desc: 'Browser push notifications' },
-  { id: 'events', key: 'event_notifications', label: 'Events', desc: 'Event reminders and updates' },
-  { id: 'service', key: 'service_hours_notifications', label: 'Service Hours', desc: 'Verification reminders' },
-  { id: 'coffee', key: 'coffee_chat_notifications', label: 'Coffee Chats', desc: 'Confirmation reminders' },
-  { id: 'jobs', key: 'job_board_notifications', label: 'Job Board', desc: 'New posting approvals' },
+  { id: 'push', key: 'push_enabled', label: 'Push notifications', desc: 'Browser push notifications (when available)' },
+  { id: 'events', key: 'event_notifications', label: 'Events & opportunities', desc: 'New events and updates to events you are part of' },
+  { id: 'remind24', key: 'event_reminder_24h', label: '24-hour reminders', desc: 'Heads-up the day before events you are attending' },
+  { id: 'announce', key: 'announcement_notifications', label: 'Chapter announcements', desc: 'Messages broadcast by chapter leadership' },
+  { id: 'service', key: 'service_hours_notifications', label: 'Service hours', desc: 'Verification reminders' },
+  { id: 'coffee', key: 'coffee_chat_notifications', label: 'Coffee chats', desc: 'Scheduling and confirmations' },
+  { id: 'jobs', key: 'job_board_notifications', label: 'Job board', desc: 'Posting and approval activity' },
 ] as const;
 
 export default function SettingsPage() {

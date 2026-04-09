@@ -1,6 +1,7 @@
 import { useAuth } from '@/core/auth/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { org } from '@/config/org';
+import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 
 export function WelcomeHeader() {
   const { profile } = useAuth();
@@ -18,8 +19,8 @@ export function WelcomeHeader() {
   };
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="space-y-0.5">
+    <div className="flex items-center justify-between gap-3">
+      <div className="space-y-0.5 min-w-0">
         <h1 className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight">
           {greeting()}, {profile?.first_name || org.terms.member}
         </h1>
@@ -27,11 +28,16 @@ export function WelcomeHeader() {
           {semester} {year} • {org.chapterName}
         </p>
       </div>
-      {profile?.status && (
-        <Badge variant="outline" className="capitalize text-xs hidden sm:inline-flex">
-          {profile.status.replace('_', ' ')}
-        </Badge>
-      )}
+      <div className="flex items-center gap-2 shrink-0">
+        <div className="md:hidden">
+          <NotificationBell />
+        </div>
+        {profile?.status && (
+          <Badge variant="outline" className="capitalize text-xs hidden sm:inline-flex">
+            {profile.status.replace('_', ' ')}
+          </Badge>
+        )}
+      </div>
     </div>
   );
 }
