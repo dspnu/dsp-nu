@@ -33,6 +33,8 @@ interface AuthContextType {
   isAdminOrOfficer: boolean;
   /** Matches DB `is_admin_or_officer` for event RLS: admin/officer/exec roles or any exec position */
   canManageEvents: boolean;
+  /** Exec app role or at least one chapter executive position (chapter Resources add, etc.) */
+  isExecBoard: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -147,6 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isDeveloper = roles.includes('developer');
   const isAdminOrOfficer = isAdmin || isOfficer;
   const hasExecPosition = (profile?.positions?.length ?? 0) > 0;
+  const isExecBoard = roles.includes('exec') || hasExecPosition;
   const canManageEvents =
     isAdmin || isOfficer || roles.includes('exec') || hasExecPosition;
 
@@ -163,6 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isDeveloper,
         isAdminOrOfficer,
         canManageEvents,
+        isExecBoard,
         signIn,
         signUp,
         signOut,
