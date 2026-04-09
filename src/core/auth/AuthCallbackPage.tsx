@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { AppCopyrightFooter } from '@/components/layout/AppCopyrightFooter';
 
 export default function AuthCallbackPage() {
   const navigate = useNavigate();
@@ -64,8 +65,13 @@ export default function AuthCallbackPage() {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    <div className="min-h-screen flex flex-col bg-background">
+      <div className="flex flex-1 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+      <div className="shrink-0 border-t border-border/50 py-4">
+        <AppCopyrightFooter />
+      </div>
     </div>
   );
 }

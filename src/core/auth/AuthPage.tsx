@@ -11,6 +11,8 @@ import { Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { org } from '@/config/org';
+import { AccountLegalNotice } from '@/components/legal/AccountLegalNotice';
+import { AppCopyrightFooter } from '@/components/layout/AppCopyrightFooter';
 
 export default function AuthPage() {
   const { user, loading, signIn, signUp, profile } = useAuth();
@@ -90,26 +92,27 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center mx-auto mb-4 shadow-purple">
-            <span className="text-primary-foreground font-display font-bold text-2xl">{org.greekLetters}</span>
+    <div className="min-h-screen flex flex-col bg-background">
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center mx-auto mb-4 shadow-purple">
+              <span className="text-primary-foreground font-display font-bold text-2xl">{org.greekLetters}</span>
+            </div>
+            <h1 className="font-display text-2xl font-bold text-foreground">{org.name}</h1>
+            <p className="text-muted-foreground">{org.tagline}</p>
           </div>
-          <h1 className="font-display text-2xl font-bold text-foreground">{org.name}</h1>
-          <p className="text-muted-foreground">{org.tagline}</p>
-        </div>
 
-        <Card>
-          <Tabs defaultValue="signin">
-            <CardHeader className="pb-4">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
-              </TabsList>
-            </CardHeader>
-            <CardContent>
-              <TabsContent value="signin" className="mt-0">
+          <Card>
+            <Tabs defaultValue="signin">
+              <CardHeader className="pb-4">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="signin">Sign In</TabsTrigger>
+                  <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                </TabsList>
+              </CardHeader>
+              <CardContent>
+                <TabsContent value="signin" className="mt-0">
                 <div className="space-y-4">
                   <Button
                     type="button"
@@ -211,7 +214,14 @@ export default function AuthPage() {
               </TabsContent>
             </CardContent>
           </Tabs>
-        </Card>
+          </Card>
+        </div>
+      </div>
+      <div className="shrink-0 px-4 pb-8 pt-2 border-t border-border/50 bg-background/95">
+        <div className="max-w-md mx-auto w-full space-y-4">
+          <AccountLegalNotice />
+          <AppCopyrightFooter />
+        </div>
       </div>
     </div>
   );

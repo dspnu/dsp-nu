@@ -14,6 +14,7 @@ import { useNotificationPreferences, useUpdateNotificationPreferences } from '@/
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { LogOut, Bell, Palette, ExternalLink, ChevronRight, Download, Trash2, Shield, Loader2, Upload } from 'lucide-react';
+import { legal } from '@/config/legal';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -217,7 +218,7 @@ export default function SettingsPage() {
         </Button>
       </PageHeader>
 
-      <div className="w-full space-y-8 pb-8">
+      <div className="w-full space-y-8">
         {/* ── Profile ── */}
         <div className="rounded-xl border bg-card overflow-hidden">
           <div className="p-5 sm:p-6">
@@ -375,37 +376,43 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        {/* ── About & Legal ── */}
-        <section>
-          <div className="rounded-xl border bg-card divide-y overflow-hidden">
-            <div className="px-4 py-4 sm:px-5">
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                DSP is the chapter management platform for Delta Sigma Pi — helping members stay connected, track progress, and manage chapter operations.
-              </p>
-            </div>
+        <footer className="mt-14 pt-8 border-t border-border/60">
+          <p className="text-xs text-muted-foreground text-center sm:text-left leading-relaxed max-w-2xl mx-auto sm:mx-0 mb-5">
+            DSP is the chapter management platform for Delta Sigma Pi — helping members stay connected, track progress, and manage chapter operations.
+          </p>
+          <nav
+            aria-label="Legal"
+            className="flex flex-wrap items-center justify-center sm:justify-start gap-x-5 gap-y-2 text-sm text-muted-foreground"
+          >
             <a
-              href="https://enterprises.jacobtartabini.com/privacy"
+              href={legal.eulaUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between px-4 py-3.5 sm:px-5 text-sm hover:bg-accent/50 transition-colors"
+              className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors"
+            >
+              EULA
+              <ExternalLink className="h-3 w-3 opacity-70" />
+            </a>
+            <a
+              href={legal.privacyUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors"
             >
               Privacy Policy
-              <ExternalLink className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <ExternalLink className="h-3 w-3 opacity-70" />
             </a>
             <a
-              href="https://enterprises.jacobtartabini.com/terms"
+              href={legal.termsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between px-4 py-3.5 sm:px-5 text-sm hover:bg-accent/50 transition-colors"
+              className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors"
             >
               Terms of Service
-              <ExternalLink className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <ExternalLink className="h-3 w-3 opacity-70" />
             </a>
-            <div className="px-4 py-3 sm:px-5">
-              <p className="text-xs text-muted-foreground">&copy; 2026 Tartabini Enterprises LLC</p>
-            </div>
-          </div>
-        </section>
+          </nav>
+        </footer>
       </div>
 
       {/* ── Delete Account Confirmation ── */}

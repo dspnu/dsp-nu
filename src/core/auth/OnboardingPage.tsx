@@ -15,6 +15,8 @@ import {
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { org } from '@/config/org';
+import { AccountLegalNotice } from '@/components/legal/AccountLegalNotice';
+import { AppCopyrightFooter } from '@/components/layout/AppCopyrightFooter';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const TOTAL_STEPS = 5;
@@ -395,6 +397,13 @@ export default function OnboardingPage() {
               )}
             </motion.div>
           </AnimatePresence>
+        </div>
+      </div>
+
+      <div className="shrink-0 px-4 py-5 border-t border-border/50 bg-background/90">
+        <div className="max-w-2xl mx-auto w-full space-y-3">
+          <AccountLegalNotice />
+          <AppCopyrightFooter />
         </div>
       </div>
     </div>
