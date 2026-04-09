@@ -12,7 +12,7 @@ const dashboardCards = getEnabledDashboardCards();
 export default function HomePage() {
   return (
     <AppLayout>
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="w-full space-y-6">
         <WelcomeHeader />
 
         <AlertsSection />
