@@ -54,8 +54,10 @@ export function useCreateEvent() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
+      const { error } = await supabase.rpc('notify_members_new_event', { p_event_id: data.id });
+      if (error) console.warn('notify_members_new_event', error.message);
       toast({ title: 'Event created successfully' });
     },
     onError: (error) => {
@@ -80,8 +82,15 @@ export function useUpdateEvent() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
+      const { error } = await supabase.rpc('notify_event_rsvps_updated', {
+        p_event_id: data.id,
+        p_title: `Updated: ${data.title}`,
+        p_message:
+          'An event you responded to was updated. Open Events to review the latest details.',
+      });
+      if (error) console.warn('notify_event_rsvps_updated', error.message);
       toast({ title: 'Event updated successfully' });
     },
     onError: (error) => {

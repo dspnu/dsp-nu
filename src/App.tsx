@@ -17,6 +17,7 @@ import MemberProfilePage from "@/core/members/MemberProfilePage";
 import EventsPage from "@/features/events/pages/EventsPage";
 import ChapterPage from "./pages/ChapterPage";
 import SettingsPage from "./pages/SettingsPage";
+import NotificationsPage from "./pages/NotificationsPage";
 import HelpPage from "./pages/HelpPage";
 import NotFound from "./pages/NotFound";
 import OnboardingPage from "@/core/auth/OnboardingPage";
@@ -45,6 +46,7 @@ const App = () => (
               <Route path="/events" element={<EventsPage />} />
               <Route path="/chapter" element={<ChapterPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/help" element={<HelpPage />} />
 
               {/* Feature routes - dynamically registered */}

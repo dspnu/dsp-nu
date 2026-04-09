@@ -1040,9 +1040,11 @@ export type Database = {
       }
       notification_preferences: {
         Row: {
+          announcement_notifications: boolean
           coffee_chat_notifications: boolean
           created_at: string
           event_notifications: boolean
+          event_reminder_24h: boolean
           id: string
           job_board_notifications: boolean
           push_enabled: boolean
@@ -1051,9 +1053,11 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          announcement_notifications?: boolean
           coffee_chat_notifications?: boolean
           created_at?: string
           event_notifications?: boolean
+          event_reminder_24h?: boolean
           id?: string
           job_board_notifications?: boolean
           push_enabled?: boolean
@@ -1062,9 +1066,11 @@ export type Database = {
           user_id: string
         }
         Update: {
+          announcement_notifications?: boolean
           coffee_chat_notifications?: boolean
           created_at?: string
           event_notifications?: boolean
+          event_reminder_24h?: boolean
           id?: string
           job_board_notifications?: boolean
           push_enabled?: boolean
@@ -1077,6 +1083,7 @@ export type Database = {
       notifications: {
         Row: {
           created_at: string
+          event_id: string | null
           id: string
           is_read: boolean
           link: string | null
@@ -1087,6 +1094,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          event_id?: string | null
           id?: string
           is_read?: boolean
           link?: string | null
@@ -1097,6 +1105,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          event_id?: string | null
           id?: string
           is_read?: boolean
           link?: string | null
@@ -1572,6 +1581,15 @@ export type Database = {
         Returns: boolean
       }
       is_admin_or_officer: { Args: { _user_id: string }; Returns: boolean }
+      broadcast_chapter_announcement: {
+        Args: { p_message: string; p_title: string }
+        Returns: undefined
+      }
+      notify_event_rsvps_updated: {
+        Args: { p_event_id: string; p_message: string; p_title: string }
+        Returns: undefined
+      }
+      notify_members_new_event: { Args: { p_event_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "officer" | "member" | "developer"
