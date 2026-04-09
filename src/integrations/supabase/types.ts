@@ -1043,6 +1043,8 @@ export type Database = {
           announcement_notifications: boolean
           coffee_chat_notifications: boolean
           created_at: string
+          data_usage_consent: boolean
+          data_usage_consent_updated_at: string | null
           event_notifications: boolean
           event_reminder_24h: boolean
           id: string
@@ -1056,6 +1058,8 @@ export type Database = {
           announcement_notifications?: boolean
           coffee_chat_notifications?: boolean
           created_at?: string
+          data_usage_consent?: boolean
+          data_usage_consent_updated_at?: string | null
           event_notifications?: boolean
           event_reminder_24h?: boolean
           id?: string
@@ -1069,6 +1073,8 @@ export type Database = {
           announcement_notifications?: boolean
           coffee_chat_notifications?: boolean
           created_at?: string
+          data_usage_consent?: boolean
+          data_usage_consent_updated_at?: string | null
           event_notifications?: boolean
           event_reminder_24h?: boolean
           id?: string
