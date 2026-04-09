@@ -21,22 +21,22 @@ export function EventCard({ event, onOpenAttendance }: EventCardProps) {
   const { isAdminOrOfficer } = useAuth();
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader className="pb-2">
+    <Card className="transition-shadow hover:shadow-md">
+      <CardHeader className="space-y-0 pb-2 pt-4">
         <div className="flex items-start justify-between gap-2">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
+          <div className="min-w-0 space-y-1">
+            <div className="flex flex-wrap items-center gap-1.5">
               <CategoryBadge category={event.category} />
               {event.is_required && (
                 <Badge variant="destructive" className="text-xs">Required</Badge>
               )}
             </div>
-            <CardTitle className="text-lg">{event.title}</CardTitle>
+            <CardTitle className="text-base leading-snug sm:text-lg">{event.title}</CardTitle>
           </div>
           {isAdminOrOfficer && <EditEventButton event={event} />}
         </div>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-2 pb-4 pt-0">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Calendar className="h-4 w-4" />
           <span>{format(new Date(event.start_time), 'EEEE, MMMM d, yyyy')}</span>
@@ -63,7 +63,7 @@ export function EventCard({ event, onOpenAttendance }: EventCardProps) {
           </Badge>
         )}
         
-        <div className="flex gap-2 pt-2 flex-wrap">
+        <div className="flex flex-wrap gap-2 pt-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="gap-1">

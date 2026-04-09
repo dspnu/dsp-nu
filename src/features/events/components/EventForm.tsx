@@ -79,34 +79,66 @@ export function EventForm({ event, trigger }: EventFormProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button className="gap-2">
+          <Button size="sm" className="h-9 shrink-0 gap-1.5">
             <Plus className="h-4 w-4" />
-            New Event
+            New event
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{event ? 'Edit Event' : 'Create New Event'}</DialogTitle>
+      <DialogContent className="max-h-[90vh] gap-0 overflow-y-auto p-4 sm:max-w-xl sm:p-5">
+        <DialogHeader className="space-y-0 pb-3 text-left">
+          <DialogTitle className="text-lg">{event ? 'Edit event' : 'New event'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+        <form onSubmit={handleSubmit} className="grid gap-3 sm:grid-cols-2 sm:gap-x-4 sm:gap-y-3">
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="title" className="text-xs text-muted-foreground">
+              Title
+            </Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               required
+              className="h-9"
+              placeholder="Event name"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="start_time" className="text-xs text-muted-foreground">
+              Start
+            </Label>
+            <Input
+              id="start_time"
+              type="datetime-local"
+              value={formData.start_time}
+              onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
+              required
+              className="h-9"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="end_time" className="text-xs text-muted-foreground">
+              End <span className="font-normal opacity-70">(optional)</span>
+            </Label>
+            <Input
+              id="end_time"
+              type="datetime-local"
+              value={formData.end_time}
+              onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
+              className="h-9"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="category" className="text-xs text-muted-foreground">
+              Category
+            </Label>
             <Select
               value={formData.category}
               onValueChange={(value: EventCategory) => setFormData({ ...formData, category: value })}
             >
-              <SelectTrigger>
+              <SelectTrigger id="category" className="h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -119,83 +151,78 @@ export function EventForm({ event, trigger }: EventFormProps) {
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="start_time">Start Time</Label>
-              <Input
-                id="start_time"
-                type="datetime-local"
-                value={formData.start_time}
-                onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="end_time">End Time</Label>
-              <Input
-                id="end_time"
-                type="datetime-local"
-                value={formData.end_time}
-                onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="location">Location</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="location" className="text-xs text-muted-foreground">
+              Location <span className="font-normal opacity-70">(optional)</span>
+            </Label>
             <Input
               id="location"
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+              className="h-9"
+              placeholder="Room, address, or link"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="description" className="text-xs text-muted-foreground">
+              Details <span className="font-normal opacity-70">(optional)</span>
+            </Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={3}
+              rows={2}
+              className="min-h-[4rem] resize-y text-sm"
+              placeholder="Short note for the calendar…"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="points_value">Points Value</Label>
+          <div className="flex flex-col gap-3 border-t border-border pt-3 sm:col-span-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-x-6 sm:gap-y-2">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="points_value" className="sr-only">
+                Points value
+              </Label>
+              <span className="whitespace-nowrap text-xs text-muted-foreground">Points</span>
               <Input
                 id="points_value"
                 type="number"
                 min="0"
                 value={formData.points_value}
-                onChange={(e) => setFormData({ ...formData, points_value: parseInt(e.target.value) || 0 })}
+                onChange={(e) => setFormData({ ...formData, points_value: parseInt(e.target.value, 10) || 0 })}
+                className="h-9 w-[5.5rem]"
               />
             </div>
-            <div className="flex items-center gap-2 pt-6">
-              <Switch
-                id="is_required"
-                checked={formData.is_required}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_required: checked })}
-              />
-              <Label htmlFor="is_required">Required Event</Label>
+            <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:gap-5">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="is_required"
+                  checked={formData.is_required}
+                  onCheckedChange={(checked) => setFormData({ ...formData, is_required: checked })}
+                />
+                <Label htmlFor="is_required" className="cursor-pointer text-sm font-normal leading-none">
+                  Required
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="payment_required"
+                  checked={formData.payment_required}
+                  onCheckedChange={(checked) => setFormData({ ...formData, payment_required: checked })}
+                />
+                <Label htmlFor="payment_required" className="cursor-pointer text-sm font-normal leading-none">
+                  Dues required
+                </Label>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Switch
-              id="payment_required"
-              checked={formData.payment_required}
-              onCheckedChange={(checked) => setFormData({ ...formData, payment_required: checked })}
-            />
-            <Label htmlFor="payment_required">Requires Dues Payment</Label>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <div className="flex justify-end gap-2 sm:col-span-2 sm:pt-1">
+            <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={createEvent.isPending || updateEvent.isPending}>
-              {event ? 'Update' : 'Create'} Event
+            <Button type="submit" size="sm" disabled={createEvent.isPending || updateEvent.isPending}>
+              {event ? 'Save' : 'Create'}
             </Button>
           </div>
         </form>

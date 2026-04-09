@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Calendar, List, Download, Search } from 'lucide-react';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useEvents } from '@/features/events/hooks/useEvents';
 import { useAuth } from '@/core/auth/AuthContext';
 import { EventForm } from '@/features/events/components/EventForm';
@@ -66,51 +68,63 @@ export default function EventsPage() {
 
   return (
     <AppLayout>
-      <PageHeader title="Events" description="Chapter events and calendar">
-        <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" size="sm" onClick={handleExportCalendar} className="gap-2 h-9">
-            <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">Export</span> ICS
-          </Button>
+      <PageHeader title="Events" className="mb-3 md:mb-4" />
+
+      <div className="mb-3 flex flex-col gap-2 sm:mb-4 sm:flex-row sm:items-center sm:gap-3">
+        <div className="relative min-w-0 flex-1">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search title, category, location…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-9 pl-9"
+            aria-label="Search events"
+          />
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <ToggleGroup
+            type="single"
+            value={view}
+            onValueChange={(v) => {
+              if (v === 'list' || v === 'calendar') setView(v);
+            }}
+            variant="outline"
+            size="sm"
+            className="justify-start"
+          >
+            <ToggleGroupItem value="calendar" aria-label="Calendar view" className="gap-1.5 px-2.5 sm:px-3">
+              <Calendar className="h-4 w-4 shrink-0" />
+              <span className="hidden sm:inline">Calendar</span>
+            </ToggleGroupItem>
+            <ToggleGroupItem value="list" aria-label="List view" className="gap-1.5 px-2.5 sm:px-3">
+              <List className="h-4 w-4 shrink-0" />
+              <span className="hidden sm:inline">List</span>
+            </ToggleGroupItem>
+          </ToggleGroup>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="h-9 w-9 shrink-0"
+                onClick={handleExportCalendar}
+                aria-label="Download calendar as .ics file"
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Export .ics</TooltipContent>
+          </Tooltip>
+
           {isAdminOrOfficer && <EventForm />}
         </div>
-      </PageHeader>
+      </div>
 
-      <div className="space-y-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search events..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-10 sm:h-9"
-            />
-          </div>
-          <div className="flex gap-2 self-start">
-            <Button
-              variant={view === 'list' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setView('list')}
-              className="gap-2 h-9"
-            >
-              <List className="h-4 w-4" />
-              <span className="hidden xs:inline">List</span>
-            </Button>
-            <Button
-              variant={view === 'calendar' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setView('calendar')}
-              className="gap-2 h-9"
-            >
-              <Calendar className="h-4 w-4" />
-              <span className="hidden xs:inline">Calendar</span>
-            </Button>
-          </div>
-        </div>
-
+      <div className="space-y-3 sm:space-y-4">
         {isLoading ? (
-          <div className="text-center py-8 text-muted-foreground">Loading events...</div>
+          <div className="py-8 text-center text-sm text-muted-foreground">Loading events…</div>
         ) : view === 'calendar' ? (
           <CalendarView
             events={filteredEvents}
@@ -121,11 +135,15 @@ export default function EventsPage() {
           />
         ) : (
           <Tabs defaultValue="upcoming" className="w-full">
-            <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:inline-flex">
-              <TabsTrigger value="upcoming" className="text-xs sm:text-sm">Upcoming ({upcomingEvents.length})</TabsTrigger>
-              <TabsTrigger value="past" className="text-xs sm:text-sm">Past ({pastEvents.length})</TabsTrigger>
+            <TabsList className="grid h-9 w-full max-w-md grid-cols-2 sm:w-auto sm:inline-flex">
+              <TabsTrigger value="upcoming" className="text-xs sm:text-sm">
+                Upcoming ({upcomingEvents.length})
+              </TabsTrigger>
+              <TabsTrigger value="past" className="text-xs sm:text-sm">
+                Past ({pastEvents.length})
+              </TabsTrigger>
             </TabsList>
-            <TabsContent value="upcoming" className="mt-4">
+            <TabsContent value="upcoming" className="mt-3 sm:mt-4">
               {upcomingEvents.length === 0 ? (
                 <EmptyState
                   icon={Calendar}
@@ -133,7 +151,7 @@ export default function EventsPage() {
                   description="Events will appear here when officers create them."
                 />
               ) : (
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {upcomingEvents.map((event) => (
                     <EventCard
                       key={event.id}
@@ -147,7 +165,7 @@ export default function EventsPage() {
                 </div>
               )}
             </TabsContent>
-            <TabsContent value="past" className="mt-4">
+            <TabsContent value="past" className="mt-3 sm:mt-4">
               {pastEvents.length === 0 ? (
                 <EmptyState
                   icon={Calendar}
@@ -155,7 +173,7 @@ export default function EventsPage() {
                   description="Past events will appear here."
                 />
               ) : (
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {pastEvents.map((event) => (
                     <EventCard
                       key={event.id}
