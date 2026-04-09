@@ -13,10 +13,12 @@ import { uploadCroppedAvatar } from '@/core/members/lib/uploadCroppedAvatar';
 import { useNotificationPreferences, useUpdateNotificationPreferences } from '@/features/notifications/hooks/useNotifications';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { LogOut, Bell, Palette, ExternalLink, ChevronRight, Download, Trash2, Shield, ShieldCheck, Loader2, Upload, Award, Clock, DollarSign, Coffee } from 'lucide-react';
+import { LogOut, Bell, Palette, ExternalLink, ChevronRight, Download, Trash2, Shield, ShieldCheck, Loader2, Upload, Award, Clock, DollarSign, Coffee, Crop } from 'lucide-react';
 import { legal } from '@/config/legal';
 import { supabase } from '@/integrations/supabase/client';
 import { useServiceHours } from '@/features/service-hours/hooks/useServiceHours';
+import { useDuesPersonalSchedule } from '@/features/dues/hooks/useDuesPersonalSchedule';
+import { useMyCoffeeChats } from '@/features/coffee-chats/hooks/useCoffeeChats';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -45,6 +47,8 @@ export default function SettingsPage() {
   const { data: fullProfile } = useMemberByUserId(user?.id || '');
   const { data: memberPoints } = useMemberPoints(user?.id || '');
   const { data: serviceHours } = useServiceHours(user?.id);
+  const { balanceInfo, semester: duesSemester } = useDuesPersonalSchedule();
+  const { data: myCoffeeChats, isPending: coffeeChatsLoading } = useMyCoffeeChats();
   const { data: prefs } = useNotificationPreferences();
   const updatePrefs = useUpdateNotificationPreferences();
   const updateMember = useUpdateMember();
@@ -79,10 +83,9 @@ export default function SettingsPage() {
   const totalServiceHours =
     serviceHours?.reduce((sum, h) => sum + Number(h.hours), 0) ?? 0;
 
-  const currentSemester = new Date().getMonth() < 6 ? 'Spring' : 'Fall';
-  const currentYear = new Date().getFullYear();
-  const semesterKey = `${currentSemester} ${currentYear}`;
-  const hasPaidDues = dues?.some((d) => d.semester === semesterKey);
+  const hasPaidDuesLegacy = dues?.some((d) => d.semester === duesSemester);
+  const completedCoffeeChats =
+    myCoffeeChats?.filter((c) => c.status === 'completed').length ?? 0;
 
   const handlePrefChange = (key: string, value: boolean) => {
     updatePrefs.mutate({ [key]: value });
@@ -101,6 +104,31 @@ export default function SettingsPage() {
     setSettingsCropFile(file);
     setSettingsCropOpen(true);
     if (settingsPhotoInputRef.current) settingsPhotoInputRef.current.value = '';
+  };
+
+  const handleCropExistingPhoto = async () => {
+    const url = profile?.avatar_url?.trim();
+    if (!url) return;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Could not load image');
+      const blob = await res.blob();
+      const type = blob.type && blob.type.startsWith('image/') ? blob.type : 'image/jpeg';
+      const file = new File([blob], 'profile-photo', { type });
+      setSettingsCropFile(file);
+      setSettingsCropOpen(true);
+    } catch (error: any) {
+      toast({
+        title: 'Could not load photo',
+        description: error?.message || 'Try uploading a new image instead.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleSettingsCropOpenChange = (open: boolean) => {
+    setSettingsCropOpen(open);
+    if (!open) setSettingsCropFile(null);
   };
 
   const handleSettingsCropComplete = async (blob: Blob) => {
@@ -315,8 +343,16 @@ export default function SettingsPage() {
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Dues</p>
-                      <p className="text-sm font-semibold">
-                        {hasPaidDues === undefined ? '—' : hasPaidDues ? 'Paid' : 'Unpaid'}
+                      <p className="text-sm font-semibold tabular-nums">
+                        {balanceInfo
+                          ? balanceInfo.balance > 0
+                            ? `$${balanceInfo.balance.toFixed(2)}`
+                            : 'Paid'
+                          : dues === undefined
+                            ? '—'
+                            : hasPaidDuesLegacy
+                              ? 'Paid'
+                              : 'Unpaid'}
                       </p>
                     </div>
                   </div>
@@ -326,7 +362,9 @@ export default function SettingsPage() {
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Coffee Chats</p>
-                      <p className="text-sm font-semibold">From People tab</p>
+                      <p className="text-sm font-semibold tabular-nums">
+                        {coffeeChatsLoading ? '—' : completedCoffeeChats}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -342,7 +380,7 @@ export default function SettingsPage() {
                     Crop to a circle, then save to your profile
                   </p>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
                   <input
                     ref={settingsPhotoInputRef}
                     type="file"
@@ -350,6 +388,17 @@ export default function SettingsPage() {
                     onChange={handleSettingsPhotoPick}
                     className="hidden"
                   />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCropExistingPhoto}
+                    disabled={settingsPhotoUploading || !profile?.avatar_url?.trim()}
+                    className="gap-2"
+                  >
+                    <Crop className="h-4 w-4" />
+                    Crop
+                  </Button>
                   <Button
                     type="button"
                     variant="outline"
@@ -608,7 +657,7 @@ export default function SettingsPage() {
       <AvatarCropDialog
         file={settingsCropFile}
         open={settingsCropOpen}
-        onOpenChange={setSettingsCropOpen}
+        onOpenChange={handleSettingsCropOpenChange}
         onCropComplete={handleSettingsCropComplete}
       />
     </AppLayout>
