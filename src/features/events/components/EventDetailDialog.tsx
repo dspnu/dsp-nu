@@ -8,6 +8,7 @@ import { Tables } from '@/integrations/supabase/types';
 import { useAuth } from '@/core/auth/AuthContext';
 import { EventRSVP } from './EventRSVP';
 import { DeleteEventButton } from './EventForm';
+import { Link } from 'react-router-dom';
 
 type Event = Tables<'events'>;
 
@@ -26,6 +27,7 @@ export function EventDetailDialog({ event, open, onOpenChange, onOpenAttendance 
   const startDate = new Date(event.start_time);
   const endDate = event.end_time ? new Date(event.end_time) : null;
   const isPast = startDate < new Date();
+  const ticketedEventId = (event as any).ticketed_event_id as string | null | undefined;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -79,6 +81,16 @@ export function EventDetailDialog({ event, open, onOpenChange, onOpenAttendance 
             <div className="pt-4 border-t">
               <h4 className="text-sm font-medium mb-3">RSVP</h4>
               <EventRSVP eventId={event.id} paymentRequired={(event as any).payment_required} />
+            </div>
+          )}
+
+          {ticketedEventId && (
+            <div className="pt-4 border-t">
+              <Button asChild className="w-full gap-2" variant="secondary">
+                <Link to={`/tickets?ticketedEventId=${encodeURIComponent(ticketedEventId)}`}>
+                  View tickets
+                </Link>
+              </Button>
             </div>
           )}
 
