@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { AppLayout } from '@/core/layout/AppLayout';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,19 @@ import { useMemberByUserId } from '@/core/members/hooks/useMembers';
 import { useNotificationPreferences, useUpdateNotificationPreferences } from '@/features/notifications/hooks/useNotifications';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { LogOut, Bell, Palette, ExternalLink, ChevronRight } from 'lucide-react';
+import { LogOut, Bell, Palette, ExternalLink, ChevronRight, Download, Trash2, Shield, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
+import { Input } from '@/components/ui/input';
 
 const NOTIFICATION_ITEMS = [
   { id: 'push', key: 'push_enabled', label: 'Push Notifications', desc: 'Browser push notifications' },
@@ -25,9 +38,95 @@ export default function SettingsPage() {
   const { data: fullProfile } = useMemberByUserId(user?.id || '');
   const { data: prefs } = useNotificationPreferences();
   const updatePrefs = useUpdateNotificationPreferences();
+  const { toast } = useToast();
+
+  const [exporting, setExporting] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   const handlePrefChange = (key: string, value: boolean) => {
     updatePrefs.mutate({ [key]: value });
+  };
+
+  const handleExportData = async () => {
+    if (!user) return;
+    setExporting(true);
+    try {
+      const [
+        profileRes,
+        attendanceRes,
+        serviceHoursRes,
+        pointsRes,
+        coffeeChatsRes,
+        duesPaymentsRes,
+        eventRsvpsRes,
+        notifPrefsRes,
+        pdpSubmissionsRes,
+        jobBookmarksRes,
+      ] = await Promise.all([
+        supabase.from('profiles').select('*').eq('user_id', user.id).maybeSingle(),
+        supabase.from('attendance').select('*').eq('user_id', user.id),
+        supabase.from('service_hours').select('*').eq('user_id', user.id),
+        supabase.from('points_ledger').select('*').eq('user_id', user.id),
+        supabase.from('coffee_chats').select('*').eq('user_id', user.id),
+        supabase.from('dues_payments').select('*').eq('user_id', user.id),
+        supabase.from('event_rsvps').select('*').eq('user_id', user.id),
+        supabase.from('notification_preferences').select('*').eq('user_id', user.id),
+        supabase.from('pdp_submissions').select('*').eq('user_id', user.id),
+        supabase.from('job_bookmarks').select('*').eq('user_id', user.id),
+      ]);
+
+      const exportData = {
+        exported_at: new Date().toISOString(),
+        account_email: user.email,
+        profile: profileRes.data,
+        attendance: attendanceRes.data || [],
+        service_hours: serviceHoursRes.data || [],
+        points: pointsRes.data || [],
+        coffee_chats: coffeeChatsRes.data || [],
+        dues_payments: duesPaymentsRes.data || [],
+        event_rsvps: eventRsvpsRes.data || [],
+        notification_preferences: notifPrefsRes.data,
+        pdp_submissions: pdpSubmissionsRes.data || [],
+        job_bookmarks: jobBookmarksRes.data || [],
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dsp-data-export-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({ title: 'Data exported successfully' });
+    } catch (error: any) {
+      toast({ title: 'Export failed', description: error.message, variant: 'destructive' });
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user || deleteConfirmText !== 'DELETE') return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.rpc('delete_user_account');
+      if (error) throw error;
+
+      setDeleteDialogOpen(false);
+      await signOut();
+    } catch (error: any) {
+      toast({
+        title: 'Account deletion failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+      setDeleting(false);
+    }
   };
 
   return (
@@ -108,6 +207,51 @@ export default function SettingsPage() {
           )}
         </section>
 
+        {/* ── Data & Privacy ── */}
+        <section>
+          <SectionLabel icon={Shield} label="Data & Privacy" />
+          <div className="rounded-xl border bg-card divide-y overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3.5 sm:px-5">
+              <div className="min-w-0 pr-4">
+                <p className="text-sm font-medium">Export Your Data</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Download a copy of all your personal data as JSON
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportData}
+                disabled={exporting}
+                className="shrink-0"
+              >
+                {exporting ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Exporting...</>
+                ) : (
+                  <><Download className="h-4 w-4 mr-2" />Export</>
+                )}
+              </Button>
+            </div>
+            <div className="flex items-center justify-between px-4 py-3.5 sm:px-5">
+              <div className="min-w-0 pr-4">
+                <p className="text-sm font-medium text-destructive">Delete Account</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Permanently delete your account and all associated data
+                </p>
+              </div>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setDeleteDialogOpen(true)}
+                className="shrink-0"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </Button>
+            </div>
+          </div>
+        </section>
+
         {/* ── About & Legal ── */}
         <section>
           <div className="rounded-xl border bg-card divide-y overflow-hidden">
@@ -150,6 +294,56 @@ export default function SettingsPage() {
           Sign Out
         </Button>
       </div>
+
+      {/* ── Delete Account Confirmation ── */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  This action is <strong className="text-destructive">permanent and irreversible</strong>.
+                  All of your data will be deleted, including your profile, attendance records, points,
+                  service hours, and any other associated data.
+                </p>
+                <p>
+                  We recommend exporting your data before proceeding.
+                </p>
+                <div className="pt-1">
+                  <label className="text-xs font-medium text-foreground" htmlFor="delete-confirm">
+                    Type <span className="font-mono font-bold">DELETE</span> to confirm
+                  </label>
+                  <Input
+                    id="delete-confirm"
+                    value={deleteConfirmText}
+                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                    placeholder="DELETE"
+                    className="mt-1.5 font-mono"
+                    autoComplete="off"
+                  />
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteConfirmText('')}>
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              disabled={deleteConfirmText !== 'DELETE' || deleting}
+            >
+              {deleting ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Deleting...</>
+              ) : (
+                'Permanently Delete Account'
+              )}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }

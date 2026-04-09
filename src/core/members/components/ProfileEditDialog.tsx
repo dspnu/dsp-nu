@@ -14,6 +14,7 @@ import { Tables } from '@/integrations/supabase/types';
 import { useAuth } from '@/core/auth/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { AvatarCropDialog } from './AvatarCropDialog';
 
 const formSchema = z.object({
   first_name: z.string().min(1, 'First name is required'),
@@ -43,6 +44,8 @@ export function ProfileEditDialog({ profile, trigger }: ProfileEditDialogProps) 
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url || '');
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const [cropOpen, setCropOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const updateMember = useUpdateMember();
   const { refreshProfile, user } = useAuth();
@@ -66,18 +69,24 @@ export function ProfileEditDialog({ profile, trigger }: ProfileEditDialogProps) 
     },
   });
 
-  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !user) return;
+    if (!file) return;
+    setCropFile(file);
+    setCropOpen(true);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleCropComplete = async (blob: Blob) => {
+    if (!user) return;
 
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${Date.now()}.jpg`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, blob, { upsert: true, contentType: 'image/jpeg' });
 
       if (uploadError) throw uploadError;
 
@@ -91,6 +100,7 @@ export function ProfileEditDialog({ profile, trigger }: ProfileEditDialogProps) 
       toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
     } finally {
       setUploading(false);
+      setCropFile(null);
     }
   };
 
@@ -145,7 +155,7 @@ export function ProfileEditDialog({ profile, trigger }: ProfileEditDialogProps) 
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  onChange={handleAvatarUpload}
+                  onChange={handleFileSelect}
                   className="hidden"
                 />
                 <Button
@@ -163,6 +173,13 @@ export function ProfileEditDialog({ profile, trigger }: ProfileEditDialogProps) 
                 </Button>
               </div>
             </div>
+
+            <AvatarCropDialog
+              file={cropFile}
+              open={cropOpen}
+              onOpenChange={setCropOpen}
+              onCropComplete={handleCropComplete}
+            />
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
