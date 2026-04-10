@@ -13,7 +13,7 @@ import { uploadCroppedAvatar } from '@/core/members/lib/uploadCroppedAvatar';
 import { useNotificationPreferences, useUpdateNotificationPreferences } from '@/features/notifications/hooks/useNotifications';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { LogOut, Bell, Palette, ExternalLink, ChevronRight, Download, Trash2, Shield, ShieldCheck, Loader2, Upload, Award, Clock, DollarSign, Coffee, Crop } from 'lucide-react';
+import { LogOut, Bell, Palette, ExternalLink, ChevronRight, Download, Trash2, Shield, ShieldCheck, Loader2, Upload, Award, Clock, DollarSign, Coffee, Crop, Smartphone } from 'lucide-react';
 import { legal } from '@/config/legal';
 import { supabase } from '@/integrations/supabase/client';
 import { useServiceHours } from '@/features/service-hours/hooks/useServiceHours';
@@ -31,6 +31,8 @@ import {
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
+import { useAddToHomeScreen } from '@/components/pwa/AddToHomeScreenPrompt';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const NOTIFICATION_ITEMS = [
   { id: 'push', key: 'push_enabled', label: 'Push notifications', desc: 'Browser push notifications (when available)' },
@@ -43,6 +45,8 @@ const NOTIFICATION_ITEMS = [
 ] as const;
 
 export default function SettingsPage() {
+  const isMobileLayout = useIsMobile();
+  const { openAddToHomeScreen } = useAddToHomeScreen();
   const { profile, roles, user, signOut, refreshProfile } = useAuth();
   const { data: fullProfile } = useMemberByUserId(user?.id || '');
   const { data: memberPoints } = useMemberPoints(user?.id || '');
@@ -443,6 +447,28 @@ export default function SettingsPage() {
             <ThemeToggle />
           </div>
         </section>
+
+        {/* ── Install app (phone) ── */}
+        {isMobileLayout && (
+          <section>
+            <SectionLabel icon={Smartphone} label="Install app" />
+            <div className="rounded-xl border bg-card overflow-hidden">
+              <button
+                type="button"
+                onClick={openAddToHomeScreen}
+                className="w-full flex items-center justify-between px-4 py-3.5 sm:px-5 text-left transition-colors hover:bg-muted/50 active:bg-muted/70"
+              >
+                <div className="min-w-0 pr-4">
+                  <p className="text-sm font-medium">Add to Home Screen</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Open these steps anytime to install the chapter portal like a native app
+                  </p>
+                </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+              </button>
+            </div>
+          </section>
+        )}
 
         {/* ── Notifications ── */}
         <section>
