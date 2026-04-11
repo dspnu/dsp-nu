@@ -23,13 +23,14 @@ import {
   useAddElectionPosition, useDeleteElectionPosition,
   useAddElectionCandidate, useDeleteElectionCandidate,
   useTogglePositionActive,
+  useStableSortedPositionIds,
   Election,
 } from '@/features/elections/hooks/useElections';
 
 function ResultsView({ election }: { election: Election }) {
   const { data: positions = [] } = useElectionPositions(election.id);
   const { data: members = [] } = useMembers();
-  const positionIds = useMemo(() => positions.map(p => p.id), [positions]);
+  const positionIds = useStableSortedPositionIds(positions);
   const { data: candidates = [] } = useElectionCandidates(positionIds);
   const { data: allVotes = [] } = useElectionVotes(positionIds);
 
@@ -103,7 +104,7 @@ function ResultsView({ election }: { election: Election }) {
 function ElectionDetail({ election }: { election: Election }) {
   const { user } = useAuth();
   const { data: positions = [] } = useElectionPositions(election.id);
-  const positionIds = useMemo(() => positions.map(p => p.id), [positions]);
+  const positionIds = useStableSortedPositionIds(positions);
   const { data: candidates = [] } = useElectionCandidates(positionIds);
   const { data: allVotes = [] } = useElectionVotes(positionIds);
   const updateStatus = useUpdateElectionStatus();
@@ -217,7 +218,12 @@ function ElectionDetail({ election }: { election: Election }) {
                           {position.is_active ? <Eye className="h-3 w-3 text-muted-foreground" /> : <EyeOff className="h-3 w-3 text-muted-foreground" />}
                           <Switch
                             checked={position.is_active}
-                            onCheckedChange={(checked) => toggleActive.mutate({ id: position.id, is_active: checked })}
+                            onCheckedChange={(checked) =>
+                              toggleActive.mutate({
+                                id: position.id,
+                                is_active: checked,
+                                election_id: election.id,
+                              })}
                             className="scale-75"
                           />
                         </div>

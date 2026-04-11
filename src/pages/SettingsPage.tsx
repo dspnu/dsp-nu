@@ -44,7 +44,10 @@ const NOTIFICATION_ITEMS = [
   { id: 'jobs', key: 'job_board_notifications', label: 'Job board', desc: 'Posting and approval activity' },
 ] as const;
 
-export default function SettingsPage() {
+/**
+ * Renders inside AppLayout so hooks like useAddToHomeScreen run under AddToHomeScreenProvider.
+ */
+function SettingsPageContent() {
   const isMobileLayout = useIsMobile();
   const { openAddToHomeScreen } = useAddToHomeScreen();
   const { profile, roles, user, signOut, refreshProfile } = useAuth();
@@ -276,7 +279,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <AppLayout>
+    <>
       <PageHeader title="Settings" description="Manage your account">
         <Button
           variant="ghost"
@@ -686,6 +689,14 @@ export default function SettingsPage() {
         onOpenChange={handleSettingsCropOpenChange}
         onCropComplete={handleSettingsCropComplete}
       />
+    </>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <AppLayout>
+      <SettingsPageContent />
     </AppLayout>
   );
 }

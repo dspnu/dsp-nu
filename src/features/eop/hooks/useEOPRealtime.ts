@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/core/auth/AuthContext';
@@ -14,6 +14,95 @@ interface VoteCounts {
   no: number;
   abstain: number;
   total: number;
+}
+
+type ReadyAgg = { count: number; userIds: string[] };
+
+type PgPayload = {
+  eventType: string;
+  new: Record<string, unknown> | null;
+  old: Record<string, unknown> | null;
+};
+
+function parseVoteRow(r: Record<string, unknown> | null): { candidate_id: string; vote: VoteType } | null {
+  if (!r || typeof r.candidate_id !== 'string') return null;
+  const v = r.vote;
+  if (v !== 'yes' && v !== 'no' && v !== 'abstain') return null;
+  return { candidate_id: r.candidate_id, vote: v };
+}
+
+function bumpVoteCount(
+  prev: Record<string, VoteCounts>,
+  candidateId: string,
+  vote: VoteType,
+  delta: number
+): Record<string, VoteCounts> {
+  const c = prev[candidateId] ?? { yes: 0, no: 0, abstain: 0, total: 0 };
+  return {
+    ...prev,
+    [candidateId]: {
+      ...c,
+      [vote]: Math.max(0, c[vote] + delta),
+      total: Math.max(0, c.total + delta),
+    },
+  };
+}
+
+function applyEopVoteRealtimePayload(
+  prev: Record<string, VoteCounts> | undefined,
+  payload: PgPayload
+): Record<string, VoteCounts> | undefined {
+  if (!prev) return prev;
+  const { eventType, new: n, old: o } = payload;
+  if (eventType === 'INSERT') {
+    const row = parseVoteRow(n);
+    return row ? bumpVoteCount(prev, row.candidate_id, row.vote, 1) : prev;
+  }
+  if (eventType === 'DELETE') {
+    const row = parseVoteRow(o);
+    return row ? bumpVoteCount(prev, row.candidate_id, row.vote, -1) : prev;
+  }
+  if (eventType === 'UPDATE') {
+    let next = prev;
+    const oldRow = parseVoteRow(o);
+    if (oldRow) next = bumpVoteCount(next, oldRow.candidate_id, oldRow.vote, -1);
+    const newRow = parseVoteRow(n);
+    if (newRow) next = bumpVoteCount(next, newRow.candidate_id, newRow.vote, 1);
+    return next;
+  }
+  return prev;
+}
+
+function applyEopReadyRealtimePayload(
+  prev: Record<string, ReadyAgg> | undefined,
+  payload: PgPayload
+): Record<string, ReadyAgg> | undefined {
+  if (!prev) return prev;
+  const { eventType, new: n, old: o } = payload;
+  if (eventType === 'INSERT') {
+    const c = n && typeof n.candidate_id === 'string' ? n.candidate_id : null;
+    const u = n && typeof n.user_id === 'string' ? n.user_id : null;
+    if (!c || !u) return prev;
+    const cur = prev[c] ?? { count: 0, userIds: [] };
+    if (cur.userIds.includes(u)) return prev;
+    return {
+      ...prev,
+      [c]: { count: cur.count + 1, userIds: [...cur.userIds, u] },
+    };
+  }
+  if (eventType === 'DELETE') {
+    const c = o && typeof o.candidate_id === 'string' ? o.candidate_id : null;
+    const u = o && typeof o.user_id === 'string' ? o.user_id : null;
+    if (!c || !u) return prev;
+    const cur = prev[c];
+    if (!cur) return prev;
+    const userIds = cur.userIds.filter((x) => x !== u);
+    return {
+      ...prev,
+      [c]: { count: userIds.length, userIds },
+    };
+  }
+  return prev;
 }
 
 export function useIsVPChapterOps() {
@@ -92,9 +181,20 @@ export function useRealtimeVoteCounts() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'eop_votes' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['eop-vote-counts-realtime'] });
-          queryClient.invalidateQueries({ queryKey: ['my-eop-vote-realtime'] });
+        (payload: PgPayload) => {
+          queryClient.setQueryData(['eop-vote-counts-realtime'], (past) => {
+            if (past === undefined) {
+              void queryClient.invalidateQueries({ queryKey: ['eop-vote-counts-realtime'] });
+              return past;
+            }
+            return applyEopVoteRealtimePayload(past, payload) ?? past;
+          });
+          const row = (payload.new ?? payload.old) as Record<string, unknown> | null;
+          const candId = row && typeof row.candidate_id === 'string' ? row.candidate_id : null;
+          const voterId = row && typeof row.voter_id === 'string' ? row.voter_id : null;
+          if (candId && voterId) {
+            void queryClient.invalidateQueries({ queryKey: ['my-eop-vote-realtime', candId, voterId] });
+          }
         }
       )
       .subscribe();
@@ -143,7 +243,7 @@ export function useRealtimeReadyCounts() {
 
       if (error) throw error;
       
-      const counts: Record<string, { count: number; userIds: string[] }> = {};
+      const counts: Record<string, ReadyAgg> = {};
       
       data.forEach((ready) => {
         if (!counts[ready.candidate_id]) {
@@ -163,8 +263,14 @@ export function useRealtimeReadyCounts() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'eop_ready' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['eop-ready-counts-realtime'] });
+        (payload: PgPayload) => {
+          queryClient.setQueryData(['eop-ready-counts-realtime'], (past) => {
+            if (past === undefined) {
+              void queryClient.invalidateQueries({ queryKey: ['eop-ready-counts-realtime'] });
+              return past;
+            }
+            return applyEopReadyRealtimePayload(past, payload) ?? past;
+          });
         }
       )
       .subscribe();
@@ -204,9 +310,6 @@ export function useToggleReady() {
         if (error) throw error;
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['eop-ready-counts-realtime'] });
-    },
     onError: (error) => {
       toast.error('Failed to update ready status: ' + error.message);
     },
@@ -243,9 +346,10 @@ export function useCastVoteRealtime() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-eop-vote-realtime'] });
-      queryClient.invalidateQueries({ queryKey: ['eop-vote-counts-realtime'] });
+    onSuccess: (data, { candidateId }) => {
+      if (user) {
+        queryClient.setQueryData(['my-eop-vote-realtime', candidateId, user.id], data);
+      }
       toast.success('Vote submitted!');
     },
     onError: (error) => {
@@ -282,9 +386,10 @@ export function useChangeVote() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-eop-vote-realtime'] });
-      queryClient.invalidateQueries({ queryKey: ['eop-vote-counts-realtime'] });
+    onSuccess: (data, { candidateId }) => {
+      if (user) {
+        queryClient.setQueryData(['my-eop-vote-realtime', candidateId, user.id], data);
+      }
       toast.success('Vote changed successfully!');
     },
     onError: (error) => {
@@ -327,7 +432,6 @@ export function useToggleVotingRealtime() {
     },
     onSuccess: (_, { votingOpen }) => {
       queryClient.invalidateQueries({ queryKey: ['eop-candidates-realtime'] });
-      queryClient.invalidateQueries({ queryKey: ['eop-ready-counts-realtime'] });
       toast.success(votingOpen ? 'Voting opened' : 'Voting closed');
     },
     onError: (error) => {
@@ -350,8 +454,7 @@ export function useClearVotes() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['eop-vote-counts-realtime'] });
-      queryClient.invalidateQueries({ queryKey: ['my-eop-vote-realtime'] });
+      void queryClient.invalidateQueries({ queryKey: ['my-eop-vote-realtime'] });
       toast.success('Votes cleared');
     },
     onError: (error) => {

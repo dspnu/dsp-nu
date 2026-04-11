@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,14 +8,14 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import {
   useElections, useElectionPositions, useElectionCandidates,
-  useMyElectionVotes, useCastVote,
+  useMyElectionVotes, useCastVote, useStableSortedPositionIds,
   Election,
 } from '@/features/elections/hooks/useElections';
 
 function VotingSection({ election }: { election: Election }) {
   const { user } = useAuth();
   const { data: positions = [] } = useElectionPositions(election.id);
-  const positionIds = useMemo(() => positions.map(p => p.id), [positions]);
+  const positionIds = useStableSortedPositionIds(positions);
   const { data: candidates = [] } = useElectionCandidates(positionIds);
   const { data: myVotes = [] } = useMyElectionVotes(positionIds);
   const castVote = useCastVote();
@@ -91,18 +91,30 @@ export function ElectionVotingCards() {
   const { data: elections = [] } = useElections();
   const openElections = elections.filter(e => e.status === 'open');
 
-  // Realtime: refresh when elections, positions, or candidates change
+  // Realtime: avoid invalidating every client's position/candidate queries on any org-wide row change.
   useEffect(() => {
     const channel = supabase
       .channel('home-election-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'elections' }, () => {
         queryClient.invalidateQueries({ queryKey: ['elections'] });
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'election_positions' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['election-positions'] });
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'election_positions' }, (payload) => {
+        const row = (payload.new ?? payload.old) as { election_id?: string } | null;
+        const eid = row && typeof row.election_id === 'string' ? row.election_id : null;
+        if (eid) {
+          queryClient.invalidateQueries({ queryKey: ['election-positions', eid] });
+        }
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'election_candidates' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['election-candidates'] });
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'election_candidates' }, (payload) => {
+        const row = (payload.new ?? payload.old) as { position_id?: string } | null;
+        const pid = row && typeof row.position_id === 'string' ? row.position_id : null;
+        if (!pid) return;
+        queryClient.invalidateQueries({
+          predicate: (q) =>
+            q.queryKey[0] === 'election-candidates' &&
+            Array.isArray(q.queryKey[1]) &&
+            (q.queryKey[1] as string[]).includes(pid),
+        });
       })
       .subscribe();
 
