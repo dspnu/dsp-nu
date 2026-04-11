@@ -8,8 +8,9 @@ import { VPScholarshipDashboard } from '@/features/admin/components/VPScholarshi
 import { PresidentDashboard } from '@/features/admin/components/PresidentDashboard';
 import { VPFinanceDashboard } from '@/features/admin/components/VPFinanceDashboard';
 import { ChancellorDashboard } from '@/features/admin/components/ChancellorDashboard';
+import { VPBrotherhoodDashboard } from '@/features/admin/components/VPBrotherhoodDashboard';
 import { ChapterAnnouncementCard } from '@/features/chapter/components/ChapterAnnouncementCard';
-import { hasPosition as checkPosition } from '@/config/org';
+import { hasPosition as checkPosition, org } from '@/config/org';
 
 interface AdminDashboardEntry {
   positions: string[];
@@ -26,6 +27,7 @@ const adminDashboards: AdminDashboardEntry[] = [
   { positions: ['President'], component: PresidentDashboard },
   { positions: ['VP Finance', 'VP of Finance'], component: VPFinanceDashboard, featureFlag: 'dues' },
   { positions: ['Chancellor'], component: ChancellorDashboard, featureFlag: 'eop' },
+  { positions: ['VP of Brotherhood'], component: VPBrotherhoodDashboard, featureFlag: 'ticketing' },
 ];
 
 export function AdminTab() {
@@ -34,7 +36,8 @@ export function AdminTab() {
 
   return (
     <div className="space-y-8">
-      {adminDashboards.map(({ positions, component: Dashboard, useHook }, idx) => {
+      {adminDashboards.map(({ positions, component: Dashboard, useHook, featureFlag }, idx) => {
+        if (featureFlag && !org.features[featureFlag]) return null;
         const hasPos = useHook
           ? isVPChapterOps
           : checkPosition(profile, ...positions);
