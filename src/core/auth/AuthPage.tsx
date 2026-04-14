@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/core/auth/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -13,11 +13,30 @@ import { supabase } from '@/integrations/supabase/client';
 import { org } from '@/config/org';
 import { AccountLegalNotice } from '@/components/legal/AccountLegalNotice';
 import { AppCopyrightFooter } from '@/components/layout/AppCopyrightFooter';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+
+type LastUsedLoginMethod = 'google' | 'email';
+
+const LAST_USED_LOGIN_METHOD_KEY = 'dsp:last-login-method';
 
 export default function AuthPage() {
   const { user, loading, signIn, signUp, profile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [lastUsedLoginMethod, setLastUsedLoginMethod] = useState<LastUsedLoginMethod | null>(null);
+
+  useEffect(() => {
+    const savedMethod = window.localStorage.getItem(LAST_USED_LOGIN_METHOD_KEY);
+    if (savedMethod === 'google' || savedMethod === 'email') {
+      setLastUsedLoginMethod(savedMethod);
+    }
+  }, []);
+
+  const persistLastUsedLoginMethod = (method: LastUsedLoginMethod) => {
+    setLastUsedLoginMethod(method);
+    window.localStorage.setItem(LAST_USED_LOGIN_METHOD_KEY, method);
+  };
 
   const getRedirectUrl = () => {
     const origin = window.location.origin.replace(/\/$/, '');
@@ -40,7 +59,10 @@ export default function AuthPage() {
     if (error) {
       toast.error(error.message);
       setIsGoogleLoading(false);
+      return;
     }
+
+    persistLastUsedLoginMethod('google');
   };
 
   if (loading) {
@@ -68,6 +90,7 @@ export default function AuthPage() {
     if (error) {
       toast.error(error.message);
     } else {
+      persistLastUsedLoginMethod('email');
       toast.success('Welcome back!');
     }
     setIsSubmitting(false);
@@ -117,7 +140,10 @@ export default function AuthPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full"
+                    className={cn(
+                      'relative w-full',
+                      lastUsedLoginMethod === 'google' && 'border-primary/50 bg-primary/5 ring-1 ring-primary/30 pr-20'
+                    )}
                     onClick={handleGoogleSignIn}
                     disabled={isGoogleLoading}
                   >
@@ -132,6 +158,14 @@ export default function AuthPage() {
                       </svg>
                     )}
                     Continue with Google
+                    {lastUsedLoginMethod === 'google' && (
+                      <Badge
+                        variant="outline"
+                        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 border-primary/35 bg-primary/10 text-[10px] font-semibold uppercase tracking-wide text-primary"
+                      >
+                        Last used
+                      </Badge>
+                    )}
                   </Button>
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
@@ -150,9 +184,24 @@ export default function AuthPage() {
                       <Label htmlFor="signin-password">Password</Label>
                       <Input id="signin-password" name="password" type="password" required placeholder="••••••••" />
                     </div>
-                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                    <Button
+                      type="submit"
+                      className={cn(
+                        'relative w-full',
+                        lastUsedLoginMethod === 'email' && 'ring-1 ring-primary/35 pr-20'
+                      )}
+                      disabled={isSubmitting}
+                    >
                       {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Sign In
+                      {lastUsedLoginMethod === 'email' && (
+                        <Badge
+                          variant="outline"
+                          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 border-primary/35 bg-primary/10 text-[10px] font-semibold uppercase tracking-wide text-primary"
+                        >
+                          Last used
+                        </Badge>
+                      )}
                     </Button>
                   </form>
                 </div>
