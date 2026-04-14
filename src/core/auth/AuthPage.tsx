@@ -14,6 +14,7 @@ import { org } from '@/config/org';
 import { AccountLegalNotice } from '@/components/legal/AccountLegalNotice';
 import { AppCopyrightFooter } from '@/components/layout/AppCopyrightFooter';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 type LastUsedLoginMethod = 'google' | 'email';
 
@@ -174,6 +175,16 @@ export default function AuthPage() {
                         lastUsedLoginMethod === 'email' && 'border border-primary/50 bg-primary/5 p-3 ring-1 ring-primary/30'
                       )}
                     >
+                      {lastUsedLoginMethod === 'email' && (
+                        <div className="flex justify-end">
+                          <Badge
+                            variant="outline"
+                            className="pointer-events-none border-primary/35 bg-primary/10 text-[10px] font-semibold uppercase tracking-wide text-primary"
+                          >
+                            Last used
+                          </Badge>
+                        </div>
+                      )}
                       <div className="space-y-2">
                         <Label htmlFor="signin-email">Email</Label>
                         <Input id="signin-email" name="email" type="email" required placeholder={org.auth.emailPlaceholder} />
