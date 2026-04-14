@@ -82,6 +82,8 @@ export default function AuthPage() {
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+    // Persist immediately to avoid auth-navigation timing races.
+    persistLastUsedLoginMethod('email');
     const formData = new FormData(e.currentTarget);
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
@@ -90,7 +92,6 @@ export default function AuthPage() {
     if (error) {
       toast.error(error.message);
     } else {
-      persistLastUsedLoginMethod('email');
       toast.success('Welcome back!');
     }
     setIsSubmitting(false);
