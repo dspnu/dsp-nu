@@ -142,7 +142,7 @@ export default function AuthPage() {
                     type="button"
                     variant="outline"
                     className={cn(
-                      'w-full',
+                      'relative w-full',
                       lastUsedLoginMethod === 'google' && 'border-primary/50 bg-primary/5 ring-1 ring-primary/30'
                     )}
                     onClick={handleGoogleSignIn}
@@ -159,6 +159,14 @@ export default function AuthPage() {
                       </svg>
                     )}
                     Continue with Google
+                    {lastUsedLoginMethod === 'google' && (
+                      <Badge
+                        variant="outline"
+                        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 border-primary/35 bg-primary/10 text-[10px] font-semibold uppercase tracking-wide text-primary"
+                      >
+                        Last used
+                      </Badge>
+                    )}
                   </Button>
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
@@ -175,18 +183,18 @@ export default function AuthPage() {
                         lastUsedLoginMethod === 'email' && 'border border-primary/50 bg-primary/5 p-3 ring-1 ring-primary/30'
                       )}
                     >
-                      {lastUsedLoginMethod === 'email' && (
-                        <div className="flex justify-end">
-                          <Badge
-                            variant="outline"
-                            className="pointer-events-none border-primary/35 bg-primary/10 text-[10px] font-semibold uppercase tracking-wide text-primary"
-                          >
-                            Last used
-                          </Badge>
-                        </div>
-                      )}
                       <div className="space-y-2">
-                        <Label htmlFor="signin-email">Email</Label>
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="signin-email">Email</Label>
+                          {lastUsedLoginMethod === 'email' && (
+                            <Badge
+                              variant="outline"
+                              className="pointer-events-none border-primary/35 bg-primary/10 text-[10px] font-semibold uppercase tracking-wide text-primary"
+                            >
+                              Last used
+                            </Badge>
+                          )}
+                        </div>
                         <Input id="signin-email" name="email" type="email" required placeholder={org.auth.emailPlaceholder} />
                       </div>
                       <div className="space-y-2">
