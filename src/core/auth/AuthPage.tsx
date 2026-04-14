@@ -137,14 +137,6 @@ export default function AuthPage() {
               <CardContent>
                 <TabsContent value="signin" className="mt-0">
                 <div className="space-y-4">
-                  {lastUsedLoginMethod && (
-                    <p className="text-xs text-muted-foreground">
-                      Last used sign-in method:{' '}
-                      <span className="font-medium text-foreground">
-                        {lastUsedLoginMethod === 'google' ? 'Google' : 'Email + password'}
-                      </span>
-                    </p>
-                  )}
                   <Button
                     type="button"
                     variant="outline"
@@ -176,19 +168,25 @@ export default function AuthPage() {
                     </div>
                   </div>
                   <form onSubmit={handleSignIn} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="signin-email">Email</Label>
-                      <Input id="signin-email" name="email" type="email" required placeholder={org.auth.emailPlaceholder} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signin-password">Password</Label>
-                      <Input id="signin-password" name="password" type="password" required placeholder="••••••••" />
+                    <div
+                      className={cn(
+                        'space-y-4 rounded-md',
+                        lastUsedLoginMethod === 'email' && 'border border-primary/50 bg-primary/5 p-3 ring-1 ring-primary/30'
+                      )}
+                    >
+                      <div className="space-y-2">
+                        <Label htmlFor="signin-email">Email</Label>
+                        <Input id="signin-email" name="email" type="email" required placeholder={org.auth.emailPlaceholder} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="signin-password">Password</Label>
+                        <Input id="signin-password" name="password" type="password" required placeholder="••••••••" />
+                      </div>
                     </div>
                     <Button
                       type="submit"
                       className={cn(
-                        'w-full',
-                        lastUsedLoginMethod === 'email' && 'ring-1 ring-primary/35'
+                        'w-full'
                       )}
                       disabled={isSubmitting}
                     >
