@@ -14,7 +14,6 @@ import { org } from '@/config/org';
 import { AccountLegalNotice } from '@/components/legal/AccountLegalNotice';
 import { AppCopyrightFooter } from '@/components/layout/AppCopyrightFooter';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
 
 type LastUsedLoginMethod = 'google' | 'email';
 
@@ -138,12 +137,20 @@ export default function AuthPage() {
               <CardContent>
                 <TabsContent value="signin" className="mt-0">
                 <div className="space-y-4">
+                  {lastUsedLoginMethod && (
+                    <p className="text-xs text-muted-foreground">
+                      Last used sign-in method:{' '}
+                      <span className="font-medium text-foreground">
+                        {lastUsedLoginMethod === 'google' ? 'Google' : 'Email + password'}
+                      </span>
+                    </p>
+                  )}
                   <Button
                     type="button"
                     variant="outline"
                     className={cn(
-                      'relative w-full',
-                      lastUsedLoginMethod === 'google' && 'border-primary/50 bg-primary/5 ring-1 ring-primary/30 pr-20'
+                      'w-full',
+                      lastUsedLoginMethod === 'google' && 'border-primary/50 bg-primary/5 ring-1 ring-primary/30'
                     )}
                     onClick={handleGoogleSignIn}
                     disabled={isGoogleLoading}
@@ -159,14 +166,6 @@ export default function AuthPage() {
                       </svg>
                     )}
                     Continue with Google
-                    {lastUsedLoginMethod === 'google' && (
-                      <Badge
-                        variant="outline"
-                        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 border-primary/35 bg-primary/10 text-[10px] font-semibold uppercase tracking-wide text-primary"
-                      >
-                        Last used
-                      </Badge>
-                    )}
                   </Button>
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
@@ -188,21 +187,13 @@ export default function AuthPage() {
                     <Button
                       type="submit"
                       className={cn(
-                        'relative w-full',
-                        lastUsedLoginMethod === 'email' && 'ring-1 ring-primary/35 pr-20'
+                        'w-full',
+                        lastUsedLoginMethod === 'email' && 'ring-1 ring-primary/35'
                       )}
                       disabled={isSubmitting}
                     >
                       {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Sign In
-                      {lastUsedLoginMethod === 'email' && (
-                        <Badge
-                          variant="outline"
-                          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 border-primary/35 bg-primary/10 text-[10px] font-semibold uppercase tracking-wide text-primary"
-                        >
-                          Last used
-                        </Badge>
-                      )}
                     </Button>
                   </form>
                 </div>
