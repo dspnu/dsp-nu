@@ -31,6 +31,7 @@ export default defineConfig(({ mode }) => ({
         orientation: "portrait-primary",
         scope: "/",
         start_url: "/",
+        iarc_rating_id: process.env.VITE_IARC_RATING_ID,
         related_applications: [],
         prefer_related_applications: false,
         screenshots: [
