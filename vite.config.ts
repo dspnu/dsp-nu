@@ -65,6 +65,16 @@ export default defineConfig(({ mode }) => ({
           { name: "Events", url: "/events", description: `View ${org.terms.chapter.toLowerCase()} events` },
           { name: "Members", url: "/people", description: "View member directory" },
         ],
+        share_target: {
+          action: "/",
+          method: "GET",
+          enctype: "application/x-www-form-urlencoded",
+          params: {
+            title: "title",
+            text: "text",
+            url: "url",
+          },
+        },
       },
       workbox: {
         // Work around intermittent terser exits during SW generation.
