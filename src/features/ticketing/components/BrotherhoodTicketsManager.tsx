@@ -35,13 +35,14 @@ import {
   useCancelMyTicket,
   useCheckInTicket,
   useClaimTicket,
+  useDeleteTicketedEvent,
   useUpdateTicketPayment,
 } from '@/features/ticketing/hooks/useTicketMutations';
 import { TicketedEventFormDialog } from '@/features/ticketing/components/TicketedEventFormDialog';
 import { TicketQrBlock } from '@/features/ticketing/components/TicketQrBlock';
 import { TicketCheckInTools } from '@/features/ticketing/components/TicketCheckInTools';
 import { format } from 'date-fns';
-import { ExternalLink, Loader2, Ticket as TicketIcon } from 'lucide-react';
+import { ExternalLink, Loader2, Ticket as TicketIcon, Trash2 } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
 
@@ -99,6 +100,7 @@ export function BrotherhoodTicketsManager({
   const claim = useClaimTicket();
   const cancelTicket = useCancelMyTicket();
   const assignTicket = useAssignTicket();
+  const deleteEvent = useDeleteTicketedEvent();
   const updatePayment = useUpdateTicketPayment();
   const checkIn = useCheckInTicket();
 
@@ -417,6 +419,23 @@ export function BrotherhoodTicketsManager({
                       </Button>
                     }
                   />
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    disabled={deleteEvent.isPending}
+                    onClick={async () => {
+                      if (!selectedAdminEvent) return;
+                      const ok = confirm(
+                        `Delete "${selectedAdminEvent.title}"? This also deletes all tickets for this event.`
+                      );
+                      if (!ok) return;
+                      await deleteEvent.mutateAsync(selectedAdminEvent.id);
+                      setAdminEventId(null);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete
+                  </Button>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex flex-wrap gap-2 border-b pb-3">

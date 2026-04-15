@@ -69,6 +69,26 @@ export function useUpdateTicketedEvent() {
   });
 }
 
+export function useDeleteTicketedEvent() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('ticketed_events').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ticketed-events'] });
+      queryClient.invalidateQueries({ queryKey: ['event-tickets'] });
+      toast({ title: 'Event deleted' });
+    },
+    onError: (e: Error) => {
+      toast({ title: 'Could not delete event', description: e.message, variant: 'destructive' });
+    },
+  });
+}
+
 export function useClaimTicket() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
