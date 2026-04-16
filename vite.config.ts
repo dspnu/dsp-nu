@@ -39,6 +39,11 @@ export default defineConfig(({ mode }) => ({
         dir: "ltr",
         display: "standalone",
         display_override: ["tabbed", "window-controls-overlay", "standalone"],
+        // Microsoft Edge: opt in to pinning the installed PWA in the browser side panel.
+        // https://learn.microsoft.com/en-us/microsoft-edge/progressive-web-apps/how-to/sidebar
+        edge_side_panel: {
+          preferred_width: 480,
+        },
         tab_strip: {
           home_tab: {
             scope_patterns: [{ pathname: "/" }],
