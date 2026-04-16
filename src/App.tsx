@@ -22,6 +22,7 @@ import HelpPage from "./pages/HelpPage";
 import NotFound from "./pages/NotFound";
 import OnboardingPage from "@/core/auth/OnboardingPage";
 import { PwaLaunchBridge } from "@/components/pwa/PwaLaunchBridge";
+import { PwaBackgroundSyncBridge } from "@/components/pwa/PwaBackgroundSyncBridge";
 import PwaOpenPage from "./pages/PwaOpenPage";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <PwaLaunchBridge />
+            <PwaBackgroundSyncBridge />
             <Routes>
               {/* Core routes - always present */}
               <Route path="/auth" element={<AuthPage />} />
