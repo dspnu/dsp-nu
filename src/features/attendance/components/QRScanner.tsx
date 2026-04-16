@@ -24,12 +24,16 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
 
     scanner.render(
       (decodedText) => {
-        // Extract event ID from URL
-        const url = new URL(decodedText);
-        const eventId = url.searchParams.get('checkin');
-        if (eventId) {
-          onScan(eventId);
-          scanner.clear();
+        try {
+          // Extract event ID from URL
+          const url = new URL(decodedText);
+          const eventId = url.searchParams.get('checkin');
+          if (eventId) {
+            onScan(eventId);
+            scanner.clear();
+          }
+        } catch {
+          // Not a URL; ignore.
         }
       },
       (error) => {
