@@ -15,8 +15,15 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "icons/*.png"],
+      injectManifest: {
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+      },
       manifest: {
         name: `${org.name} - ${org.chapterName}`,
         short_name: org.shortName,
@@ -75,38 +82,37 @@ export default defineConfig(({ mode }) => ({
             url: "url",
           },
         },
-      },
-      workbox: {
-        // Work around intermittent terser exits during SW generation.
-        mode: "development",
-        // Our main bundle can exceed Workbox's default 2MiB precache limit.
-        // Increasing this prevents production builds from failing when the app grows.
-        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
-        navigateFallbackDenylist: [/^\/~oauth/],
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-        runtimeCaching: [
+        launch_handler: {
+          client_mode: "navigate-existing",
+        },
+        file_handlers: [
           {
-            // Never cache auth/session endpoints to avoid stale session behavior under load.
-            urlPattern: /^https:\/\/.*\.supabase\.co\/auth\/v1\/.*/i,
-            handler: "NetworkOnly",
-          },
-          {
-            // Election data should always be fresh during active voting.
-            urlPattern:
-              /^https:\/\/.*\.supabase\.co\/rest\/v1\/(election_votes|election_positions|election_candidates|elections).*/i,
-            handler: "NetworkOnly",
-          },
-          {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
-            handler: "NetworkFirst",
-            method: "GET",
-            options: {
-              cacheName: "supabase-cache",
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24,
-              },
+            action: "/pwa-open",
+            accept: {
+              "text/calendar": [".ics"],
+              "text/csv": [".csv"],
+              "application/pdf": [".pdf"],
             },
+            launch_type: "single-client",
+          },
+        ],
+        widgets: [
+          {
+            name: `${org.shortName} — At a glance`,
+            short_name: "Glance",
+            description: "Shortcuts to Events, Members, and Home",
+            tag: "chapter-glance",
+            template: "content-item",
+            data: "/pwa-widgets/glance.data.json",
+            type: "application/json",
+            ms_ac_template: "/pwa-widgets/glance.ac.json",
+            auth: true,
+            update: 3600,
+            actions: [
+              { action: "events", title: "Events" },
+              { action: "members", title: "Members" },
+              { action: "home", title: "Home" },
+            ],
           },
         ],
       },

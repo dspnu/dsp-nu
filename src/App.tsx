@@ -21,6 +21,8 @@ import NotificationsPage from "./pages/NotificationsPage";
 import HelpPage from "./pages/HelpPage";
 import NotFound from "./pages/NotFound";
 import OnboardingPage from "@/core/auth/OnboardingPage";
+import { PwaLaunchBridge } from "@/components/pwa/PwaLaunchBridge";
+import PwaOpenPage from "./pages/PwaOpenPage";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +37,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <PwaLaunchBridge />
             <Routes>
               {/* Core routes - always present */}
               <Route path="/auth" element={<AuthPage />} />
@@ -48,6 +51,7 @@ const App = () => (
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/help" element={<HelpPage />} />
+              <Route path="/pwa-open" element={<PwaOpenPage />} />
 
               {/* Feature routes - dynamically registered */}
               {featureRoutes.map(r => (
