@@ -18,6 +18,10 @@ export default defineConfig(({ mode }) => ({
       strategies: "injectManifest",
       srcDir: "src",
       filename: "sw.ts",
+      // Inline registration in index.html so tools (e.g. PWABuilder report card) that scan HTML
+      // can see the SW without parsing the main bundle. With default `auto` + `virtual:pwa-register`
+      // in the app bundle, the plugin does not inject into HTML.
+      injectRegister: "inline",
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "icons/*.png"],
       injectManifest: {
