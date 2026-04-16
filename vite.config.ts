@@ -54,6 +54,18 @@ export default defineConfig(({ mode }) => ({
         },
         orientation: "portrait-primary",
         scope: "/",
+        // Additional origins that should be treated as "in-scope" for the PWA.
+        // Requires a matching `/.well-known/web-app-origin-association` on the extended origin(s).
+        scope_extensions: [
+          {
+            type: "origin",
+            origin: `https://${org.domain}`,
+          },
+          {
+            type: "origin",
+            origin: `https://www.${org.domain}`,
+          },
+        ],
         start_url: "/",
         iarc_rating_id: process.env.VITE_IARC_RATING_ID,
         related_applications: [],
