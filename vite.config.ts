@@ -38,7 +38,15 @@ export default defineConfig(({ mode }) => ({
         lang: "en",
         dir: "ltr",
         display: "standalone",
-        display_override: ["window-controls-overlay", "standalone"],
+        display_override: ["tabbed", "window-controls-overlay", "standalone"],
+        tab_strip: {
+          home_tab: {
+            scope_patterns: [{ pathname: "/" }],
+          },
+          new_tab_button: {
+            url: "/events",
+          },
+        },
         orientation: "portrait-primary",
         scope: "/",
         start_url: "/",
@@ -87,8 +95,15 @@ export default defineConfig(({ mode }) => ({
           },
         },
         launch_handler: {
-          client_mode: "navigate-existing",
+          // With `display_override` tabbed mode, opens launches in a new in-app tab when possible.
+          client_mode: "navigate-new",
         },
+        protocol_handlers: [
+          {
+            protocol: "web+dspnu",
+            url: "/pwa-protocol?uri=%s",
+          },
+        ],
         file_handlers: [
           {
             action: "/pwa-open",
