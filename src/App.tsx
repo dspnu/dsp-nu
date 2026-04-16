@@ -24,6 +24,7 @@ import OnboardingPage from "@/core/auth/OnboardingPage";
 import { PwaLaunchBridge } from "@/components/pwa/PwaLaunchBridge";
 import { PwaBackgroundSyncBridge } from "@/components/pwa/PwaBackgroundSyncBridge";
 import PwaOpenPage from "./pages/PwaOpenPage";
+import PwaProtocolPage from "./pages/PwaProtocolPage";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/help" element={<HelpPage />} />
               <Route path="/pwa-open" element={<PwaOpenPage />} />
+              <Route path="/pwa-protocol" element={<PwaProtocolPage />} />
 
               {/* Feature routes - dynamically registered */}
               {featureRoutes.map(r => (
