@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/core/layout/AppLayout';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -20,6 +21,7 @@ import { downloadICS } from '@/lib/calendar';
 import { Tables } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
 import { org } from '@/config/org';
+import { parseFirstVeventPreview } from '@/lib/icsPreview';
 
 type Event = Tables<'events'>;
 
@@ -33,6 +35,21 @@ export default function EventsPage() {
   const { data: events, isLoading } = useEvents();
   const { canManageEvents, profile } = useAuth();
   const { toast } = useToast();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const text = (location.state as { pendingIcsText?: string } | null)?.pendingIcsText;
+    if (!text) return;
+    navigate('.', { replace: true, state: {} });
+    const prev = parseFirstVeventPreview(text);
+    toast({
+      title: 'Calendar file',
+      description: prev?.summary
+        ? `From your device: ${prev.summary}${prev.startRaw ? ` — ${prev.startRaw}` : ''}`
+        : 'A calendar file was opened from your device. You can export the chapter calendar from this page anytime.',
+    });
+  }, [location.state, navigate, toast]);
 
   // Check if user has positions (for exec events visibility)
   const hasPositions = (profile?.positions?.length ?? 0) > 0;
