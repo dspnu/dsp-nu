@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { AppLayout } from '@/core/layout/AppLayout';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ import { uploadCroppedAvatar } from '@/core/members/lib/uploadCroppedAvatar';
 import { useNotificationPreferences, useUpdateNotificationPreferences } from '@/features/notifications/hooks/useNotifications';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { LogOut, Bell, Palette, ExternalLink, ChevronRight, Download, Trash2, Shield, ShieldCheck, Loader2, Upload, Award, Clock, DollarSign, Coffee, Crop, Smartphone } from 'lucide-react';
+import { LogOut, Bell, Palette, ExternalLink, ChevronRight, Download, Trash2, Shield, ShieldCheck, Loader2, Upload, Award, Clock, DollarSign, Coffee, Crop, Smartphone, RefreshCw } from 'lucide-react';
 import { legal } from '@/config/legal';
 import { supabase } from '@/integrations/supabase/client';
 import { useServiceHours } from '@/features/service-hours/hooks/useServiceHours';
@@ -33,6 +33,18 @@ import {
 import { Input } from '@/components/ui/input';
 import { useAddToHomeScreen } from '@/components/pwa/AddToHomeScreenPrompt';
 import { useIsMobile } from '@/hooks/use-mobile';
+import {
+  getPeriodicSyncEnabled,
+  registerPeriodicContentSync,
+  registerDeferredBackgroundSync,
+  setPeriodicSyncEnabled,
+  subscribeToWebPush,
+  supportsBackgroundSync,
+  supportsPeriodicBackgroundSync,
+  supportsWebPush,
+  unsubscribeFromWebPush,
+  unregisterPeriodicContentSync,
+} from '@/lib/pwaAdvancedFeatures';
 
 const NOTIFICATION_ITEMS = [
   { id: 'push', key: 'push_enabled', label: 'Push notifications', desc: 'Browser push notifications (when available)' },
@@ -43,6 +55,9 @@ const NOTIFICATION_ITEMS = [
   { id: 'coffee', key: 'coffee_chat_notifications', label: 'Coffee chats', desc: 'Scheduling and confirmations' },
   { id: 'jobs', key: 'job_board_notifications', label: 'Job board', desc: 'Posting and approval activity' },
 ] as const;
+
+const PUSH_PREF = NOTIFICATION_ITEMS[0];
+const OTHER_NOTIFICATION_ITEMS = NOTIFICATION_ITEMS.slice(1);
 
 /**
  * Renders inside AppLayout so hooks like useAddToHomeScreen run under AddToHomeScreenProvider.
@@ -69,6 +84,12 @@ function SettingsPageContent() {
   const [settingsCropFile, setSettingsCropFile] = useState<File | null>(null);
   const [settingsCropOpen, setSettingsCropOpen] = useState(false);
   const [settingsPhotoUploading, setSettingsPhotoUploading] = useState(false);
+  const [periodicSyncUi, setPeriodicSyncUi] = useState(getPeriodicSyncEnabled);
+  const [pushToggleBusy, setPushToggleBusy] = useState(false);
+
+  useEffect(() => {
+    setPeriodicSyncUi(getPeriodicSyncEnabled());
+  }, []);
 
   const { data: dues } = useQuery({
     queryKey: ['member-dues', user?.id],
@@ -96,6 +117,88 @@ function SettingsPageContent() {
 
   const handlePrefChange = (key: string, value: boolean) => {
     updatePrefs.mutate({ [key]: value });
+  };
+
+  const handlePushToggle = async (val: boolean) => {
+    if (val) {
+      if (!supportsWebPush()) {
+        toast({
+          title: 'Not supported',
+          description: 'Web Push is not available in this browser.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      const vapid = import.meta.env.VITE_VAPID_PUBLIC_KEY?.trim();
+      if (!vapid) {
+        toast({
+          title: 'Push not configured',
+          description:
+            'Add VITE_VAPID_PUBLIC_KEY to your environment for Web Push. Your server uses the matching private key to send notifications.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      setPushToggleBusy(true);
+      try {
+        const perm = await Notification.requestPermission();
+        if (perm !== 'granted') {
+          toast({
+            title: 'Notifications blocked',
+            description: 'Allow notifications for this site in your browser settings to enable push.',
+            variant: 'destructive',
+          });
+          return;
+        }
+        await subscribeToWebPush(vapid);
+        updatePrefs.mutate({ push_enabled: true });
+        toast({ title: 'Push notifications enabled' });
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Could not subscribe to push';
+        toast({ title: 'Push setup failed', description: message, variant: 'destructive' });
+      } finally {
+        setPushToggleBusy(false);
+      }
+    } else {
+      setPushToggleBusy(true);
+      try {
+        await unsubscribeFromWebPush();
+      } catch {
+        /* ignore */
+      } finally {
+        setPushToggleBusy(false);
+      }
+      updatePrefs.mutate({ push_enabled: false });
+    }
+  };
+
+  const handlePeriodicSyncToggle = async (val: boolean) => {
+    if (!supportsPeriodicBackgroundSync()) {
+      toast({
+        title: 'Not supported',
+        description: 'Periodic background sync is not available in this browser (common on iOS/Safari).',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (val) {
+      try {
+        await registerPeriodicContentSync();
+        setPeriodicSyncEnabled(true);
+        setPeriodicSyncUi(true);
+        toast({
+          title: 'Periodic sync enabled',
+          description: 'Widget and cached content can refresh in the background when the browser allows.',
+        });
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Registration failed';
+        toast({ title: 'Could not enable periodic sync', description: message, variant: 'destructive' });
+      }
+    } else {
+      await unregisterPeriodicContentSync();
+      setPeriodicSyncEnabled(false);
+      setPeriodicSyncUi(false);
+    }
   };
 
   const handleDataUsageConsentChange = (value: boolean) => {
@@ -473,12 +576,70 @@ function SettingsPageContent() {
           </section>
         )}
 
+        {/* ── Offline & background ── */}
+        <section>
+          <SectionLabel icon={RefreshCw} label="Offline & background" />
+          <div className="rounded-xl border bg-card divide-y">
+            <div className="px-4 py-3.5 sm:px-5">
+              <p className="text-sm font-medium">Background sync</p>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                When you are offline, failed chapter API requests are queued and retried automatically when you have a
+                stable connection. Coming back online also schedules a one-shot sync to refresh cached content.
+              </p>
+              {supportsBackgroundSync() && (
+                <div className="mt-3 flex justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void registerDeferredBackgroundSync().then(() => toast({ title: 'Sync scheduled' }))}
+                  >
+                    Sync when online
+                  </Button>
+                </div>
+              )}
+            </div>
+            {supportsPeriodicBackgroundSync() && (
+              <div className="flex items-center justify-between px-4 py-3.5 sm:px-5">
+                <div className="min-w-0 pr-4">
+                  <Label htmlFor="periodic-sync" className="text-sm font-medium cursor-pointer">
+                    Periodic background refresh
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Prefetch widget data on a schedule so the app feels up to date when you open it (browser-controlled
+                    timing; often Chromium desktop/Android installed PWA).
+                  </p>
+                </div>
+                <Switch
+                  id="periodic-sync"
+                  checked={periodicSyncUi}
+                  onCheckedChange={(v) => void handlePeriodicSyncToggle(v)}
+                />
+              </div>
+            )}
+          </div>
+        </section>
+
         {/* ── Notifications ── */}
         <section>
           <SectionLabel icon={Bell} label="Notifications" />
           {prefs && (
             <div className="rounded-xl border bg-card divide-y">
-              {NOTIFICATION_ITEMS.map((item) => (
+              <div className="flex items-center justify-between px-4 py-3.5 sm:px-5">
+                <div className="min-w-0 pr-4">
+                  <Label htmlFor={PUSH_PREF.id} className="text-sm font-medium cursor-pointer">
+                    {PUSH_PREF.label}
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">{PUSH_PREF.desc}</p>
+                </div>
+                <Switch
+                  id={PUSH_PREF.id}
+                  checked={prefs[PUSH_PREF.key as keyof typeof prefs] as boolean}
+                  disabled={pushToggleBusy || updatePrefs.isPending}
+                  onCheckedChange={(v) => void handlePushToggle(v)}
+                />
+              </div>
+              {OTHER_NOTIFICATION_ITEMS.map((item) => (
                 <div key={item.id} className="flex items-center justify-between px-4 py-3.5 sm:px-5">
                   <div className="min-w-0 pr-4">
                     <Label htmlFor={item.id} className="text-sm font-medium cursor-pointer">
