@@ -45,6 +45,7 @@ import {
   unsubscribeFromWebPush,
   unregisterPeriodicContentSync,
 } from '@/lib/pwaAdvancedFeatures';
+import { disableNativePush, enableNativePush, isNativeApp } from '@/lib/nativePush';
 
 const NOTIFICATION_ITEMS = [
   { id: 'push', key: 'push_enabled', label: 'Push notifications', desc: 'Browser push notifications (when available)' },
@@ -120,6 +121,27 @@ function SettingsPageContent() {
   };
 
   const handlePushToggle = async (val: boolean) => {
+    if (isNativeApp()) {
+      setPushToggleBusy(true);
+      try {
+        if (val) {
+          await enableNativePush();
+          updatePrefs.mutate({ push_enabled: true });
+          toast({ title: 'Push notifications enabled' });
+        } else {
+          await disableNativePush();
+          updatePrefs.mutate({ push_enabled: false });
+          toast({ title: 'Push notifications disabled' });
+        }
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Could not configure push';
+        toast({ title: 'Push setup failed', description: message, variant: 'destructive' });
+      } finally {
+        setPushToggleBusy(false);
+      }
+      return;
+    }
+
     if (val) {
       if (!supportsWebPush()) {
         toast({
@@ -555,7 +577,7 @@ function SettingsPageContent() {
         </section>
 
         {/* ── Install app (phone) ── */}
-        {isMobileLayout && (
+        {isMobileLayout && !isNativeApp() && (
           <section>
             <SectionLabel icon={Smartphone} label="Install app" />
             <div className="rounded-xl border bg-card overflow-hidden">
@@ -599,7 +621,7 @@ function SettingsPageContent() {
                 </div>
               )}
             </div>
-            {supportsPeriodicBackgroundSync() && (
+            {!isNativeApp() && supportsPeriodicBackgroundSync() && (
               <div className="flex items-center justify-between px-4 py-3.5 sm:px-5">
                 <div className="min-w-0 pr-4">
                   <Label htmlFor="periodic-sync" className="text-sm font-medium cursor-pointer">

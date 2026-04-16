@@ -11,12 +11,14 @@ import { Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { org } from '@/config/org';
+import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
 import { AccountLegalNotice } from '@/components/legal/AccountLegalNotice';
 import { AppCopyrightFooter } from '@/components/layout/AppCopyrightFooter';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
-type LastUsedLoginMethod = 'google' | 'email';
+type LastUsedLoginMethod = 'google' | 'apple' | 'email';
 
 const LAST_USED_LOGIN_METHOD_KEY = 'dsp:last-login-method';
 
@@ -28,7 +30,7 @@ export default function AuthPage() {
 
   useEffect(() => {
     const savedMethod = window.localStorage.getItem(LAST_USED_LOGIN_METHOD_KEY);
-    if (savedMethod === 'google' || savedMethod === 'email') {
+    if (savedMethod === 'google' || savedMethod === 'apple' || savedMethod === 'email') {
       setLastUsedLoginMethod(savedMethod);
     }
   }, []);
@@ -39,30 +41,47 @@ export default function AuthPage() {
   };
 
   const getRedirectUrl = () => {
+    if (Capacitor.isNativePlatform()) return 'dspnu://auth/callback';
     const origin = window.location.origin.replace(/\/$/, '');
     const isLocal = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
     return isLocal ? `${origin}/auth/callback` : `https://${org.domain}/auth/callback`;
   };
 
-  const handleGoogleSignIn = async () => {
+  const signInWithProvider = async (provider: 'google' | 'apple') => {
     setIsGoogleLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: getRedirectUrl(),
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
-      },
-    });
-    if (error) {
-      toast.error(error.message);
-      setIsGoogleLoading(false);
-      return;
-    }
+    try {
+      const redirectTo = getRedirectUrl();
 
-    persistLastUsedLoginMethod('google');
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo,
+          // In Capacitor, we want the URL so we can open it in the system browser.
+          // Web build keeps the normal redirect behavior.
+          ...(Capacitor.isNativePlatform() ? { skipBrowserRedirect: true } : {}),
+          queryParams: provider === 'google'
+            ? {
+                access_type: 'offline',
+                prompt: 'consent',
+              }
+            : undefined,
+        },
+      });
+
+      if (error) throw error;
+
+      persistLastUsedLoginMethod(provider);
+
+      if (Capacitor.isNativePlatform()) {
+        const url = (data as unknown as { url?: string } | null)?.url;
+        if (!url) throw new Error('Missing OAuth redirect URL.');
+        await Browser.open({ url, windowName: '_system' });
+      }
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Sign in failed';
+      toast.error(message);
+      setIsGoogleLoading(false);
+    }
   };
 
   if (loading) {
@@ -145,7 +164,7 @@ export default function AuthPage() {
                       'relative w-full',
                       lastUsedLoginMethod === 'google' && 'border-primary/50 bg-primary/5 ring-1 ring-primary/30'
                     )}
-                    onClick={handleGoogleSignIn}
+                    onClick={() => signInWithProvider('google')}
                     disabled={isGoogleLoading}
                   >
                     {isGoogleLoading ? (
@@ -168,6 +187,28 @@ export default function AuthPage() {
                       </Badge>
                     )}
                   </Button>
+                  {org.auth.allowApple && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        'relative w-full',
+                        lastUsedLoginMethod === 'apple' && 'border-primary/50 bg-primary/5 ring-1 ring-primary/30'
+                      )}
+                      onClick={() => signInWithProvider('apple')}
+                      disabled={isGoogleLoading}
+                    >
+                      Continue with Apple
+                      {lastUsedLoginMethod === 'apple' && (
+                        <Badge
+                          variant="outline"
+                          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 border-primary/35 bg-primary/10 text-[10px] font-semibold uppercase tracking-wide text-primary"
+                        >
+                          Last used
+                        </Badge>
+                      )}
+                    </Button>
+                  )}
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
                       <Separator />
@@ -221,7 +262,7 @@ export default function AuthPage() {
                     type="button"
                     variant="outline"
                     className="w-full"
-                    onClick={handleGoogleSignIn}
+                    onClick={() => signInWithProvider('google')}
                     disabled={isGoogleLoading}
                   >
                     {isGoogleLoading ? (
@@ -236,6 +277,17 @@ export default function AuthPage() {
                     )}
                     Continue with Google
                   </Button>
+                  {org.auth.allowApple && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => signInWithProvider('apple')}
+                      disabled={isGoogleLoading}
+                    >
+                      Continue with Apple
+                    </Button>
+                  )}
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
                       <Separator />

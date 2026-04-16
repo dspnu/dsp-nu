@@ -11,6 +11,7 @@ import "@/config/featureRegistrations";
 
 import AuthPage from "@/core/auth/AuthPage";
 import AuthCallbackPage from "@/core/auth/AuthCallbackPage";
+import { NativeAuthBridge } from "@/core/auth/NativeAuthBridge";
 import HomePage from "./pages/HomePage";
 import PeoplePage from "@/core/members/PeoplePage";
 import MemberProfilePage from "@/core/members/MemberProfilePage";
@@ -23,6 +24,7 @@ import NotFound from "./pages/NotFound";
 import OnboardingPage from "@/core/auth/OnboardingPage";
 import { PwaLaunchBridge } from "@/components/pwa/PwaLaunchBridge";
 import { PwaBackgroundSyncBridge } from "@/components/pwa/PwaBackgroundSyncBridge";
+import { NativePushBridge } from "@/components/native/NativePushBridge";
 import PwaOpenPage from "./pages/PwaOpenPage";
 import PwaProtocolPage from "./pages/PwaProtocolPage";
 
@@ -39,8 +41,10 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <NativeAuthBridge />
             <PwaLaunchBridge />
             <PwaBackgroundSyncBridge />
+            <NativePushBridge />
             <Routes>
               {/* Core routes - always present */}
               <Route path="/auth" element={<AuthPage />} />

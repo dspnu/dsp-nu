@@ -82,6 +82,7 @@ export const org = {
 
   auth: {
     allowGoogle: true,
+    allowApple: true,
     allowEmail: true,
     emailPlaceholder: "brother@dsp.org",
   },
