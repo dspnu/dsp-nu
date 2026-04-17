@@ -19,8 +19,8 @@ import { useAuth } from '@/core/auth/AuthContext';
 import { useServiceHours, useLogServiceHours, useAllServiceHours } from '@/features/service-hours/hooks/useServiceHours';
 import { exportToCSV } from '@/lib/csv';
 import { org, allCategories } from '@/config/org';
+import { useChapterSetting } from '@/hooks/useChapterSettings';
 
-const categories = allCategories;
 const POINTS_REQUIREMENT = org.standing.minPoints;
 const SERVICE_HOURS_REQUIREMENT = org.standing.minServiceHours;
 const SCORED_CATEGORIES = org.scoredCategories;
@@ -30,6 +30,22 @@ export function StandingTab() {
   const { data: members } = useMembers();
   const { data: myPoints } = useMemberPoints(user?.id ?? '');
   const { data: myHours = [] } = useServiceHours(user?.id);
+  const { data: pointCategoriesSetting } = useChapterSetting('custom_point_categories', {
+    whenMissing: org.eventCategories.map((c) => c.key),
+  });
+  const { data: serviceHoursRequirementSetting } = useChapterSetting('service_hours_requirement', {
+    whenMissing: SERVICE_HOURS_REQUIREMENT,
+  });
+  const categories = useMemo(() => {
+    if (!Array.isArray(pointCategoriesSetting)) return allCategories;
+    const custom = pointCategoriesSetting
+      .map((item) => (typeof item === 'string' ? item.trim() : ''))
+      .filter(Boolean);
+    return custom.length > 0 ? Array.from(new Set([...custom, 'new_member'])) : allCategories;
+  }, [pointCategoriesSetting]);
+  const serviceHoursRequirement = typeof serviceHoursRequirementSetting === 'number'
+    ? serviceHoursRequirementSetting
+    : Number(serviceHoursRequirementSetting) || SERVICE_HOURS_REQUIREMENT;
 
   const [logHoursOpen, setLogHoursOpen] = useState(false);
   const [hours, setHours] = useState('');
@@ -154,8 +170,10 @@ export function StandingTab() {
   const myFamilyRank = familyTotals.findIndex(f => f.family === myFamily) + 1;
 
   const pointsProgress = Math.min((myTotal / POINTS_REQUIREMENT) * 100, 100);
-  const hoursProgress = Math.min((myVerifiedHours / SERVICE_HOURS_REQUIREMENT) * 100, 100);
-  const isGoodStanding = myTotal >= POINTS_REQUIREMENT && myVerifiedHours >= SERVICE_HOURS_REQUIREMENT;
+  const hoursProgress = serviceHoursRequirement > 0
+    ? Math.min((myVerifiedHours / serviceHoursRequirement) * 100, 100)
+    : 100;
+  const isGoodStanding = myTotal >= POINTS_REQUIREMENT && myVerifiedHours >= serviceHoursRequirement;
 
   const handleExportPoints = () => {
     if (!familyTotals) return;
@@ -236,7 +254,7 @@ export function StandingTab() {
           <p className="text-xs text-muted-foreground">
             {isGoodStanding
               ? 'All requirements met'
-              : `${POINTS_REQUIREMENT - myTotal > 0 ? `${POINTS_REQUIREMENT - myTotal} pts` : ''}${POINTS_REQUIREMENT - myTotal > 0 && SERVICE_HOURS_REQUIREMENT - myVerifiedHours > 0 ? ' & ' : ''}${SERVICE_HOURS_REQUIREMENT - myVerifiedHours > 0 ? `${(SERVICE_HOURS_REQUIREMENT - myVerifiedHours).toFixed(1)} hrs remaining` : ''}`
+              : `${POINTS_REQUIREMENT - myTotal > 0 ? `${POINTS_REQUIREMENT - myTotal} pts` : ''}${POINTS_REQUIREMENT - myTotal > 0 && serviceHoursRequirement - myVerifiedHours > 0 ? ' & ' : ''}${serviceHoursRequirement - myVerifiedHours > 0 ? `${(serviceHoursRequirement - myVerifiedHours).toFixed(1)} hrs remaining` : ''}`
             }
           </p>
         </div>
@@ -293,14 +311,14 @@ export function StandingTab() {
                 <span className="text-sm font-medium">Service Hours</span>
               </div>
               <div className="flex items-center gap-2">
-                {myVerifiedHours >= SERVICE_HOURS_REQUIREMENT ? (
+                {myVerifiedHours >= serviceHoursRequirement ? (
                   <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/25 hover:bg-emerald-500/20 text-xs">
                     <Check className="h-2.5 w-2.5 mr-1" />Done
                   </Badge>
                 ) : (
                   <div className="flex items-baseline gap-1">
                     <span className="text-2xl font-bold">{myVerifiedHours.toFixed(1)}</span>
-                    <span className="text-xs text-muted-foreground">/ {SERVICE_HOURS_REQUIREMENT}</span>
+                    <span className="text-xs text-muted-foreground">/ {serviceHoursRequirement}</span>
                   </div>
                 )}
               </div>

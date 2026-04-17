@@ -10,6 +10,7 @@ import { useUpdateMember } from '@/core/members/hooks/useMembers';
 import { Tables, Enums } from '@/integrations/supabase/types';
 import { Constants } from '@/integrations/supabase/types';
 import { org } from '@/config/org';
+import { useChapterSetting } from '@/hooks/useChapterSettings';
 
 type Profile = Tables<'profiles'>;
 type MemberStatus = Enums<'member_status'>;
@@ -26,6 +27,10 @@ export function AdminPositionsDialog({ member }: AdminPositionsDialogProps) {
   const [newPosition, setNewPosition] = useState('');
   const [status, setStatus] = useState<MemberStatus>(member.status);
   const updateMember = useUpdateMember();
+  const { data: customExecPositionsSetting } = useChapterSetting('custom_exec_positions', { whenMissing: COMMON_POSITIONS });
+  const customPositions = Array.isArray(customExecPositionsSetting)
+    ? customExecPositionsSetting.filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+    : COMMON_POSITIONS;
 
   const addPosition = (position: string) => {
     if (position && !positions.includes(position)) {
@@ -111,7 +116,7 @@ export function AdminPositionsDialog({ member }: AdminPositionsDialogProps) {
                 <SelectValue placeholder="Select a position" />
               </SelectTrigger>
               <SelectContent>
-                {COMMON_POSITIONS.filter(p => !positions.includes(p)).map((pos) => (
+                {customPositions.filter(p => !positions.includes(p)).map((pos) => (
                   <SelectItem key={pos} value={pos}>
                     {pos}
                   </SelectItem>

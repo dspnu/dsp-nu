@@ -8,6 +8,7 @@ import { CheckCircle, Clock, Heart } from 'lucide-react';
 import { useAllServiceHours, useVerifyServiceHours } from '@/features/service-hours/hooks/useServiceHours';
 import { useMembers } from '@/core/members/hooks/useMembers';
 import { useAuth } from '@/core/auth/AuthContext';
+import { useChapterSetting } from '@/hooks/useChapterSettings';
 
 const SERVICE_HOURS_REQUIREMENT = 10;
 
@@ -16,6 +17,10 @@ export function VPCommunityServiceDashboard() {
   const { data: members = [] } = useMembers();
   const { data: allHours = [] } = useAllServiceHours();
   const verifyHours = useVerifyServiceHours();
+  const { data: serviceHoursRequirementSetting } = useChapterSetting('service_hours_requirement', { whenMissing: SERVICE_HOURS_REQUIREMENT });
+  const serviceHoursRequirement = typeof serviceHoursRequirementSetting === 'number'
+    ? serviceHoursRequirementSetting
+    : Number(serviceHoursRequirementSetting) || SERVICE_HOURS_REQUIREMENT;
 
   const pendingHours = allHours.filter(h => !h.verified);
   const totalVerified = allHours.filter(h => h.verified).reduce((s, h) => s + Number(h.hours), 0);
@@ -30,7 +35,7 @@ export function VPCommunityServiceDashboard() {
   const memberHoursSummary = activeMembers.map(m => {
     const hrs = allHours.filter(h => h.user_id === m.user_id);
     const verified = hrs.filter(h => h.verified).reduce((s, h) => s + Number(h.hours), 0);
-    return { name: `${m.first_name} ${m.last_name}`, verified, met: verified >= SERVICE_HOURS_REQUIREMENT };
+    return { name: `${m.first_name} ${m.last_name}`, verified, met: verified >= serviceHoursRequirement };
   }).sort((a, b) => b.verified - a.verified);
 
   const metRequirement = memberHoursSummary.filter(m => m.met).length;
@@ -142,7 +147,7 @@ export function VPCommunityServiceDashboard() {
               <TableRow>
                 <TableHead>Member</TableHead>
                 <TableHead className="text-center">Verified Hours</TableHead>
-                <TableHead className="text-center">Requirement ({SERVICE_HOURS_REQUIREMENT}h)</TableHead>
+                <TableHead className="text-center">Requirement ({serviceHoursRequirement}h)</TableHead>
                 <TableHead className="text-center">Status</TableHead>
               </TableRow>
             </TableHeader>
@@ -152,7 +157,9 @@ export function VPCommunityServiceDashboard() {
                   <TableCell className="font-medium text-sm">{row.name}</TableCell>
                   <TableCell className="text-center">{row.verified.toFixed(1)}</TableCell>
                   <TableCell className="text-center text-muted-foreground">
-                    {Math.min((row.verified / SERVICE_HOURS_REQUIREMENT) * 100, 100).toFixed(0)}%
+                    {serviceHoursRequirement > 0
+                      ? `${Math.min((row.verified / serviceHoursRequirement) * 100, 100).toFixed(0)}%`
+                      : 'N/A'}
                   </TableCell>
                   <TableCell className="text-center">
                     <Badge variant={row.met ? 'default' : 'secondary'} className="text-xs">

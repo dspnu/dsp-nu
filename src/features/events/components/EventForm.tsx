@@ -22,14 +22,9 @@ import {
 import { Tables } from '@/integrations/supabase/types';
 import { org, type EventCategory } from '@/config/org';
 import { cn } from '@/lib/utils';
+import { useChapterSetting } from '@/hooks/useChapterSettings';
 
 type Event = Tables<'events'>;
-
-const categories: { value: EventCategory; label: string }[] = [
-  ...org.eventCategories.map(c => ({ value: c.key as EventCategory, label: c.label })),
-  { value: 'new_member' as EventCategory, label: `${org.newMemberCategory.label} / PDP` },
-  { value: 'exec' as EventCategory, label: 'Exec (Officers Only)' },
-];
 
 interface EventFormProps {
   event?: Event;
@@ -39,8 +34,22 @@ interface EventFormProps {
 export function EventForm({ event, trigger }: EventFormProps) {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
+  const { data: customEventTypesSetting } = useChapterSetting('custom_event_types', {
+    whenMissing: org.eventCategories.map((c) => c.label),
+  });
   const createEvent = useCreateEvent();
   const updateEvent = useUpdateEvent();
+  const customEventTypeLabels = Array.isArray(customEventTypesSetting)
+    ? customEventTypesSetting.filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+    : org.eventCategories.map((c) => c.label);
+  const categories: { value: EventCategory; label: string }[] = [
+    ...org.eventCategories.map((category, index) => ({
+      value: category.key as EventCategory,
+      label: customEventTypeLabels[index] || category.label,
+    })),
+    { value: 'new_member' as EventCategory, label: `${org.newMemberCategory.label} / PDP` },
+    { value: 'exec' as EventCategory, label: 'Exec (Officers Only)' },
+  ];
 
   const [formData, setFormData] = useState({
     title: event?.title || '',

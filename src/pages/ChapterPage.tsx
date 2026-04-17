@@ -10,6 +10,7 @@ import { JobsTab } from '@/features/chapter/components/JobsTab';
 import { CoffeeChatsTab } from '@/features/chapter/components/CoffeeChatsTab';
 import { ResourcesTab } from '@/features/chapter/components/ResourcesTab';
 import { AdminTab } from '@/features/chapter/components/AdminTab';
+import { useChapterSetting } from '@/hooks/useChapterSettings';
 
 interface TabDef {
   key: string;
@@ -21,9 +22,10 @@ interface TabDef {
 export default function ChapterPage() {
   const { profile, isAdminOrOfficer } = useAuth();
   const [activeTab, setActiveTab] = useState('standing');
+  const { data: showAdminTabSetting } = useChapterSetting('chapter_admin_tab_visible', { whenMissing: true });
 
   const hasExecPosition = (profile?.positions?.length ?? 0) > 0;
-  const showAdminTab = hasExecPosition || isAdminOrOfficer;
+  const showAdminTab = (hasExecPosition || isAdminOrOfficer) && showAdminTabSetting !== false;
 
   const tabs = useMemo(() => {
     const t: TabDef[] = [

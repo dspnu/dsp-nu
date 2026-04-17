@@ -25,7 +25,6 @@ import { useRealtimeCandidates, useRealtimeVoteCounts } from '@/features/eop/hoo
 import { toast } from 'sonner';
 import { org } from '@/config/org';
 
-const categories = org.eventCategories.map(c => c.key);
 const POINTS_REQUIREMENT = org.standing.minPoints;
 const SERVICE_HOURS_REQUIREMENT = org.standing.minServiceHours;
 
@@ -36,6 +35,12 @@ export function VPChapterOpsDashboard() {
   const { data: eopDate } = useChapterSetting('eop_date');
   const { data: eopAttendanceData } = useChapterSetting('eop_attendance');
   const { data: eopBaseVoters } = useChapterSetting('eop_base_voters');
+  const { data: pointCategoriesSetting } = useChapterSetting('custom_point_categories', {
+    whenMissing: org.eventCategories.map((c) => c.key),
+  });
+  const { data: serviceHoursRequirementSetting } = useChapterSetting('service_hours_requirement', {
+    whenMissing: SERVICE_HOURS_REQUIREMENT,
+  });
   const { data: eopCandidates = [] } = useRealtimeCandidates();
   const { data: eopVoteCounts } = useRealtimeVoteCounts();
   const updateSetting = useUpdateChapterSetting();
@@ -45,6 +50,16 @@ export function VPChapterOpsDashboard() {
   const [categoryFilter, setCategoryFilter] = useState<'all' | typeof categories[number]>('all');
   const [categoryMode, setCategoryMode] = useState<'has' | 'missing'>('missing');
   const [eopDateInput, setEopDateInput] = useState('');
+  const categories = useMemo(() => {
+    if (!Array.isArray(pointCategoriesSetting)) return org.eventCategories.map((c) => c.key);
+    const cleaned = pointCategoriesSetting
+      .map((item) => (typeof item === 'string' ? item.trim() : ''))
+      .filter(Boolean);
+    return cleaned.length > 0 ? Array.from(new Set(cleaned)) : org.eventCategories.map((c) => c.key);
+  }, [pointCategoriesSetting]);
+  const serviceHoursRequirement = typeof serviceHoursRequirementSetting === 'number'
+    ? serviceHoursRequirementSetting
+    : Number(serviceHoursRequirementSetting) || SERVICE_HOURS_REQUIREMENT;
 
   const currentEopDate = typeof eopDate === 'string' ? eopDate : '';
 
@@ -152,11 +167,11 @@ export function VPChapterOpsDashboard() {
           attended,
           totalEvents,
           attendanceRate,
-          isGoodStanding: totalPts >= POINTS_REQUIREMENT && verifiedHrs >= SERVICE_HOURS_REQUIREMENT,
+          isGoodStanding: totalPts >= POINTS_REQUIREMENT && verifiedHrs >= serviceHoursRequirement,
         };
       })
       .sort((a, b) => b.totalPts - a.totalPts);
-  }, [members, allPoints, allHours, allAttendance, totalEvents]);
+  }, [members, allPoints, allHours, allAttendance, totalEvents, categories, serviceHoursRequirement]);
 
   const filteredRows = useMemo(() => {
     return memberRows.filter(row => {

@@ -11,6 +11,7 @@ import { ChancellorDashboard } from '@/features/admin/components/ChancellorDashb
 import { VPBrotherhoodDashboard } from '@/features/admin/components/VPBrotherhoodDashboard';
 import { ChapterAnnouncementCard } from '@/features/chapter/components/ChapterAnnouncementCard';
 import { hasPosition as checkPosition, org } from '@/config/org';
+import { useChapterSetting } from '@/hooks/useChapterSettings';
 
 interface AdminDashboardEntry {
   positions: string[];
@@ -33,11 +34,37 @@ const adminDashboards: AdminDashboardEntry[] = [
 export function AdminTab() {
   const { profile } = useAuth();
   const { isVPChapterOps } = useIsVPChapterOps();
+  const { data: adminVisibilitySetting } = useChapterSetting('admin_tab_visibility', {
+    whenMissing: {
+      chapterOps: true,
+      communityService: true,
+      professionalActivities: true,
+      scholarship: true,
+      finance: true,
+      chancellor: true,
+      brotherhood: true,
+      announcements: true,
+    },
+  });
+  const visibility = (adminVisibilitySetting && typeof adminVisibilitySetting === 'object' && !Array.isArray(adminVisibilitySetting))
+    ? adminVisibilitySetting as Record<string, boolean>
+    : {};
 
   return (
     <div className="space-y-8">
       {adminDashboards.map(({ positions, component: Dashboard, useHook, featureFlag }, idx) => {
         if (featureFlag && !org.features[featureFlag]) return null;
+        const dashboardKey = (
+          positions.includes('VP of Chapter Operations') ? 'chapterOps'
+            : positions.includes('VP of Community Service') ? 'communityService'
+              : positions.includes('VP of Professional Activities') ? 'professionalActivities'
+                : positions.includes('VP of Scholarship & Awards') ? 'scholarship'
+                  : positions.includes('VP Finance') || positions.includes('VP of Finance') ? 'finance'
+                    : positions.includes('Chancellor') ? 'chancellor'
+                      : positions.includes('VP of Brotherhood') ? 'brotherhood'
+                        : null
+        );
+        if (dashboardKey && visibility[dashboardKey] === false) return null;
         const hasPos = useHook
           ? isVPChapterOps
           : checkPosition(profile, ...positions);
@@ -45,7 +72,7 @@ export function AdminTab() {
         if (!hasPos) return null;
         return <Dashboard key={idx} />;
       })}
-      <ChapterAnnouncementCard />
+      {visibility.announcements !== false && <ChapterAnnouncementCard />}
     </div>
   );
 }
