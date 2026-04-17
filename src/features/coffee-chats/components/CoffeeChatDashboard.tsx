@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Mail, CalendarCheck, CheckCircle2, Plus, Trash2, Target, Clock, TrendingUp, ArrowUpDown, Users } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Mail, CalendarCheck, CheckCircle2, Plus, Trash2, Target, Clock, TrendingUp, ArrowUpDown, Users, ChevronDown } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { useCoffeeChats } from '@/features/coffee-chats/hooks/useCoffeeChats';
 import { useMembers } from '@/core/members/hooks/useMembers';
@@ -49,7 +50,12 @@ const statusBadgeColors: Record<MilestoneStatus, string> = {
 
 type SortKey = 'name' | 'emailsReceived' | 'chatsScheduled' | 'chatsCompleted' | 'responseRate';
 
-export function CoffeeChatDashboard() {
+type CoffeeChatDashboardProps = {
+  /** When set, wraps the chapter response-rate table in a collapsible (e.g. Chapter → Coffee Chats). */
+  collapsibleEngagement?: boolean;
+};
+
+export function CoffeeChatDashboard({ collapsibleEngagement = false }: CoffeeChatDashboardProps) {
   const { profile } = useAuth();
   const { data: allChats, isLoading } = useCoffeeChats();
   const { data: members } = useMembers();
@@ -172,6 +178,85 @@ export function CoffeeChatDashboard() {
   const totalScheduled = memberStats.reduce((sum, m) => sum + m.scheduled, 0);
   const totalEmailed = memberStats.reduce((sum, m) => sum + m.emailed, 0);
   const behindCount = memberStats.filter(m => m.status === 'behind').length;
+
+  const engagementCardContent = (
+    <CardContent className="p-0">
+      {activeMemberEngagement.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-8">No engagement data yet</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>
+                  <button type="button" onClick={() => toggleSort('name')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                    Member <ArrowUpDown className="h-3 w-3" />
+                  </button>
+                </TableHead>
+                <TableHead className="text-center">
+                  <button type="button" onClick={() => toggleSort('emailsReceived')} className="flex items-center gap-1 mx-auto hover:text-foreground transition-colors">
+                    Emails <ArrowUpDown className="h-3 w-3" />
+                  </button>
+                </TableHead>
+                <TableHead className="text-center">
+                  <button type="button" onClick={() => toggleSort('chatsScheduled')} className="flex items-center gap-1 mx-auto hover:text-foreground transition-colors">
+                    Scheduled <ArrowUpDown className="h-3 w-3" />
+                  </button>
+                </TableHead>
+                <TableHead className="text-center">
+                  <button type="button" onClick={() => toggleSort('chatsCompleted')} className="flex items-center gap-1 mx-auto hover:text-foreground transition-colors">
+                    Completed <ArrowUpDown className="h-3 w-3" />
+                  </button>
+                </TableHead>
+                <TableHead className="text-center">
+                  <button type="button" onClick={() => toggleSort('responseRate')} className="flex items-center gap-1 mx-auto hover:text-foreground transition-colors">
+                    Response Rate <ArrowUpDown className="h-3 w-3" />
+                  </button>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {activeMemberEngagement.map(member => (
+                <TableRow key={member.id}>
+                  <TableCell>
+                    <p className="font-semibold text-foreground">{member.name}</p>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <span className="font-semibold text-sm">{member.emailsReceived}</span>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <span className="font-semibold text-sm">{member.chatsScheduled}</span>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <span className="font-semibold text-sm">{member.chatsCompleted}</span>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${
+                            member.responseRate >= 75 ? 'bg-emerald-500' :
+                            member.responseRate >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                          }`}
+                          style={{ width: `${member.responseRate}%` }}
+                        />
+                      </div>
+                      <span className={`text-sm font-bold ${
+                        member.responseRate >= 75 ? 'text-emerald-600' :
+                        member.responseRate >= 50 ? 'text-amber-600' : 'text-red-600'
+                      }`}>
+                        {member.responseRate}%
+                      </span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </CardContent>
+  );
 
   return (
     <div className="space-y-6">
@@ -335,90 +420,43 @@ export function CoffeeChatDashboard() {
         </section>
       )}
 
-      {/* Active Member Engagement — visible to everyone */}
+      {/* Active member response rates — visible to everyone */}
       <section>
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2 mb-3">
-          <TrendingUp className="h-4 w-4" />
-          Active Member Engagement
-        </h3>
-        <Card>
-          <CardContent className="p-0">
-            {activeMemberEngagement.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No engagement data yet</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>
-                        <button onClick={() => toggleSort('name')} className="flex items-center gap-1 hover:text-foreground transition-colors">
-                          Member <ArrowUpDown className="h-3 w-3" />
-                        </button>
-                      </TableHead>
-                      <TableHead className="text-center">
-                        <button onClick={() => toggleSort('emailsReceived')} className="flex items-center gap-1 mx-auto hover:text-foreground transition-colors">
-                          Emails <ArrowUpDown className="h-3 w-3" />
-                        </button>
-                      </TableHead>
-                      <TableHead className="text-center">
-                        <button onClick={() => toggleSort('chatsScheduled')} className="flex items-center gap-1 mx-auto hover:text-foreground transition-colors">
-                          Scheduled <ArrowUpDown className="h-3 w-3" />
-                        </button>
-                      </TableHead>
-                      <TableHead className="text-center">
-                        <button onClick={() => toggleSort('chatsCompleted')} className="flex items-center gap-1 mx-auto hover:text-foreground transition-colors">
-                          Completed <ArrowUpDown className="h-3 w-3" />
-                        </button>
-                      </TableHead>
-                      <TableHead className="text-center">
-                        <button onClick={() => toggleSort('responseRate')} className="flex items-center gap-1 mx-auto hover:text-foreground transition-colors">
-                          Response Rate <ArrowUpDown className="h-3 w-3" />
-                        </button>
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {activeMemberEngagement.map(member => (
-                      <TableRow key={member.id}>
-                        <TableCell>
-                          <p className="font-semibold text-foreground">{member.name}</p>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <span className="font-semibold text-sm">{member.emailsReceived}</span>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <span className="font-semibold text-sm">{member.chatsScheduled}</span>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <span className="font-semibold text-sm">{member.chatsCompleted}</span>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className={`h-full rounded-full transition-all ${
-                                  member.responseRate >= 75 ? 'bg-emerald-500' :
-                                  member.responseRate >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                                }`}
-                                style={{ width: `${member.responseRate}%` }}
-                              />
-                            </div>
-                            <span className={`text-sm font-bold ${
-                              member.responseRate >= 75 ? 'text-emerald-600' :
-                              member.responseRate >= 50 ? 'text-amber-600' : 'text-red-600'
-                            }`}>
-                              {member.responseRate}%
-                            </span>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+        {collapsibleEngagement ? (
+          <Collapsible defaultOpen className="rounded-lg border border-border bg-card overflow-hidden">
+            <CollapsibleTrigger asChild>
+              <button
+                type="button"
+                className="group flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/40"
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <TrendingUp className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-sm font-semibold text-foreground">Chapter coffee chat response rates</h3>
+                  <p className="text-xs text-muted-foreground">Per active member: invites, scheduled, completed, and response rate</p>
+                </div>
+                <ChevronDown
+                  className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180"
+                  aria-hidden
+                />
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="border-t border-border">
+                <Card className="rounded-none border-0 shadow-none">{engagementCardContent}</Card>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CollapsibleContent>
+          </Collapsible>
+        ) : (
+          <>
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2 mb-3">
+              <TrendingUp className="h-4 w-4" />
+              Active Member Engagement
+            </h3>
+            <Card>{engagementCardContent}</Card>
+          </>
+        )}
       </section>
     </div>
   );

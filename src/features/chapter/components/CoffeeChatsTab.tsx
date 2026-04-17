@@ -87,7 +87,7 @@ export function CoffeeChatsTab() {
 
       <section className="border-t border-border pt-6 space-y-4">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Chapter activity</h2>
-        <CoffeeChatDashboard />
+        <CoffeeChatDashboard collapsibleEngagement />
       </section>
     </div>
   );
