@@ -46,6 +46,7 @@ import {
   unregisterPeriodicContentSync,
 } from '@/lib/pwaAdvancedFeatures';
 import { disableNativePush, enableNativePush, isNativeApp } from '@/lib/nativePush';
+import { firmwareVersion } from '@/lib/appVersion';
 
 const NOTIFICATION_ITEMS = [
   { id: 'push', key: 'push_enabled', label: 'Push notifications', desc: 'Browser push notifications (when available)' },
@@ -767,6 +768,24 @@ function SettingsPageContent() {
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete
               </Button>
+            </div>
+          </div>
+        </section>
+
+        {/* ── App info ── */}
+        <section>
+          <SectionLabel icon={Smartphone} label="App info" />
+          <div className="rounded-xl border bg-card divide-y overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3.5 sm:px-5">
+              <div className="min-w-0 pr-4">
+                <p className="text-sm font-medium">Firmware</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Current app firmware version
+                </p>
+              </div>
+              <p className="text-sm font-semibold tabular-nums">
+                {firmwareVersion.semver}
+              </p>
             </div>
           </div>
         </section>
