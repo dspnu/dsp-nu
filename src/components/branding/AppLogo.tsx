@@ -11,7 +11,7 @@ export function AppLogo({
   className,
   imageClassName,
   alt = 'App logo',
-  src = '/favicon1.png',
+  src = '/icons/icon-512x512.png?v=2',
 }: AppLogoProps) {
   return (
     <div className={cn('overflow-hidden rounded-xl bg-white/5', className)}>

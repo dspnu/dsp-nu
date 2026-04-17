@@ -5,6 +5,8 @@ interface ImportMetaEnv {
   readonly VITE_VAPID_PUBLIC_KEY?: string;
   /** Optional HTTPS endpoint to POST push subscription JSON (your backend) */
   readonly VITE_PUSH_SUBSCRIPTION_URL?: string;
+  /** Optional override for app/firmware semantic version */
+  readonly VITE_APP_VERSION?: string;
 }
 
 interface ImportMeta {
@@ -28,3 +30,5 @@ interface ServiceWorkerRegistration {
   readonly periodicSync?: PeriodicSyncManager;
   readonly sync?: SyncManager;
 }
+
+declare const __APP_VERSION__: string;

@@ -7,6 +7,9 @@ import { org } from "./src/config/org";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  define: {
+    __APP_VERSION__: JSON.stringify(process.env.npm_package_version ?? '0.0.0-dev'),
+  },
   server: {
     host: "::",
     port: 8080,
