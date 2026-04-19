@@ -50,6 +50,12 @@ import { firmwareVersion } from '@/lib/appVersion';
 
 const NOTIFICATION_ITEMS = [
   { id: 'push', key: 'push_enabled', label: 'Push notifications', desc: 'Browser push notifications (when available)' },
+  {
+    id: 'email',
+    key: 'email_notifications',
+    label: 'Email notifications',
+    desc: 'Email copies of chapter updates (same categories you allow below)',
+  },
   { id: 'events', key: 'event_notifications', label: 'Events & opportunities', desc: 'New events and updates to events you are part of' },
   { id: 'remind24', key: 'event_reminder_24h', label: '24-hour reminders', desc: 'Heads-up the day before events you are attending' },
   { id: 'announce', key: 'announcement_notifications', label: 'Chapter announcements', desc: 'Messages broadcast by chapter leadership' },

@@ -64,6 +64,12 @@ You must set secrets/env vars for the Edge Function:
 - `APNS_P8_PRIVATE_KEY` (the contents of your `.p8`, PKCS8 format)
 - `APNS_BUNDLE_ID` (`com.tartabinienterprises.dspnu`)
 
+Optional — **email** for the same `public.notifications` inserts (Resend):
+
+- `RESEND_API_KEY` (or `RESEND_API`) — API key from [Resend](https://resend.com)
+- `RESEND_FROM_EMAIL` — verified sender, e.g. `Chapter Portal <notifications@yourdomain.com>`
+- `PUBLIC_APP_URL` — production app origin (no trailing slash), used to turn notification `link` paths into clickable URLs in email
+
 ### Database Webhook (Required)
 Create a database webhook in Supabase for inserts to `public.notifications` that calls the Edge Function endpoint.
 This is configured in the Supabase dashboard (not in code).
