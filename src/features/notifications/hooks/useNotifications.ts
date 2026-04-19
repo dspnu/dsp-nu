@@ -21,6 +21,7 @@ interface NotificationPreferences {
   id: string;
   user_id: string;
   push_enabled: boolean;
+  email_notifications: boolean;
   service_hours_notifications: boolean;
   coffee_chat_notifications: boolean;
   job_board_notifications: boolean;
