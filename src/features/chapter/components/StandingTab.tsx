@@ -10,14 +10,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import {
-  Trophy, Clock, Check, Target, TrendingUp, Download, Plus, Camera, Image, X,
+  Trophy, Clock, Check, Target, TrendingUp, Plus, Camera, Image, X, User,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useMembers, useMemberPoints } from '@/core/members/hooks/useMembers';
 import { useAuth } from '@/core/auth/AuthContext';
 import { useServiceHours, useLogServiceHours, useAllServiceHours } from '@/features/service-hours/hooks/useServiceHours';
-import { exportToCSV } from '@/lib/csv';
 import { org, allCategories } from '@/config/org';
 import { useChapterSetting } from '@/hooks/useChapterSettings';
 
@@ -26,7 +25,7 @@ const SERVICE_HOURS_REQUIREMENT = org.standing.minServiceHours;
 const SCORED_CATEGORIES = org.scoredCategories;
 
 export function StandingTab() {
-  const { user, profile, isAdminOrOfficer } = useAuth();
+  const { user, profile } = useAuth();
   const { data: members } = useMembers();
   const { data: myPoints } = useMemberPoints(user?.id ?? '');
   const { data: myHours = [] } = useServiceHours(user?.id);
@@ -174,16 +173,6 @@ export function StandingTab() {
     ? Math.min((myVerifiedHours / serviceHoursRequirement) * 100, 100)
     : 100;
   const isGoodStanding = myTotal >= POINTS_REQUIREMENT && myVerifiedHours >= serviceHoursRequirement;
-
-  const handleExportPoints = () => {
-    if (!familyTotals) return;
-    const exportData = familyTotals.map(({ family, score, memberCount }) => ({
-      Family: family,
-      Score: score.toFixed(1),
-      Members: memberCount,
-    }));
-    exportToCSV(exportData, 'family-games-report');
-  };
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -417,16 +406,9 @@ export function StandingTab() {
         </div>
 
         <div className="space-y-2.5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <TrendingUp className="h-3.5 w-3.5" />Family Games
-            </span>
-            {isAdminOrOfficer && (
-              <Button variant="ghost" size="sm" onClick={handleExportPoints} className="h-6 text-xs gap-1 text-muted-foreground hover:text-foreground">
-                <Download className="h-3 w-3" />Export
-              </Button>
-            )}
-          </div>
+          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+            <TrendingUp className="h-3.5 w-3.5" />Family Games
+          </span>
           {familyTotals.length === 0 ? (
             <p className="text-sm text-muted-foreground py-4 text-center">No family data yet</p>
           ) : (
@@ -452,7 +434,10 @@ export function StandingTab() {
                         {isMyFamily && <span className="text-primary text-xs ml-1">•</span>}
                       </p>
                     </div>
-                    <span className="text-xs text-muted-foreground">{memberCount}m</span>
+                    <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                      {memberCount}
+                      <User className="h-3 w-3" />
+                    </span>
                     <span className="text-sm font-semibold tabular-nums w-12 text-right">{score.toFixed(1)}</span>
                   </div>
                 );
