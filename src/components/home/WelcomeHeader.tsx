@@ -1,5 +1,4 @@
 import { useAuth } from '@/core/auth/AuthContext';
-import { Badge } from '@/components/ui/badge';
 import { org } from '@/config/org';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 
@@ -32,11 +31,6 @@ export function WelcomeHeader() {
         <div className="md:hidden">
           <NotificationBell />
         </div>
-        {profile?.status && (
-          <Badge variant="outline" className="capitalize text-xs hidden sm:inline-flex">
-            {profile.status.replace('_', ' ')}
-          </Badge>
-        )}
       </div>
     </div>
   );
