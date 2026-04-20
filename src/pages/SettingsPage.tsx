@@ -652,24 +652,6 @@ function SettingsPageContent() {
           </div>
         </section>
 
-        {/* ── App info ── */}
-        <section>
-          <SectionLabel icon={Smartphone} label="App info" />
-          <div className="rounded-xl border bg-card divide-y overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3.5 sm:px-5">
-              <div className="min-w-0 pr-4">
-                <p className="text-sm font-medium">Firmware</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Current app firmware version
-                </p>
-              </div>
-              <p className="text-sm font-semibold tabular-nums">
-                {firmwareVersion.semver}
-              </p>
-            </div>
-          </div>
-        </section>
-
         {/* ── Notifications ── */}
         <section>
           <SectionLabel icon={Bell} label="Notifications" />
@@ -754,6 +736,24 @@ function SettingsPageContent() {
           )}
         </section>
 
+        {/* ── App info ── */}
+        <section>
+          <SectionLabel icon={Smartphone} label="App info" />
+          <div className="rounded-xl border bg-card divide-y overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3.5 sm:px-5">
+              <div className="min-w-0 pr-4">
+                <p className="text-sm font-medium">Firmware</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Current app firmware version
+                </p>
+              </div>
+              <p className="text-sm font-semibold tabular-nums">
+                {firmwareVersion.semver}
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* ── Data & Privacy ── */}
         <section>
           <SectionLabel icon={Shield} label="Data & Privacy" />
@@ -800,7 +800,7 @@ function SettingsPageContent() {
         </section>
 
         <footer className="mt-14 pt-8 border-t border-border/60">
-          <p className="text-xs text-muted-foreground text-center sm:text-left leading-relaxed max-w-2xl mx-auto sm:mx-0 mb-5">
+          <p className="text-xs text-muted-foreground text-center sm:text-left leading-relaxed w-full mb-5">
             The DSP App is a club management software developed and operated by Tartabini Enterprises LLC. It is provided to support communication, organization, and member engagement within participating student organizations. The DSP App is not owned, controlled, or governed by any affiliated organization.
           </p>
           <nav
