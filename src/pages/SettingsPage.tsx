@@ -412,16 +412,7 @@ function SettingsPageContent() {
 
   return (
     <>
-      <PageHeader title="Settings" description="Manage your account">
-        <Button
-          variant="ghost"
-          className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
-          onClick={signOut}
-        >
-          <LogOut className="h-4 w-4 mr-2" />
-          Sign Out
-        </Button>
-      </PageHeader>
+      <PageHeader title="Settings" description="Manage your account" />
 
       <div className="w-full space-y-8">
         {/* ── Profile ── */}
@@ -435,12 +426,24 @@ function SettingsPageContent() {
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1 space-y-2">
-                <div>
-                  <h2 className="text-lg font-semibold truncate">
-                    {profile?.first_name} {profile?.last_name}
-                  </h2>
-                  <p className="text-sm text-muted-foreground truncate">{profile?.email}</p>
-                  <div className="flex flex-wrap gap-1.5 mt-2">
+                <div className="space-y-2">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <h2 className="text-lg font-semibold truncate">
+                        {profile?.first_name} {profile?.last_name}
+                      </h2>
+                      <p className="text-sm text-muted-foreground truncate">{profile?.email}</p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0 self-start"
+                      onClick={signOut}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign Out
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
                     {profile?.status && <StatusBadge status={profile.status} />}
                     {roles.map((role) => (
                       <span
