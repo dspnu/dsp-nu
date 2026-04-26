@@ -24,9 +24,11 @@ type LastUsedLoginMethod = 'google' | 'apple' | 'email';
 const LAST_USED_LOGIN_METHOD_KEY = 'dsp:last-login-method';
 
 export default function AuthPage() {
-  const { user, loading, signIn, signUp, profile } = useAuth();
+  const { user, loading, signIn, signUp, requestPasswordReset, profile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isResetSubmitting, setIsResetSubmitting] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [lastUsedLoginMethod, setLastUsedLoginMethod] = useState<LastUsedLoginMethod | null>(null);
 
   useEffect(() => {
@@ -43,6 +45,12 @@ export default function AuthPage() {
 
   const getRedirectUrl = () => {
     if (Capacitor.isNativePlatform()) return 'dspnu://auth/callback';
+    const origin = window.location.origin.replace(/\/$/, '');
+    const isLocal = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+    return isLocal ? `${origin}/auth/callback` : `https://${org.domain}/auth/callback`;
+  };
+
+  const getPasswordResetRedirectUrl = () => {
     const origin = window.location.origin.replace(/\/$/, '');
     const isLocal = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
     return isLocal ? `${origin}/auth/callback` : `https://${org.domain}/auth/callback`;
@@ -133,6 +141,25 @@ export default function AuthPage() {
       toast.success('Account created! You can now sign in.');
     }
     setIsSubmitting(false);
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsResetSubmitting(true);
+
+    const formData = new FormData(e.currentTarget);
+    const email = String(formData.get('resetEmail') ?? '').trim();
+    const redirectTo = getPasswordResetRedirectUrl();
+
+    const { error } = await requestPasswordReset(email, redirectTo);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('Password reset email sent. Check your inbox.');
+      setShowForgotPassword(false);
+    }
+
+    setIsResetSubmitting(false);
   };
 
   return (
@@ -241,6 +268,15 @@ export default function AuthPage() {
                         <Label htmlFor="signin-password">Password</Label>
                         <Input id="signin-password" name="password" type="password" required placeholder="••••••••" />
                       </div>
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => setShowForgotPassword((current) => !current)}
+                          className="text-xs font-medium text-primary hover:underline"
+                        >
+                          {showForgotPassword ? 'Cancel password reset' : 'Forgot password?'}
+                        </button>
+                      </div>
                     </div>
                     <Button
                       type="submit"
@@ -253,6 +289,24 @@ export default function AuthPage() {
                       Sign In
                     </Button>
                   </form>
+                  {showForgotPassword && (
+                    <form onSubmit={handleForgotPassword} className="space-y-3 rounded-md border border-border bg-muted/30 p-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="forgot-password-email">Reset email</Label>
+                        <Input
+                          id="forgot-password-email"
+                          name="resetEmail"
+                          type="email"
+                          required
+                          placeholder={org.auth.emailPlaceholder}
+                        />
+                      </div>
+                      <Button type="submit" variant="secondary" className="w-full" disabled={isResetSubmitting}>
+                        {isResetSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Send Reset Link
+                      </Button>
+                    </form>
+                  )}
                 </div>
               </TabsContent>
               <TabsContent value="signup" className="mt-0">

@@ -11,6 +11,7 @@ import "@/config/featureRegistrations";
 
 import AuthPage from "@/core/auth/AuthPage";
 import AuthCallbackPage from "@/core/auth/AuthCallbackPage";
+import ResetPasswordPage from "@/core/auth/ResetPasswordPage";
 import { NativeAuthBridge } from "@/core/auth/NativeAuthBridge";
 import HomePage from "./pages/HomePage";
 import PeoplePage from "@/core/members/PeoplePage";
@@ -49,6 +50,7 @@ const App = () => (
               {/* Core routes - always present */}
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/auth/callback" element={<AuthCallbackPage />} />
+              <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
               <Route path="/onboarding" element={<OnboardingPage />} />
               <Route path="/" element={<HomePage />} />
               <Route path="/people" element={<PeoplePage />} />
