@@ -15,6 +15,13 @@ function parseTokensFromUrl(rawUrl: string): { access_token: string; refresh_tok
   return { access_token: accessToken, refresh_token: refreshToken };
 }
 
+function parseCallbackType(rawUrl: string): string | null {
+  const url = new URL(rawUrl);
+  const params = new URLSearchParams(url.search);
+  const hashParams = new URLSearchParams(url.hash.replace(/^#/, ''));
+  return params.get('type') ?? hashParams.get('type');
+}
+
 function parseErrorFromUrl(rawUrl: string): string | null {
   const url = new URL(rawUrl);
   const params = new URLSearchParams(url.search);
@@ -53,9 +60,13 @@ export function NativeAuthBridge() {
 
       const tokens = parseTokensFromUrl(url);
       if (!tokens) return;
+      const callbackType = parseCallbackType(url);
 
       try {
         await supabase.auth.setSession(tokens);
+        if (callbackType === 'recovery') {
+          window.location.href = '/auth/reset-password';
+        }
       } finally {
         try {
           await Browser.close();

@@ -13,6 +13,7 @@ export default function AuthCallbackPage() {
       const params = new URLSearchParams(window.location.search);
       const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
       const code = params.get('code');
+      const callbackType = params.get('type') || hashParams.get('type');
       const errorDescription = params.get('error_description');
       const hashError = hashParams.get('error_description') || hashParams.get('error');
       const accessToken = hashParams.get('access_token');
@@ -41,6 +42,11 @@ export default function AuthCallbackPage() {
           return;
         }
 
+        if (callbackType === 'recovery') {
+          navigate('/auth/reset-password', { replace: true });
+          return;
+        }
+
         navigate('/', { replace: true });
         return;
       }
@@ -55,6 +61,11 @@ export default function AuthCallbackPage() {
       if (error) {
         toast.error(error.message);
         navigate('/auth', { replace: true });
+        return;
+      }
+
+      if (callbackType === 'recovery') {
+        navigate('/auth/reset-password', { replace: true });
         return;
       }
 
