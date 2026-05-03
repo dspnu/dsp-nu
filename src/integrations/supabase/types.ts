@@ -821,6 +821,90 @@ export type Database = {
           },
         ]
       }
+      exec_chapter_goals: {
+        Row: {
+          actual_summary: string | null
+          created_at: string
+          created_by: string | null
+          goal_text: string
+          id: string
+          performance_year: string
+          position_title: string
+          progress: Database["public"]["Enums"]["exec_goal_progress"]
+          success_criteria: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          actual_summary?: string | null
+          created_at?: string
+          created_by?: string | null
+          goal_text?: string
+          id?: string
+          performance_year: string
+          position_title: string
+          progress?: Database["public"]["Enums"]["exec_goal_progress"]
+          success_criteria?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          actual_summary?: string | null
+          created_at?: string
+          created_by?: string | null
+          goal_text?: string
+          id?: string
+          performance_year?: string
+          position_title?: string
+          progress?: Database["public"]["Enums"]["exec_goal_progress"]
+          success_criteria?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      exec_tasks: {
+        Row: {
+          assigned_position: string | null
+          assigned_to_user_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          due_at: string | null
+          id: string
+          priority: string | null
+          status: Database["public"]["Enums"]["exec_task_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_position?: string | null
+          assigned_to_user_id: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          priority?: string | null
+          status?: Database["public"]["Enums"]["exec_task_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_position?: string | null
+          assigned_to_user_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          priority?: string | null
+          status?: Database["public"]["Enums"]["exec_task_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       event_rsvps: {
         Row: {
           created_at: string
@@ -1098,6 +1182,7 @@ export type Database = {
           email_notifications: boolean
           event_notifications: boolean
           event_reminder_24h: boolean
+          exec_task_notifications: boolean
           id: string
           job_board_notifications: boolean
           push_enabled: boolean
@@ -1114,6 +1199,7 @@ export type Database = {
           email_notifications?: boolean
           event_notifications?: boolean
           event_reminder_24h?: boolean
+          exec_task_notifications?: boolean
           id?: string
           job_board_notifications?: boolean
           push_enabled?: boolean
@@ -1130,6 +1216,7 @@ export type Database = {
           email_notifications?: boolean
           event_notifications?: boolean
           event_reminder_24h?: boolean
+          exec_task_notifications?: boolean
           id?: string
           job_board_notifications?: boolean
           push_enabled?: boolean
@@ -1697,6 +1784,8 @@ export type Database = {
         Returns: boolean
       }
       is_admin_or_officer: { Args: { _user_id: string }; Returns: boolean }
+      is_chapter_president: { Args: { _user_id: string }; Returns: boolean }
+      is_chapter_president_or_app_admin: { Args: { _user_id: string }; Returns: boolean }
       broadcast_chapter_announcement: {
         Args: { p_link?: string | null; p_message: string; p_title: string }
         Returns: undefined
@@ -1722,6 +1811,8 @@ export type Database = {
     Enums: {
       app_role: "admin" | "officer" | "member" | "developer"
       coffee_chat_status: "emailed" | "scheduled" | "completed"
+      exec_goal_progress: "not_started" | "in_progress" | "met" | "missed"
+      exec_task_status: "open" | "done" | "cancelled"
       election_status: "draft" | "open" | "closed"
       eop_vote: "yes" | "no" | "abstain"
       event_category:
@@ -1866,6 +1957,8 @@ export const Constants = {
       app_role: ["admin", "officer", "member", "developer"],
       coffee_chat_status: ["emailed", "scheduled", "completed"],
       election_status: ["draft", "open", "closed"],
+      exec_goal_progress: ["not_started", "in_progress", "met", "missed"],
+      exec_task_status: ["open", "done", "cancelled"],
       eop_vote: ["yes", "no", "abstain"],
       event_category: [
         "chapter",

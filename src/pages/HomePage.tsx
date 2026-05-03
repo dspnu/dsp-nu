@@ -3,6 +3,7 @@ import { WelcomeHeader } from '@/components/home/WelcomeHeader';
 import { UpcomingEventCard } from '@/components/home/UpcomingEventCard';
 import { StandingCard } from '@/components/home/StandingCard';
 import { AlertsSection } from '@/components/home/AlertsSection';
+import { ExecTasksCard } from '@/components/home/ExecTasksCard';
 import { QuickActions } from '@/components/home/QuickActions';
 import { UpcomingTimeline } from '@/components/home/UpcomingTimeline';
 import { getEnabledDashboardCards } from '@/config/featureRegistry';
@@ -16,6 +17,8 @@ export default function HomePage() {
         <WelcomeHeader />
 
         <AlertsSection />
+
+        <ExecTasksCard />
 
         {dashboardCards.map(({ key, component: Card }) => (
           <Card key={key} />

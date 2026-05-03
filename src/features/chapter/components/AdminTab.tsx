@@ -10,6 +10,7 @@ import { VPFinanceDashboard } from '@/features/admin/components/VPFinanceDashboa
 import { ChancellorDashboard } from '@/features/admin/components/ChancellorDashboard';
 import { VPBrotherhoodDashboard } from '@/features/admin/components/VPBrotherhoodDashboard';
 import { ChapterAnnouncementCard } from '@/features/chapter/components/ChapterAnnouncementCard';
+import { PresidentAdminShell } from '@/features/chapter/components/PresidentAdminShell';
 import { hasPosition as checkPosition, org } from '@/config/org';
 import { useChapterSetting } from '@/hooks/useChapterSettings';
 
@@ -49,6 +50,10 @@ export function AdminTab() {
   const visibility = (adminVisibilitySetting && typeof adminVisibilitySetting === 'object' && !Array.isArray(adminVisibilitySetting))
     ? adminVisibilitySetting as Record<string, boolean>
     : {};
+
+  if (checkPosition(profile, 'President')) {
+    return <PresidentAdminShell />;
+  }
 
   return (
     <div className="space-y-8">

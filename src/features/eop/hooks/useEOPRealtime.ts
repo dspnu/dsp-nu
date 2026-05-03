@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/core/auth/AuthContext';
-import { isChapterOps } from '@/config/org';
+import { hasPosition, isChapterOps } from '@/config/org';
 import { toast } from 'sonner';
 import type { Tables, Enums } from '@/integrations/supabase/types';
 
@@ -107,7 +107,7 @@ function applyEopReadyRealtimePayload(
 
 export function useIsVPChapterOps() {
   const { profile, isAdminOrOfficer } = useAuth();
-  const isVPChapterOps = isChapterOps(profile);
+  const isVPChapterOps = isChapterOps(profile) || hasPosition(profile, 'President');
   return { isVPChapterOps, isAdminOrOfficer };
 }
 
