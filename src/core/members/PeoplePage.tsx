@@ -38,7 +38,7 @@ export default function PeoplePage() {
   const [activeTab, setActiveTab] = useState('members');
 
   const canManageAdminRoles =
-    isAdmin || org.superAdmins.includes(user?.email?.toLowerCase() ?? '');
+    isAdmin || (org.superAdmins as readonly string[]).includes(user?.email?.toLowerCase() ?? '');
 
   const filteredMembers = useMemo(() => {
     if (!members) return [];
