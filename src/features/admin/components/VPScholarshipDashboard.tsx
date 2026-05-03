@@ -7,6 +7,7 @@ import { Palette, ExternalLink, Award } from 'lucide-react';
 import { useChapterSetting, useUpdateChapterSetting } from '@/hooks/useChapterSettings';
 import { useAllPaddleSubmissions } from '@/features/paddle-submissions/hooks/usePaddleSubmissions';
 import { useMembers } from '@/core/members/hooks/useMembers';
+import { ChapterScholarshipsManager } from '@/features/admin/components/ChapterScholarshipsManager';
 
 export function VPScholarshipDashboard() {
   const { data: paddleVisible } = useChapterSetting('paddle_submissions_visible');
@@ -25,6 +26,8 @@ export function VPScholarshipDashboard() {
         <h3 className="font-display text-lg font-bold text-foreground">VP of Scholarship & Awards</h3>
         <p className="text-sm text-muted-foreground">Paddle submissions and awards management</p>
       </div>
+
+      <ChapterScholarshipsManager />
 
       <div className="grid gap-3 grid-cols-2 md:grid-cols-3">
         <Card>

@@ -330,6 +330,71 @@ export type Database = {
         }
         Relationships: []
       }
+      chapter_scholarships: {
+        Row: {
+          academic_year: string | null
+          amount_summary: string | null
+          application_instructions: string | null
+          application_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          info_url: string | null
+          is_active: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+          winner_display_name: string | null
+          winner_user_id: string | null
+        }
+        Insert: {
+          academic_year?: string | null
+          amount_summary?: string | null
+          application_instructions?: string | null
+          application_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          info_url?: string | null
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+          winner_display_name?: string | null
+          winner_user_id?: string | null
+        }
+        Update: {
+          academic_year?: string | null
+          amount_summary?: string | null
+          application_instructions?: string | null
+          application_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          info_url?: string | null
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string
+          winner_display_name?: string | null
+          winner_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chapter_scholarships_winner_user_id_fkey"
+            columns: ["winner_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       coffee_chat_milestones: {
         Row: {
           created_at: string
