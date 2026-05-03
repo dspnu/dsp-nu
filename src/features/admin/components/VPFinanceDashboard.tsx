@@ -22,6 +22,9 @@ import {
   CalendarRange,
   Scale,
   LayoutGrid,
+  CreditCard,
+  Copy,
+  ExternalLink,
 } from 'lucide-react';
 import { useMembers } from '@/core/members/hooks/useMembers';
 import { useAuth } from '@/core/auth/AuthContext';
@@ -43,6 +46,12 @@ import {
   computeMemberBalance,
 } from '@/features/dues/hooks/useDuesConfig';
 import { FinanceScheduleCalendar, type FinanceScheduleItem } from '@/features/dues/components/FinanceScheduleCalendar';
+import {
+  isCloverCheckoutUiEnabled,
+  useCloverCheckoutsList,
+  useCreateCloverCheckout,
+} from '@/features/payments/hooks/useCloverCheckout';
+import { toast } from 'sonner';
 
 const currentSemester = () => {
   const now = new Date();
@@ -105,6 +114,15 @@ export function VPFinanceDashboard() {
   const [installUserId, setInstallUserId] = useState('');
   const [installCount, setInstallCount] = useState('2');
   const [installDates, setInstallDates] = useState<string[]>(['', '']);
+
+  const [cloverMemberId, setCloverMemberId] = useState('');
+  const [cloverPurpose, setCloverPurpose] = useState<'dues' | 'generic'>('dues');
+  const [cloverDollarAmount, setCloverDollarAmount] = useState('');
+  const [cloverLinkOpen, setCloverLinkOpen] = useState(false);
+  const [cloverCreatedUrl, setCloverCreatedUrl] = useState('');
+
+  const createCloverCheckout = useCreateCloverCheckout();
+  const { data: cloverHistory = [], isLoading: cloverHistoryLoading } = useCloverCheckoutsList();
 
   const activeMembers = members.filter(
     (m) => m.status === 'active' || m.status === 'new_member' || m.status === 'inactive'
@@ -367,6 +385,187 @@ export function VPFinanceDashboard() {
               </CardContent>
             </Card>
           </div>
+
+          {isCloverCheckoutUiEnabled() && (
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <CreditCard className="h-4 w-4" />
+                    Clover payment links
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Create a Hosted Checkout session. When the member pays, their dues update automatically via webhook.
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <form
+                    className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (!cloverMemberId) {
+                        toast.error('Select a member');
+                        return;
+                      }
+                      const dollars = parseFloat(cloverDollarAmount);
+                      if (!Number.isFinite(dollars) || dollars <= 0) {
+                        toast.error('Enter a valid amount');
+                        return;
+                      }
+                      const amountCents = Math.round(dollars * 100);
+                      createCloverCheckout.mutate(
+                        {
+                          purpose: cloverPurpose,
+                          amountCents,
+                          semester,
+                          targetUserId: cloverMemberId,
+                        },
+                        {
+                          onSuccess: (res) => {
+                            setCloverCreatedUrl(res.url);
+                            setCloverLinkOpen(true);
+                          },
+                        }
+                      );
+                    }}
+                  >
+                    <div className="space-y-2 min-w-[200px] flex-1">
+                      <Label>Member</Label>
+                      <Select value={cloverMemberId} onValueChange={setCloverMemberId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select member" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {activeMembers.map((m) => (
+                            <SelectItem key={m.user_id} value={m.user_id}>
+                              {m.first_name} {m.last_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2 w-36">
+                      <Label>Purpose</Label>
+                      <Select
+                        value={cloverPurpose}
+                        onValueChange={(v) => setCloverPurpose(v as 'dues' | 'generic')}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="dues">Dues</SelectItem>
+                          <SelectItem value="generic">Other (line item)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2 w-32">
+                      <Label>Amount ($)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={cloverDollarAmount}
+                        onChange={(e) => setCloverDollarAmount(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <Button type="submit" className="gap-2" disabled={createCloverCheckout.isPending}>
+                      {createCloverCheckout.isPending ? 'Creating…' : 'Create link'}
+                    </Button>
+                  </form>
+
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-semibold">Recent checkouts</h4>
+                    {cloverHistoryLoading ? (
+                      <p className="text-sm text-muted-foreground">Loading…</p>
+                    ) : cloverHistory.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No checkout sessions yet.</p>
+                    ) : (
+                      <div className="rounded-md border overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>When</TableHead>
+                              <TableHead>Member</TableHead>
+                              <TableHead>Purpose</TableHead>
+                              <TableHead className="text-right">Amount</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead className="w-[100px]" />
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {cloverHistory.map((c) => {
+                              const m = members.find((x) => x.user_id === c.user_id);
+                              const label = m ? `${m.first_name} ${m.last_name}` : c.user_id.slice(0, 8);
+                              return (
+                                <TableRow key={c.id}>
+                                  <TableCell className="whitespace-nowrap text-xs">
+                                    {format(new Date(c.created_at), 'MMM d, h:mm a')}
+                                  </TableCell>
+                                  <TableCell className="text-sm">{label}</TableCell>
+                                  <TableCell className="text-sm">{c.purpose}</TableCell>
+                                  <TableCell className="text-right tabular-nums text-sm">
+                                    ${(c.amount_cents / 100).toFixed(2)}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge variant={c.status === 'completed' ? 'default' : 'secondary'}>
+                                      {c.status}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell>
+                                    {c.link_url && (
+                                      <Button variant="ghost" size="sm" className="h-8 px-2" asChild>
+                                        <a href={c.link_url} target="_blank" rel="noreferrer" title="Open checkout">
+                                          <ExternalLink className="h-4 w-4" />
+                                        </a>
+                                      </Button>
+                                    )}
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Dialog open={cloverLinkOpen} onOpenChange={setCloverLinkOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Checkout link ready</DialogTitle>
+                  </DialogHeader>
+                  <p className="text-sm text-muted-foreground break-all">{cloverCreatedUrl}</p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="button" asChild>
+                      <a href={cloverCreatedUrl} target="_blank" rel="noreferrer" className="gap-2">
+                        Open Clover <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="gap-2"
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(cloverCreatedUrl);
+                          toast.success('Link copied');
+                        } catch {
+                          toast.error('Could not copy');
+                        }
+                      }}
+                    >
+                      <Copy className="h-4 w-4" />
+                      Copy
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </>
+          )}
 
           <div className="flex flex-wrap gap-2">
             <Dialog open={payOpen} onOpenChange={setPayOpen}>
