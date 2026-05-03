@@ -7,6 +7,7 @@ export function getNotificationGroupId(type: string): NotificationGroupId {
   if (type === 'announcement') return 'announcements';
   if (type === 'new_event' || type === 'event_update' || type === 'event') return 'events';
   if (type === 'dues_reminder' || type === 'dues_overdue') return 'reminders';
+  if (type === 'exec_task_assigned') return 'reminders';
   return 'other';
 }
 

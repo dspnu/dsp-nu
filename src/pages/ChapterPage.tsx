@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/core/layout/AppLayout';
 import { PageHeader } from '@/components/ui/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -21,11 +22,17 @@ interface TabDef {
 
 export default function ChapterPage() {
   const { profile, isAdminOrOfficer } = useAuth();
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('standing');
   const { data: showAdminTabSetting } = useChapterSetting('chapter_admin_tab_visible', { whenMissing: true });
 
   const hasExecPosition = (profile?.positions?.length ?? 0) > 0;
   const showAdminTab = (hasExecPosition || isAdminOrOfficer) && showAdminTabSetting !== false;
+
+  useEffect(() => {
+    const t = searchParams.get('tab');
+    if (t === 'admin' && showAdminTab) setActiveTab('admin');
+  }, [searchParams, showAdminTab]);
 
   const tabs = useMemo(() => {
     const t: TabDef[] = [
