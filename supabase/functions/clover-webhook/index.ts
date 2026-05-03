@@ -133,7 +133,13 @@ Deno.serve(async (req) => {
 
     const rawBody = await req.text();
     const signingSecret = Deno.env.get('CLOVER_WEBHOOK_SIGNING_SECRET') ?? '';
-    const sigHeader = req.headers.get('Clover-Signature') ?? req.headers.get('clover-signature');
+    if (!signingSecret) {
+      console.error('[clover-webhook] CLOVER_WEBHOOK_SIGNING_SECRET is not configured — rejecting request');
+      return new Response(JSON.stringify({ ok: false, error: 'webhook_not_configured' }), {
+        status: 500,
+        headers: { 'content-type': 'application/json' },
+      });
+    }
 
     // #region agent log
     dbg('H1', 'after_read_body', {
