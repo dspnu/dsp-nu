@@ -69,7 +69,6 @@ export type Database = {
         Row: {
           big: string | null
           created_at: string
-          org_position: string | null
           family: string | null
           first_name: string
           fun_facts: string | null
@@ -82,6 +81,7 @@ export type Database = {
           littles: string | null
           majors: string | null
           minors: string | null
+          org_position: string | null
           osu_email: string | null
           osu_involvements: string | null
           pledge_class: string | null
@@ -92,7 +92,6 @@ export type Database = {
         Insert: {
           big?: string | null
           created_at?: string
-          org_position?: string | null
           family?: string | null
           first_name: string
           fun_facts?: string | null
@@ -105,6 +104,7 @@ export type Database = {
           littles?: string | null
           majors?: string | null
           minors?: string | null
+          org_position?: string | null
           osu_email?: string | null
           osu_involvements?: string | null
           pledge_class?: string | null
@@ -115,7 +115,6 @@ export type Database = {
         Update: {
           big?: string | null
           created_at?: string
-          org_position?: string | null
           family?: string | null
           first_name?: string
           fun_facts?: string | null
@@ -128,6 +127,7 @@ export type Database = {
           littles?: string | null
           majors?: string | null
           minors?: string | null
+          org_position?: string | null
           osu_email?: string | null
           osu_involvements?: string | null
           pledge_class?: string | null
@@ -1107,11 +1107,25 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "event_tickets_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "event_tickets_ticketed_event_id_fkey"
             columns: ["ticketed_event_id"]
             isOneToOne: false
             referencedRelation: "ticketed_events"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_tickets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -1388,7 +1402,22 @@ export type Database = {
           type?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notifications_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_ticketed_event_id_fkey"
+            columns: ["ticketed_event_id"]
+            isOneToOne: false
+            referencedRelation: "ticketed_events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       paddle_submissions: {
         Row: {
@@ -1873,7 +1902,15 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ticketed_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -1901,6 +1938,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_assign_ticketed_event_ticket: {
+        Args: {
+          p_ticketed_event_id: string
+          p_user_id: string
+          p_waive_payment?: boolean
+        }
+        Returns: Json
+      }
+      broadcast_chapter_announcement: {
+        Args: { p_link?: string; p_message: string; p_title: string }
+        Returns: undefined
+      }
+      cancel_own_event_ticket: { Args: { p_ticket_id: string }; Returns: Json }
+      check_in_ticket_by_code: { Args: { p_code: string }; Returns: Json }
+      claim_ticketed_event_ticket: {
+        Args: { p_ticketed_event_id: string }
+        Returns: Json
+      }
+      delete_user_account: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1923,9 +1979,16 @@ export type Database = {
         Args: { p_event_id: string; p_message: string; p_title: string }
         Returns: undefined
       }
-      notify_members_new_event: { Args: { p_event_id: string }; Returns: undefined }
+      notify_members_new_event: {
+        Args: { p_event_id: string }
+        Returns: undefined
+      }
       notify_ticket_holders_ticketed_event_updated: {
-        Args: { p_message: string; p_ticketed_event_id: string; p_title: string }
+        Args: {
+          p_message: string
+          p_ticketed_event_id: string
+          p_title: string
+        }
         Returns: undefined
       }
       mark_clover_checkout_failed: { Args: { p_checkout_session_id: string }; Returns: Json }
