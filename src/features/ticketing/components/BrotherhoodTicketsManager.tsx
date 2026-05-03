@@ -50,6 +50,10 @@ import {
   isAppleWalletPassConfigured,
   isLikelyIos,
 } from '@/features/ticketing/lib/downloadAppleWalletPass';
+import {
+  isCloverCheckoutUiEnabled,
+  useCreateCloverCheckout,
+} from '@/features/payments/hooks/useCloverCheckout';
 
 type TicketedEvent = Tables<'ticketed_events'>;
 
@@ -77,6 +81,7 @@ export function BrotherhoodTicketsManager({
 }: BrotherhoodTicketsManagerProps) {
   const { canManageEvents } = useAuth();
   const { toast } = useToast();
+  const createCloverCheckout = useCreateCloverCheckout();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const tabParam = syncRouterSearchParams ? searchParams.get('tab') : null;
@@ -323,6 +328,36 @@ export function BrotherhoodTicketsManager({
                     </Button>
                     <span className="text-xs text-muted-foreground">
                       After paying, an officer will mark you paid so your QR activates.
+                    </span>
+                  </div>
+                )}
+                {isCloverCheckoutUiEnabled() && ev.price_cents > 0 && row.payment_status === 'pending' && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="gap-1"
+                      disabled={createCloverCheckout.isPending}
+                      onClick={() =>
+                        createCloverCheckout.mutate(
+                          {
+                            purpose: 'ticket',
+                            amountCents: ev.price_cents,
+                            eventTicketId: row.id,
+                          },
+                          {
+                            onSuccess: (res) => {
+                              window.open(res.url, '_blank', 'noopener,noreferrer');
+                            },
+                          }
+                        )
+                      }
+                    >
+                      {createCloverCheckout.isPending ? 'Creating…' : 'Pay with Clover'}
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </Button>
+                    <span className="text-xs text-muted-foreground">
+                      Opens Clover; your ticket is marked paid automatically when the payment clears.
                     </span>
                   </div>
                 )}

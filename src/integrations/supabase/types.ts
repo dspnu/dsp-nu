@@ -461,6 +461,66 @@ export type Database = {
         }
         Relationships: []
       }
+      clover_checkouts: {
+        Row: {
+          amount_cents: number
+          checkout_session_id: string
+          clover_payment_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          event_ticket_id: string | null
+          id: string
+          idempotency_key: string
+          link_url: string
+          metadata: Json
+          purpose: string
+          semester: string | null
+          status: string
+          ticketed_event_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          checkout_session_id: string
+          clover_payment_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          event_ticket_id?: string | null
+          id?: string
+          idempotency_key: string
+          link_url: string
+          metadata?: Json
+          purpose: string
+          semester?: string | null
+          status?: string
+          ticketed_event_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          checkout_session_id?: string
+          clover_payment_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          event_ticket_id?: string | null
+          id?: string
+          idempotency_key?: string
+          link_url?: string
+          metadata?: Json
+          purpose?: string
+          semester?: string | null
+          status?: string
+          ticketed_event_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       dues_config: {
         Row: {
           amount: number
@@ -1904,6 +1964,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      apply_clover_checkout_success: {
+        Args: { p_checkout_session_id: string; p_clover_payment_id: string }
+        Returns: Json
+      }
       is_admin_or_officer: { Args: { _user_id: string }; Returns: boolean }
       is_chapter_president: { Args: { _user_id: string }; Returns: boolean }
       is_chapter_president_or_app_admin: { Args: { _user_id: string }; Returns: boolean }
@@ -1927,8 +1991,10 @@ export type Database = {
         }
         Returns: undefined
       }
-      purge_exported_data: {
-        Args: { p_datasets: string[]; p_from: string; p_to: string }
+      mark_clover_checkout_failed: { Args: { p_checkout_session_id: string }; Returns: Json }
+      claim_ticketed_event_ticket: { Args: { p_ticketed_event_id: string }; Returns: Json }
+      admin_assign_ticketed_event_ticket: {
+        Args: { p_ticketed_event_id: string; p_user_id: string; p_waive_payment?: boolean }
         Returns: Json
       }
       cancel_own_event_ticket: { Args: { p_ticket_id: string }; Returns: Json }

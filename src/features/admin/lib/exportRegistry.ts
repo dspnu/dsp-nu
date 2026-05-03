@@ -22,6 +22,7 @@ export type ExportDatasetId =
   | 'dues_installments'
   | 'dues_late_fees'
   | 'dues_config'
+  | 'clover_checkouts'
   | 'ticketed_events'
   | 'event_tickets'
   | 'audit_logs';
@@ -190,7 +191,23 @@ export const exportDatasets: ExportDataset[] = ([
     fetchRows: (filters) => fetchAllFromTable({ table: 'dues_config', filters, dateColumn: 'updated_at', semesterColumn: 'semester' }),
   },
   {
-    id: 'ticketed_events' as ExportDatasetId,
+    id: 'clover_checkouts',
+    label: 'Clover checkouts',
+    sheetName: 'Clover_Checkouts',
+    defaultSelected: false,
+    dateColumn: 'created_at',
+    semesterColumn: 'semester',
+    enabled: org.features.dues,
+    fetchRows: (filters) =>
+      fetchAllFromTable<Tables<'clover_checkouts'>>({
+        table: 'clover_checkouts',
+        filters,
+        dateColumn: 'created_at',
+        semesterColumn: 'semester',
+      }),
+  },
+  {
+    id: 'ticketed_events',
     label: 'Ticketed events',
     sheetName: 'Ticketed_Events',
     defaultSelected: false,
