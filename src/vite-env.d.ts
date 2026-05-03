@@ -7,6 +7,8 @@ interface ImportMetaEnv {
   readonly VITE_PUSH_SUBSCRIPTION_URL?: string;
   /** Optional override for app/firmware semantic version */
   readonly VITE_APP_VERSION?: string;
+  /** Base URL of the wallet-pass-service (no trailing slash), e.g. https://wallet.example.com */
+  readonly VITE_WALLET_PASS_URL?: string;
 }
 
 interface ImportMeta {
