@@ -306,6 +306,63 @@ export type Database = {
         }
         Relationships: []
       }
+      chapter_scholarships: {
+        Row: {
+          academic_year: string | null
+          amount_summary: string | null
+          application_instructions: string | null
+          application_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          info_url: string | null
+          is_active: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+          winner_display_name: string | null
+          winner_user_id: string | null
+        }
+        Insert: {
+          academic_year?: string | null
+          amount_summary?: string | null
+          application_instructions?: string | null
+          application_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          info_url?: string | null
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+          winner_display_name?: string | null
+          winner_user_id?: string | null
+        }
+        Update: {
+          academic_year?: string | null
+          amount_summary?: string | null
+          application_instructions?: string | null
+          application_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          info_url?: string | null
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string
+          winner_display_name?: string | null
+          winner_user_id?: string | null
+        }
+        Relationships: []
+      }
       chapter_settings: {
         Row: {
           id: string
