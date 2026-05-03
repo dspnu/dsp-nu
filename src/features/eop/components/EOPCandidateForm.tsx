@@ -86,11 +86,11 @@ export function EOPCandidateForm({ candidate, trigger }: EOPCandidateFormProps) 
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
+      const { data: signedData } = await supabase.storage
         .from('pnm-pictures')
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 60 * 60 * 24 * 365);
 
-      setPictureUrl(publicUrl);
+      setPictureUrl(signedData?.signedUrl ?? '');
       toast.success('Picture uploaded');
     } catch (error) {
       toast.error('Failed to upload picture');

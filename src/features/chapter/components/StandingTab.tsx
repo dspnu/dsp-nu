@@ -208,10 +208,10 @@ export function StandingTab() {
         toast.error('Failed to upload photo');
         return;
       }
-      const { data: urlData } = supabase.storage
+      const { data: urlData } = await supabase.storage
         .from('service-hours-photos')
-        .getPublicUrl(path);
-      photo_url = urlData.publicUrl;
+        .createSignedUrl(path, 60 * 60 * 24 * 365);
+      photo_url = urlData?.signedUrl;
     }
 
     logHoursMutation.mutate({
