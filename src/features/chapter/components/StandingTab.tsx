@@ -19,6 +19,7 @@ import { useAuth } from '@/core/auth/AuthContext';
 import { useServiceHours, useLogServiceHours, useAllServiceHours } from '@/features/service-hours/hooks/useServiceHours';
 import { org, allCategories } from '@/config/org';
 import { useChapterSetting } from '@/hooks/useChapterSettings';
+import { ScholarshipsStandingSection } from '@/features/chapter/components/ScholarshipsStandingSection';
 
 const POINTS_REQUIREMENT = org.standing.minPoints;
 const SERVICE_HOURS_REQUIREMENT = org.standing.minServiceHours;
@@ -446,6 +447,8 @@ export function StandingTab() {
           )}
         </div>
       </div>
+
+      <ScholarshipsStandingSection />
     </div>
   );
 }
