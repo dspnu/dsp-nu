@@ -42,9 +42,14 @@ import { TicketedEventFormDialog } from '@/features/ticketing/components/Tickete
 import { TicketQrBlock } from '@/features/ticketing/components/TicketQrBlock';
 import { TicketCheckInTools } from '@/features/ticketing/components/TicketCheckInTools';
 import { format } from 'date-fns';
-import { ExternalLink, Loader2, Ticket as TicketIcon, Trash2 } from 'lucide-react';
+import { ExternalLink, Loader2, Ticket as TicketIcon, Trash2, WalletCards } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
+import {
+  downloadBrotherhoodTicketPass,
+  isAppleWalletPassConfigured,
+  isLikelyIos,
+} from '@/features/ticketing/lib/downloadAppleWalletPass';
 
 type TicketedEvent = Tables<'ticketed_events'>;
 
@@ -103,6 +108,7 @@ export function BrotherhoodTicketsManager({
   const deleteEvent = useDeleteTicketedEvent();
   const updatePayment = useUpdateTicketPayment();
   const checkIn = useCheckInTicket();
+  const [walletPassLoadingId, setWalletPassLoadingId] = useState<string | null>(null);
 
   const myEventIds = useMemo(
     () => new Set((myTickets ?? []).map((t) => t.ticketed_event_id)),
@@ -321,11 +327,43 @@ export function BrotherhoodTicketsManager({
                   </div>
                 )}
                 {ready && !row.checked_in_at && (
-                  <div className="flex flex-col sm:flex-row gap-4 sm:items-start">
-                    <TicketQrBlock ticket={row} />
-                    <p className="text-sm text-muted-foreground max-w-sm">
-                      Show this QR at the door. Officers can also check you in with the code below the QR.
-                    </p>
+                  <div className="flex flex-col gap-4">
+                    <div className="flex flex-col sm:flex-row gap-4 sm:items-start">
+                      <TicketQrBlock ticket={row} />
+                      <p className="text-sm text-muted-foreground max-w-sm">
+                        Show this QR at the door. Officers can also check you in with the code below the QR.
+                      </p>
+                    </div>
+                    {isAppleWalletPassConfigured() && isLikelyIos() && (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="w-fit gap-2"
+                        disabled={walletPassLoadingId === row.id}
+                        onClick={async () => {
+                          setWalletPassLoadingId(row.id);
+                          try {
+                            await downloadBrotherhoodTicketPass(row.id);
+                          } catch (e) {
+                            toast({
+                              title: 'Could not add pass',
+                              description: e instanceof Error ? e.message : 'Unknown error',
+                              variant: 'destructive',
+                            });
+                          } finally {
+                            setWalletPassLoadingId(null);
+                          }
+                        }}
+                      >
+                        {walletPassLoadingId === row.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <WalletCards className="h-4 w-4" />
+                        )}
+                        Add to Apple Wallet
+                      </Button>
+                    )}
                   </div>
                 )}
                 {!ready && ev.price_cents > 0 && (
