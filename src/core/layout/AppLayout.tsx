@@ -6,6 +6,7 @@ import { MobileNav } from './MobileNav';
 import { DesktopSidebar } from './DesktopSidebar';
 import { Loader2 } from 'lucide-react';
 import { org } from '@/config/org';
+import { useCapability } from '@/config/capabilities';
 import { AppCopyrightFooter } from '@/components/layout/AppCopyrightFooter';
 import { EventReminderSync } from '@/features/notifications/components/EventReminderSync';
 import { TicketPaymentReminderSync } from '@/features/notifications/components/TicketPaymentReminderSync';
@@ -19,6 +20,7 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const { user, profile, loading } = useAuth();
+  const ticketingEnabled = useCapability('ticketing');
 
   if (loading) {
     return (
@@ -43,7 +45,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     <AddToHomeScreenProvider>
       <div className="min-h-screen bg-background">
         <EventReminderSync />
-        {org.features.ticketing && <TicketPaymentReminderSync />}
+        {ticketingEnabled && <TicketPaymentReminderSync />}
         <DuesReminderSync />
         <DesktopSidebar />
         <main className="md:ml-64 pb-28 md:pb-0">

@@ -9,6 +9,8 @@ interface ImportMetaEnv {
   readonly VITE_APP_VERSION?: string;
   /** Base URL of the wallet-pass-service (no trailing slash), e.g. https://wallet.example.com */
   readonly VITE_WALLET_PASS_URL?: string;
+  /** Comma-separated org.features keys to force off at build time (see src/config/capabilities.ts). */
+  readonly VITE_DISABLED_FEATURES?: string;
 }
 
 interface ImportMeta {

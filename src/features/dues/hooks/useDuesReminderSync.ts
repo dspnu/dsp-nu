@@ -3,7 +3,7 @@ import { differenceInCalendarDays, startOfDay } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/core/auth/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
-import { org } from '@/config/org';
+import { isCapabilityEnabled } from '@/config/capabilities';
 import { computeMemberBalance } from '@/features/dues/hooks/useDuesConfig';
 
 const currentSemester = () => {
@@ -38,7 +38,7 @@ export function useDuesReminderSync() {
   }, [user?.id]);
 
   useEffect(() => {
-    if (!org.features.dues) return;
+    if (!isCapabilityEnabled('dues')) return;
     if (!user?.id || !profile?.status) return;
 
     const key = `${user.id}:${profile.status}`;

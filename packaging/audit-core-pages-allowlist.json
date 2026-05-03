@@ -1,0 +1,11 @@
+{
+  "coreAndPagesFeatureImports": [
+    "src/core/members/PeoplePage.tsx",
+    "src/core/layout/AppLayout.tsx",
+    "src/core/layout/DesktopSidebar.tsx",
+    "src/core/members/MemberProfilePage.tsx",
+    "src/pages/ChapterPage.tsx",
+    "src/pages/NotificationsPage.tsx",
+    "src/pages/SettingsPage.tsx"
+  ]
+}
