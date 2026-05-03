@@ -20,6 +20,8 @@ interface Profile {
   avatar_url: string | null;
   linkedin_url: string | null;
   family: string | null;
+  big: string | null;
+  little: string | null;
 }
 
 interface AuthContextType {

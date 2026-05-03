@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/core/auth/AuthContext';
+import { profileNeedsOnboarding } from '@/core/auth/profileNeedsOnboarding';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -102,9 +103,7 @@ export default function AuthPage() {
   }
 
   if (user) {
-    // Redirect to onboarding if profile is incomplete (no major = never onboarded)
-    const needsOnboarding = profile && !profile.major && !profile.graduation_year;
-    return <Navigate to={needsOnboarding ? '/onboarding' : '/'} replace />;
+    return <Navigate to={profileNeedsOnboarding(profile) ? '/onboarding' : '/'} replace />;
   }
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {

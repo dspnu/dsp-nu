@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/core/auth/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,6 +19,9 @@ import { AccountLegalNotice } from '@/components/legal/AccountLegalNotice';
 import { AppCopyrightFooter } from '@/components/layout/AppCopyrightFooter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppLogo } from '@/components/branding/AppLogo';
+import { useMembers } from '@/core/members/hooks/useMembers';
+
+const FAMILY_OPTIONS = ['Baggio', 'Corleone', 'Conway', 'Sinatra', 'Conrad'] as const;
 
 const TOTAL_STEPS = 5;
 const currentYear = new Date().getFullYear();
@@ -89,8 +92,21 @@ export default function OnboardingPage() {
   const [gradYear, setGradYear] = useState(profile?.graduation_year?.toString() || '');
   const [linkedinUrl, setLinkedinUrl] = useState(profile?.linkedin_url || '');
   const [hometown, setHometown] = useState((profile as any)?.hometown || '');
+  const [family, setFamily] = useState(profile?.family ?? '');
+  const [big, setBig] = useState(profile?.big ?? '');
+  const [little, setLittle] = useState(profile?.little ?? '');
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || '');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
+
+  const { data: members, isPending: membersLoading } = useMembers();
+  const otherMembers = members?.filter((m) => m.id !== profile?.id) ?? [];
+
+  useEffect(() => {
+    if (!profile) return;
+    setFamily(profile.family ?? '');
+    setBig(profile.big ?? '');
+    setLittle(profile.little ?? '');
+  }, [profile]);
 
   const goTo = (next: number) => {
     setDirection(next > step ? 1 : -1);
@@ -115,8 +131,21 @@ export default function OnboardingPage() {
     const trimmedLinkedin = linkedinUrl.trim();
     const trimmedHometown = hometown.trim();
 
-    if (!trimmedFirst || !trimmedLast || !trimmedPhone || !trimmedMajor || !gradYear) {
-      toast.error('Please fill out all required fields.');
+    const trimmedFamily = family.trim();
+    const trimmedBig = big.trim();
+    const trimmedLittle = little.trim();
+
+    if (
+      !trimmedFirst ||
+      !trimmedLast ||
+      !trimmedPhone ||
+      !trimmedMajor ||
+      !gradYear ||
+      !trimmedFamily ||
+      !trimmedBig ||
+      !trimmedLittle
+    ) {
+      toast.error('Please fill out all required fields, including family, big, and little.');
       return;
     }
 
@@ -144,6 +173,9 @@ export default function OnboardingPage() {
           graduation_year: parseInt(gradYear, 10),
           linkedin_url: trimmedLinkedin || null,
           hometown: trimmedHometown || null,
+          family: trimmedFamily,
+          big: trimmedBig,
+          little: trimmedLittle,
           avatar_url: finalAvatarUrl,
         })
         .eq('user_id', user.id);
@@ -279,6 +311,67 @@ export default function OnboardingPage() {
                         <Label>LinkedIn URL</Label>
                         <Input value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} placeholder="https://linkedin.com/in/yourname" />
                       </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="space-y-2">
+                          <Label>
+                            Family <span className="text-destructive">*</span>
+                          </Label>
+                          <Select value={family || undefined} onValueChange={setFamily}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select family" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {FAMILY_OPTIONS.map((f) => (
+                                <SelectItem key={f} value={f}>
+                                  {f}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>
+                            Big <span className="text-destructive">*</span>
+                          </Label>
+                          <Select
+                            value={big || undefined}
+                            onValueChange={setBig}
+                            disabled={membersLoading}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder={membersLoading ? 'Loading…' : 'Select your big'} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {otherMembers.map((m) => (
+                                <SelectItem key={m.id} value={m.id}>
+                                  {m.first_name} {m.last_name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>
+                            Little <span className="text-destructive">*</span>
+                          </Label>
+                          <Select
+                            value={little || undefined}
+                            onValueChange={setLittle}
+                            disabled={membersLoading}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder={membersLoading ? 'Loading…' : 'Select your little'} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {otherMembers.map((m) => (
+                                <SelectItem key={m.id} value={m.id}>
+                                  {m.first_name} {m.last_name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                   <div className="flex justify-between">
@@ -287,7 +380,18 @@ export default function OnboardingPage() {
                     </Button>
                     <Button
                       onClick={handleSaveProfile}
-                      disabled={saving || !firstName.trim() || !lastName.trim() || !phone.trim() || !major.trim() || !gradYear}
+                      disabled={
+                        saving ||
+                        membersLoading ||
+                        !firstName.trim() ||
+                        !lastName.trim() ||
+                        !phone.trim() ||
+                        !major.trim() ||
+                        !gradYear ||
+                        !family.trim() ||
+                        !big.trim() ||
+                        !little.trim()
+                      }
                       className="gap-2"
                     >
                       {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
