@@ -1735,6 +1735,7 @@ export type Database = {
         Args: { p_link?: string; p_message: string; p_title: string }
         Returns: undefined
       }
+      can_manage_user_roles: { Args: { _user_id: string }; Returns: boolean }
       cancel_own_event_ticket: { Args: { p_ticket_id: string }; Returns: Json }
       check_in_ticket_by_code: { Args: { p_code: string }; Returns: Json }
       claim_ticketed_event_ticket: {
