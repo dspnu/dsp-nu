@@ -8,6 +8,10 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+
+# Supabase CLI
+supabase/.temp/
+
 dist
 dist-ssr
 *.local
