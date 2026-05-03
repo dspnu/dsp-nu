@@ -16,6 +16,10 @@ jobs:
           cache: npm
       - name: Install
         run: npm ci
+      - name: Packaging audit
+        run: npm run packaging:audit
+      - name: Typecheck
+        run: npm run typecheck
       - name: Build
         run: npm run build
 

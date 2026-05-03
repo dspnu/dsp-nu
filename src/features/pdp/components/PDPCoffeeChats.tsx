@@ -4,7 +4,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Coffee, AlertCircle } from 'lucide-react';
-import { org } from '@/config/org';
+import { isCapabilityEnabled } from '@/config/capabilities';
 import { useMyCoffeeChats, useCoffeeChats } from '@/features/coffee-chats/hooks/useCoffeeChats';
 import { useMembers } from '@/core/members/hooks/useMembers';
 import { useAuth } from '@/core/auth/AuthContext';
@@ -20,14 +20,16 @@ interface Props {
 }
 
 export function PDPCoffeeChats({ isVP, isNewMember }: Props) {
-  if (!org.features.coffeeChats) {
-    return <EmptyState icon={Coffee} title="Coffee Chats Unavailable" description="This feature is not enabled for your organization." />;
-  }
+  const coffeeChatsEnabled = isCapabilityEnabled('coffeeChats');
   const { user, isAdminOrOfficer } = useAuth();
   const { data: myChats, isLoading } = useMyCoffeeChats();
   const { data: allChats } = useCoffeeChats();
   const { data: members } = useMembers();
   const { data: approvedMembers } = useApprovedMembers();
+
+  if (!coffeeChatsEnabled) {
+    return <EmptyState icon={Coffee} title="Coffee Chats Unavailable" description="This feature is not enabled for your organization." />;
+  }
 
   const completedCount = myChats?.filter(c => c.status === 'completed').length || 0;
   const scheduledCount = myChats?.filter(c => c.status === 'scheduled').length || 0;

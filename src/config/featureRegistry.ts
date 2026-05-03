@@ -1,6 +1,7 @@
 import { type ComponentType } from 'react';
 import { type LucideIcon } from 'lucide-react';
-import { org } from './org';
+import type { FeatureKey } from './capabilities';
+import { isCapabilityEnabled } from './capabilities';
 
 export interface FeatureRoute {
   path: string;
@@ -22,7 +23,11 @@ export interface FeatureChapterTab {
 }
 
 export interface FeatureDefinition {
-  key: keyof typeof org.features;
+  key: FeatureKey;
+  /** Repo-relative paths owned by this feature (used for SKU stripping). */
+  paths: string[];
+  /** Other feature keys this module hard-depends on at import level. */
+  dependsOn?: FeatureKey[];
   route?: FeatureRoute;
   additionalRoutes?: FeatureRoute[];
   navItem?: FeatureNavItem;
@@ -37,15 +42,19 @@ export function registerFeature(def: FeatureDefinition) {
   featureRegistry.push(def);
 }
 
+export function getRegisteredFeatures(): readonly FeatureDefinition[] {
+  return featureRegistry;
+}
+
 export function getEnabledFeatures() {
-  return featureRegistry.filter(f => org.features[f.key]);
+  return featureRegistry.filter((f) => isCapabilityEnabled(f.key));
 }
 
 export function getEnabledNavItems(profile: any) {
   return getEnabledFeatures()
-    .filter(f => f.navItem)
-    .filter(f => !f.visibilityCheck || f.visibilityCheck(profile))
-    .map(f => f.navItem!)
+    .filter((f) => f.navItem)
+    .filter((f) => !f.visibilityCheck || f.visibilityCheck(profile))
+    .map((f) => f.navItem!)
     .sort((a, b) => (a.position ?? 99) - (b.position ?? 99));
 }
 
@@ -61,12 +70,12 @@ export function getEnabledRoutes() {
 
 export function getEnabledDashboardCards() {
   return getEnabledFeatures()
-    .filter(f => f.dashboardCard)
-    .map(f => ({ key: f.key, component: f.dashboardCard! }));
+    .filter((f) => f.dashboardCard)
+    .map((f) => ({ key: f.key, component: f.dashboardCard! }));
 }
 
 export function getEnabledChapterTabs() {
   return getEnabledFeatures()
-    .filter(f => f.chapterTab)
-    .map(f => f.chapterTab!);
+    .filter((f) => f.chapterTab)
+    .map((f) => f.chapterTab!);
 }

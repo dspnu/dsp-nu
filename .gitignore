@@ -13,6 +13,7 @@ node_modules
 supabase/.temp/
 
 dist
+dist-sku
 dist-ssr
 *.local
 

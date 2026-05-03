@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { BrotherhoodTicketsManager } from '@/features/ticketing/components/BrotherhoodTicketsManager';
-import { org } from '@/config/org';
+import { isCapabilityEnabled } from '@/config/capabilities';
 import { ExternalLink, Ticket } from 'lucide-react';
 
 export function VPBrotherhoodDashboard() {
-  if (!org.features.ticketing) return null;
+  if (!isCapabilityEnabled('ticketing')) return null;
 
   return (
     <div className="space-y-6">

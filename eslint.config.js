@@ -23,4 +23,19 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/config/capabilities.ts"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "MemberExpression[object.type='Identifier'][object.name='org'][property.type='Identifier'][property.name='features']",
+          message:
+            "Use isCapabilityEnabled() or useCapability() from @/config/capabilities instead of reading org.features directly.",
+        },
+      ],
+    },
+  },
 );

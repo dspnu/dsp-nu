@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { org } from '@/config/org';
+import { isCapabilityEnabled } from '@/config/capabilities';
 import type { Tables } from '@/integrations/supabase/types';
 
 export type ExportFormat = 'xlsx' | 'zip_csv';
@@ -157,7 +157,7 @@ export const exportDatasets: ExportDataset[] = [
     defaultSelected: true,
     dateColumn: 'paid_at',
     semesterColumn: 'semester',
-    enabled: org.features.dues,
+    enabled: isCapabilityEnabled('dues'),
     fetchRows: (filters) => fetchAllFromTable<Tables<'dues_payments'>>({ table: 'dues_payments', filters, dateColumn: 'paid_at', semesterColumn: 'semester' }),
   },
   {
@@ -167,7 +167,7 @@ export const exportDatasets: ExportDataset[] = [
     defaultSelected: true,
     dateColumn: 'created_at',
     semesterColumn: 'semester',
-    enabled: org.features.dues,
+    enabled: isCapabilityEnabled('dues'),
     fetchRows: (filters) => fetchAllFromTable<Tables<'dues_line_items'>>({ table: 'dues_line_items', filters, dateColumn: 'created_at', semesterColumn: 'semester' }),
   },
   {
@@ -177,7 +177,7 @@ export const exportDatasets: ExportDataset[] = [
     defaultSelected: true,
     dateColumn: 'created_at',
     semesterColumn: 'semester',
-    enabled: org.features.dues,
+    enabled: isCapabilityEnabled('dues'),
     fetchRows: (filters) => fetchAllFromTable<Tables<'dues_installments'>>({ table: 'dues_installments', filters, dateColumn: 'created_at', semesterColumn: 'semester' }),
   },
   {
@@ -187,7 +187,7 @@ export const exportDatasets: ExportDataset[] = [
     defaultSelected: true,
     dateColumn: 'created_at',
     semesterColumn: 'semester',
-    enabled: org.features.dues,
+    enabled: isCapabilityEnabled('dues'),
     fetchRows: (filters) => fetchAllFromTable<Tables<'dues_late_fees'>>({ table: 'dues_late_fees', filters, dateColumn: 'created_at', semesterColumn: 'semester' }),
   },
   {
@@ -197,7 +197,7 @@ export const exportDatasets: ExportDataset[] = [
     defaultSelected: true,
     dateColumn: 'updated_at',
     semesterColumn: 'semester',
-    enabled: org.features.dues,
+    enabled: isCapabilityEnabled('dues'),
     fetchRows: (filters) => fetchAllFromTable<Tables<'dues_config'>>({ table: 'dues_config', filters, dateColumn: 'updated_at', semesterColumn: 'semester' }),
   },
   {
@@ -207,7 +207,7 @@ export const exportDatasets: ExportDataset[] = [
     defaultSelected: false,
     dateColumn: 'created_at',
     semesterColumn: 'semester',
-    enabled: org.features.dues,
+    enabled: isCapabilityEnabled('dues'),
     fetchRows: (filters) =>
       fetchAllFromTable<Tables<'clover_checkouts'>>({
         table: 'clover_checkouts',
@@ -222,7 +222,7 @@ export const exportDatasets: ExportDataset[] = [
     sheetName: 'Ticketed_Events',
     defaultSelected: false,
     dateColumn: 'starts_at',
-    enabled: org.features.ticketing,
+    enabled: isCapabilityEnabled('ticketing'),
     fetchRows: (filters) => fetchAllFromTable<Tables<'ticketed_events'>>({ table: 'ticketed_events', filters, dateColumn: 'starts_at' }),
   },
   {
@@ -231,7 +231,7 @@ export const exportDatasets: ExportDataset[] = [
     sheetName: 'Event_Tickets',
     defaultSelected: false,
     dateColumn: 'created_at',
-    enabled: org.features.ticketing,
+    enabled: isCapabilityEnabled('ticketing'),
     fetchRows: (filters) => fetchAllFromTable<Tables<'event_tickets'>>({ table: 'event_tickets', filters, dateColumn: 'created_at' }),
   },
   {

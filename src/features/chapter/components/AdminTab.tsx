@@ -11,14 +11,15 @@ import { ChancellorDashboard } from '@/features/admin/components/ChancellorDashb
 import { VPBrotherhoodDashboard } from '@/features/admin/components/VPBrotherhoodDashboard';
 import { ChapterAnnouncementCard } from '@/features/chapter/components/ChapterAnnouncementCard';
 import { PresidentAdminShell } from '@/features/chapter/components/PresidentAdminShell';
-import { hasPosition as checkPosition, org } from '@/config/org';
+import { hasPosition as checkPosition } from '@/config/org';
+import { isCapabilityEnabled, type FeatureKey } from '@/config/capabilities';
 import { useChapterSetting } from '@/hooks/useChapterSettings';
 
 interface AdminDashboardEntry {
   positions: string[];
   component: ComponentType;
   useHook?: boolean;
-  featureFlag?: keyof typeof import('@/config/org').org.features;
+  featureFlag?: FeatureKey;
 }
 
 const adminDashboards: AdminDashboardEntry[] = [
@@ -58,7 +59,7 @@ export function AdminTab() {
   return (
     <div className="space-y-8">
       {adminDashboards.map(({ positions, component: Dashboard, useHook, featureFlag }, idx) => {
-        if (featureFlag && !org.features[featureFlag]) return null;
+        if (featureFlag && !isCapabilityEnabled(featureFlag)) return null;
         const dashboardKey = (
           positions.includes('VP of Chapter Operations') ? 'chapterOps'
             : positions.includes('VP of Community Service') ? 'communityService'

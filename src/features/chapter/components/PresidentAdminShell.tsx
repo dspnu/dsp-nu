@@ -11,7 +11,7 @@ import {
 import { PresidentDashboard } from '@/features/admin/components/PresidentDashboard';
 import { ChapterAnnouncementCard } from '@/features/chapter/components/ChapterAnnouncementCard';
 import { useIsVPChapterOps } from '@/features/eop/hooks/useEOPRealtime';
-import { org } from '@/config/org';
+import { isCapabilityEnabled, type FeatureKey } from '@/config/capabilities';
 import { useChapterSetting } from '@/hooks/useChapterSettings';
 import { LayoutDashboard, Briefcase } from 'lucide-react';
 
@@ -57,7 +57,7 @@ interface OversightTab {
   label: string;
   visibilityKey: AdminVisibilityKey;
   LazyDashboard: LazyExoticComponent<ComponentType>;
-  featureFlag?: keyof typeof org.features;
+  featureFlag?: FeatureKey;
   useChapterOpsHook?: boolean;
 }
 
@@ -143,7 +143,7 @@ export function PresidentAdminShell() {
 
   const visibleOversight = useMemo(() => {
     return OVERSIGHT_TABS.filter((tab) => {
-      if (tab.featureFlag && !org.features[tab.featureFlag]) return false;
+      if (tab.featureFlag && !isCapabilityEnabled(tab.featureFlag)) return false;
       if (visibility[tab.visibilityKey] === false) return false;
       if (tab.useChapterOpsHook && !isVPChapterOps) return false;
       return true;
