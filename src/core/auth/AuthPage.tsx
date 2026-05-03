@@ -212,28 +212,6 @@ export default function AuthPage() {
                       </Badge>
                     )}
                   </Button>
-                  {org.auth.allowApple && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className={cn(
-                        'relative w-full',
-                        lastUsedLoginMethod === 'apple' && 'border-primary/50 bg-primary/5 ring-1 ring-primary/30'
-                      )}
-                      onClick={() => signInWithProvider('apple')}
-                      disabled={isGoogleLoading}
-                    >
-                      Continue with Apple
-                      {lastUsedLoginMethod === 'apple' && (
-                        <Badge
-                          variant="outline"
-                          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 border-primary/35 bg-primary/10 text-[10px] font-semibold uppercase tracking-wide text-primary"
-                        >
-                          Last used
-                        </Badge>
-                      )}
-                    </Button>
-                  )}
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
                       <Separator />
@@ -264,17 +242,17 @@ export default function AuthPage() {
                         <Input id="signin-email" name="email" type="email" required placeholder={org.auth.emailPlaceholder} />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="signin-password">Password</Label>
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="signin-password">Password</Label>
+                          <button
+                            type="button"
+                            onClick={() => setShowForgotPassword((current) => !current)}
+                            className="text-xs font-medium text-primary hover:underline"
+                          >
+                            {showForgotPassword ? 'Cancel password reset' : 'Forgot password?'}
+                          </button>
+                        </div>
                         <Input id="signin-password" name="password" type="password" required placeholder="••••••••" />
-                      </div>
-                      <div className="flex justify-end">
-                        <button
-                          type="button"
-                          onClick={() => setShowForgotPassword((current) => !current)}
-                          className="text-xs font-medium text-primary hover:underline"
-                        >
-                          {showForgotPassword ? 'Cancel password reset' : 'Forgot password?'}
-                        </button>
                       </div>
                     </div>
                     <Button
@@ -329,17 +307,6 @@ export default function AuthPage() {
                     )}
                     Continue with Google
                   </Button>
-                  {org.auth.allowApple && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => signInWithProvider('apple')}
-                      disabled={isGoogleLoading}
-                    >
-                      Continue with Apple
-                    </Button>
-                  )}
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
                       <Separator />

@@ -50,10 +50,10 @@ export function PaddleSubmissionCard() {
           .from('paddle-media')
           .upload(path, file);
         if (uploadError) throw uploadError;
-        const { data: urlData } = supabase.storage
+        const { data: urlData } = await supabase.storage
           .from('paddle-media')
-          .getPublicUrl(path);
-        finalUrl = urlData.publicUrl;
+          .createSignedUrl(path, 60 * 60 * 24 * 365);
+        finalUrl = urlData?.signedUrl ?? '';
       } catch (err) {
         toast.error('Failed to upload file');
         setUploading(false);

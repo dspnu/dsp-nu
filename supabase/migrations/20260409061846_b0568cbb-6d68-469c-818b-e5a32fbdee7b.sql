@@ -1,0 +1,1 @@
+ALTER TABLE public.approved_coffee_chat_members RENAME COLUMN dsp_position TO org_position;

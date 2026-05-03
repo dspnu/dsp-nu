@@ -26,7 +26,7 @@ import { useAuth } from '@/core/auth/AuthContext';
 import { org } from '@/config/org';
 
 const categories = org.eventCategories.map(c => c.key);
-type CategoryType = string;
+type CategoryType = (typeof org.eventCategories)[number]['key'] | 'new_member' | 'exec';
 
 function EarnerForm({ earner, onClose }: { earner?: AttendanceEarner; onClose: () => void }) {
   const { user } = useAuth();

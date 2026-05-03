@@ -318,7 +318,7 @@ function SettingsPageContent() {
         supabase.from('attendance').select('*').eq('user_id', user.id),
         supabase.from('service_hours').select('*').eq('user_id', user.id),
         supabase.from('points_ledger').select('*').eq('user_id', user.id),
-        supabase.from('coffee_chats').select('*').eq('user_id', user.id),
+        supabase.from('coffee_chats').select('*').or(`initiator_id.eq.${user.id},partner_id.eq.${user.id}`),
         supabase.from('dues_payments').select('*').eq('user_id', user.id),
         supabase.from('event_rsvps').select('*').eq('user_id', user.id),
         supabase.from('notification_preferences').select('*').eq('user_id', user.id),
@@ -330,7 +330,7 @@ function SettingsPageContent() {
         supabase.from('paddle_submissions').select('*').eq('user_id', user.id),
         supabase.from('pdp_comments').select('*').eq('user_id', user.id),
         supabase.from('eop_ready').select('*').eq('user_id', user.id),
-        supabase.from('eop_votes').select('*').eq('user_id', user.id),
+        supabase.from('eop_votes').select('*').eq('voter_id', user.id),
       ]);
 
       const collect = (label: string, res: { error: { message: string } | null; data: unknown }) => {
@@ -412,16 +412,7 @@ function SettingsPageContent() {
 
   return (
     <>
-      <PageHeader title="Settings" description="Manage your account">
-        <Button
-          variant="ghost"
-          className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
-          onClick={signOut}
-        >
-          <LogOut className="h-4 w-4 mr-2" />
-          Sign Out
-        </Button>
-      </PageHeader>
+      <PageHeader title="Settings" description="Manage your account" />
 
       <div className="w-full space-y-8">
         {/* ── Profile ── */}
@@ -435,12 +426,24 @@ function SettingsPageContent() {
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1 space-y-2">
-                <div>
-                  <h2 className="text-lg font-semibold truncate">
-                    {profile?.first_name} {profile?.last_name}
-                  </h2>
-                  <p className="text-sm text-muted-foreground truncate">{profile?.email}</p>
-                  <div className="flex flex-wrap gap-1.5 mt-2">
+                <div className="space-y-2">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <h2 className="text-lg font-semibold truncate">
+                        {profile?.first_name} {profile?.last_name}
+                      </h2>
+                      <p className="text-sm text-muted-foreground truncate">{profile?.email}</p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0 self-start"
+                      onClick={signOut}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sign Out
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
                     {profile?.status && <StatusBadge status={profile.status} />}
                     {roles.map((role) => (
                       <span
@@ -649,24 +652,6 @@ function SettingsPageContent() {
           </div>
         </section>
 
-        {/* ── App info ── */}
-        <section>
-          <SectionLabel icon={Smartphone} label="App info" />
-          <div className="rounded-xl border bg-card divide-y overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3.5 sm:px-5">
-              <div className="min-w-0 pr-4">
-                <p className="text-sm font-medium">Firmware</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Current app firmware version
-                </p>
-              </div>
-              <p className="text-sm font-semibold tabular-nums">
-                {firmwareVersion.semver}
-              </p>
-            </div>
-          </div>
-        </section>
-
         {/* ── Notifications ── */}
         <section>
           <SectionLabel icon={Bell} label="Notifications" />
@@ -751,6 +736,24 @@ function SettingsPageContent() {
           )}
         </section>
 
+        {/* ── App info ── */}
+        <section>
+          <SectionLabel icon={Smartphone} label="App info" />
+          <div className="rounded-xl border bg-card divide-y overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3.5 sm:px-5">
+              <div className="min-w-0 pr-4">
+                <p className="text-sm font-medium">Firmware</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Current app firmware version
+                </p>
+              </div>
+              <p className="text-sm font-semibold tabular-nums">
+                {firmwareVersion.semver}
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* ── Data & Privacy ── */}
         <section>
           <SectionLabel icon={Shield} label="Data & Privacy" />
@@ -797,10 +800,10 @@ function SettingsPageContent() {
         </section>
 
         <footer className="mt-14 pt-8 border-t border-border/60">
-          <p className="text-xs text-muted-foreground text-center sm:text-left leading-relaxed max-w-2xl mx-auto sm:mx-0 mb-5">
-            DSP is the chapter management platform for Delta Sigma Pi — helping members stay connected, track progress, and manage chapter operations.
+          <p className="text-xs text-muted-foreground text-center sm:text-left leading-relaxed w-full mb-5">
+            DSP is a white-labeled instance of the Nomos CMS, developed and operated by Tartabini Enterprises LLC. The platform is provided to support club operations, communication, and member engagement for participating organizations. All software, infrastructure, and data systems are owned and managed by Tartabini Enterprises LLC and are not affiliated with, governed by, or officially endorsed by Delta Sigma Pi.
           </p>
-          <nav
+            <nav
             aria-label="Legal"
             className="flex flex-wrap items-center justify-center sm:justify-start gap-x-5 gap-y-2 text-sm text-muted-foreground"
           >
