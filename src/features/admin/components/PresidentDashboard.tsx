@@ -18,6 +18,9 @@ import { toast } from 'sonner';
 import { useState } from 'react';
 import { org } from '@/config/org';
 import { DataExportCard } from '@/features/admin/components/DataExportCard';
+import { ExecGoalsSection } from '@/features/admin/components/ExecGoalsSection';
+import { ExecTasksManager } from '@/features/admin/components/ExecTasksManager';
+import { PledgeClassTrackingSection } from '@/features/admin/components/PledgeClassTrackingSection';
 import { useChapterSetting, useUpdateChapterSetting } from '@/hooks/useChapterSettings';
 import { X, Plus } from 'lucide-react';
 
@@ -204,6 +207,12 @@ export function PresidentDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <ExecGoalsSection />
+
+      <PledgeClassTrackingSection />
+
+      <ExecTasksManager />
 
       <Card>
         <CardHeader>
