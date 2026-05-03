@@ -104,19 +104,22 @@ Deno.serve(async (req) => {
 
     const rawBody = await req.text();
     const signingSecret = Deno.env.get('CLOVER_WEBHOOK_SIGNING_SECRET') ?? '';
-    const sigHeader = req.headers.get('Clover-Signature') ?? req.headers.get('clover-signature');
+    if (!signingSecret) {
+      console.error('[clover-webhook] CLOVER_WEBHOOK_SIGNING_SECRET is not configured — rejecting request');
+      return new Response(JSON.stringify({ ok: false, error: 'webhook_not_configured' }), {
+        status: 500,
+        headers: { 'content-type': 'application/json' },
+      });
+    }
 
-    if (signingSecret) {
-      const ok = await verifyCloverHostedCheckoutSignature(rawBody, sigHeader, signingSecret);
-      if (!ok) {
-        console.warn('[clover-webhook] invalid signature');
-        return new Response(JSON.stringify({ ok: false, error: 'invalid_signature' }), {
-          status: 401,
-          headers: { 'content-type': 'application/json' },
-        });
-      }
-    } else {
-      console.warn('[clover-webhook] CLOVER_WEBHOOK_SIGNING_SECRET unset; skipping signature verification');
+    const sigHeader = req.headers.get('Clover-Signature') ?? req.headers.get('clover-signature');
+    const sigValid = await verifyCloverHostedCheckoutSignature(rawBody, sigHeader, signingSecret);
+    if (!sigValid) {
+      console.warn('[clover-webhook] invalid signature');
+      return new Response(JSON.stringify({ ok: false, error: 'invalid_signature' }), {
+        status: 401,
+        headers: { 'content-type': 'application/json' },
+      });
     }
 
     let body: unknown;
