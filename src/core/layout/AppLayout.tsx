@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/core/auth/AuthContext';
+import { profileNeedsOnboarding } from '@/core/auth/profileNeedsOnboarding';
 import { MobileNav } from './MobileNav';
 import { DesktopSidebar } from './DesktopSidebar';
 import { Loader2 } from 'lucide-react';
@@ -34,8 +35,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     return <Navigate to="/auth" replace />;
   }
 
-  // Redirect to onboarding if profile is incomplete
-  if (profile && !profile.major && !profile.graduation_year) {
+  if (profileNeedsOnboarding(profile)) {
     return <Navigate to="/onboarding" replace />;
   }
 

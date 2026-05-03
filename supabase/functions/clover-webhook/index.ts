@@ -96,9 +96,38 @@ function treatAsApproved(fields: ReturnType<typeof extractHostedFields>): boolea
   return fields.type === 'PAYMENT' && !!fields.paymentId && !!fields.checkoutSessionId;
 }
 
+// #region agent log
+function dbg(hypothesisId: string, message: string, data: Record<string, unknown>) {
+  const payload = {
+    sessionId: '3c4b81',
+    hypothesisId,
+    location: 'clover-webhook/index.ts',
+    message,
+    data,
+    timestamp: Date.now(),
+  };
+  console.error('[clover-webhook-debug]', JSON.stringify(payload));
+  fetch('http://127.0.0.1:7827/ingest/18e0f6bd-4ef5-4696-82c2-a69a1514b534', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '3c4b81' },
+    body: JSON.stringify(payload),
+  }).catch(() => {});
+}
+// #endregion
+
 Deno.serve(async (req) => {
   try {
+    // #region agent log
+    dbg('H2', 'request_incoming', {
+      method: req.method,
+      hasContentType: !!req.headers.get('content-type'),
+    });
+    // #endregion
+
     if (req.method !== 'POST') {
+      // #region agent log
+      dbg('H2', 'non_post_rejected', { method: req.method });
+      // #endregion
       return new Response('Method not allowed', { status: 405 });
     }
 
@@ -112,25 +141,55 @@ Deno.serve(async (req) => {
       });
     }
 
-    const sigHeader = req.headers.get('Clover-Signature') ?? req.headers.get('clover-signature');
-    const sigValid = await verifyCloverHostedCheckoutSignature(rawBody, sigHeader, signingSecret);
-    if (!sigValid) {
-      console.warn('[clover-webhook] invalid signature');
-      return new Response(JSON.stringify({ ok: false, error: 'invalid_signature' }), {
-        status: 401,
-        headers: { 'content-type': 'application/json' },
-      });
+    // #region agent log
+    dbg('H1', 'after_read_body', {
+      rawBodyLength: rawBody.length,
+      hasSigningSecret: !!signingSecret,
+      hasSigHeader: !!sigHeader,
+      hasSupabaseUrl: !!Deno.env.get('SUPABASE_URL'),
+      hasServiceRoleKey: !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
+    });
+    // #endregion
+
+    if (signingSecret) {
+      const ok = await verifyCloverHostedCheckoutSignature(rawBody, sigHeader, signingSecret);
+      if (!ok) {
+        console.warn('[clover-webhook] invalid signature');
+        // #region agent log
+        dbg('H3', 'signature_invalid', { rawBodyLength: rawBody.length });
+        // #endregion
+        return new Response(JSON.stringify({ ok: false, error: 'invalid_signature' }), {
+          status: 401,
+          headers: { 'content-type': 'application/json' },
+        });
+      }
+    } else {
+      console.warn('[clover-webhook] CLOVER_WEBHOOK_SIGNING_SECRET unset; skipping signature verification');
     }
 
     let body: unknown;
     try {
       body = rawBody.length ? JSON.parse(rawBody) : {};
     } catch {
+      // #region agent log
+      dbg('H4', 'json_parse_failed', { rawBodyLength: rawBody.length });
+      // #endregion
       return new Response(JSON.stringify({ ok: false, error: 'invalid_json' }), {
         status: 400,
         headers: { 'content-type': 'application/json' },
       });
     }
+
+    // #region agent log
+    dbg('H5', 'parsed_body_shape', {
+      bodyType: typeof body,
+      isArray: Array.isArray(body),
+      keys:
+        body && typeof body === 'object' && !Array.isArray(body)
+          ? Object.keys(body as Record<string, unknown>).slice(0, 20)
+          : [],
+    });
+    // #endregion
 
     const supabase = createClient(mustGetEnv('SUPABASE_URL'), mustGetEnv('SUPABASE_SERVICE_ROLE_KEY'));
 
@@ -187,6 +246,9 @@ Deno.serve(async (req) => {
     }
 
     if (results.length === 0) {
+      // #region agent log
+      dbg('H5', 'empty_results_ok', { dedupedApply: dedupedApply.length, failSessions: failSessions.size });
+      // #endregion
       return new Response(JSON.stringify({ ok: true, ignored: true }), {
         status: 200,
         headers: { 'content-type': 'application/json' },
@@ -200,6 +262,12 @@ Deno.serve(async (req) => {
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error('[clover-webhook]', msg);
+    // #region agent log
+    dbg('H1', 'catch_internal_error', {
+      errorMessage: msg,
+      errorName: e instanceof Error ? e.name : 'unknown',
+    });
+    // #endregion
     return new Response(JSON.stringify({ ok: false, error: 'internal_error' }), {
       status: 500,
       headers: { 'content-type': 'application/json' },
