@@ -1,0 +1,8 @@
+# Example SKU — copy to packaging/skus/<your-org>.yaml and adjust.
+# Use disabledFeatures: [] unless stripped modules have no static importers
+# (see packaging/README.md). Brand-only is the safest default smoke test.
+sku: org-acme
+disabledFeatures: []
+brand:
+  shortName: "Acme Chapter"
+  domain: "acme.example.com"
