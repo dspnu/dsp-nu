@@ -15,13 +15,13 @@ export function NativePushBridge() {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
-    const actionSub = PushNotifications.addListener('pushNotificationActionPerformed', (event) => {
+    const actionSubPromise = PushNotifications.addListener('pushNotificationActionPerformed', (event) => {
       const url = getUrlFromNotification(event?.notification);
       if (url) navigate(url);
     });
 
     return () => {
-      actionSub.remove();
+      actionSubPromise.then((sub) => sub.remove()).catch(() => {});
     };
   }, [navigate]);
 

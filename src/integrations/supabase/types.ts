@@ -1031,6 +1031,90 @@ export type Database = {
         }
         Relationships: []
       }
+      exec_chapter_goals: {
+        Row: {
+          actual_summary: string | null
+          created_at: string
+          created_by: string | null
+          goal_text: string
+          id: string
+          performance_year: string
+          position_title: string
+          progress: Database["public"]["Enums"]["exec_goal_progress"]
+          success_criteria: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          actual_summary?: string | null
+          created_at?: string
+          created_by?: string | null
+          goal_text?: string
+          id?: string
+          performance_year: string
+          position_title: string
+          progress?: Database["public"]["Enums"]["exec_goal_progress"]
+          success_criteria?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          actual_summary?: string | null
+          created_at?: string
+          created_by?: string | null
+          goal_text?: string
+          id?: string
+          performance_year?: string
+          position_title?: string
+          progress?: Database["public"]["Enums"]["exec_goal_progress"]
+          success_criteria?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      exec_tasks: {
+        Row: {
+          assigned_position: string | null
+          assigned_to_user_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          due_at: string | null
+          id: string
+          priority: string | null
+          status: Database["public"]["Enums"]["exec_task_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_position?: string | null
+          assigned_to_user_id: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          priority?: string | null
+          status?: Database["public"]["Enums"]["exec_task_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_position?: string | null
+          assigned_to_user_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          priority?: string | null
+          status?: Database["public"]["Enums"]["exec_task_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       family_bonus_points: {
         Row: {
           created_at: string
@@ -1168,6 +1252,7 @@ export type Database = {
           data_usage_consent_updated_at: string | null
           event_notifications: boolean
           event_reminder_24h: boolean
+          exec_task_notifications: boolean
           id: string
           job_board_notifications: boolean
           push_enabled: boolean
@@ -1183,6 +1268,7 @@ export type Database = {
           data_usage_consent_updated_at?: string | null
           event_notifications?: boolean
           event_reminder_24h?: boolean
+          exec_task_notifications?: boolean
           id?: string
           job_board_notifications?: boolean
           push_enabled?: boolean
@@ -1198,6 +1284,7 @@ export type Database = {
           data_usage_consent_updated_at?: string | null
           event_notifications?: boolean
           event_reminder_24h?: boolean
+          exec_task_notifications?: boolean
           id?: string
           job_board_notifications?: boolean
           push_enabled?: boolean
@@ -1808,6 +1895,11 @@ export type Database = {
         Returns: boolean
       }
       is_admin_or_officer: { Args: { _user_id: string }; Returns: boolean }
+      is_chapter_president: { Args: { _user_id: string }; Returns: boolean }
+      is_chapter_president_or_app_admin: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       notify_event_rsvps_updated: {
         Args: { p_event_id: string; p_message: string; p_title: string }
         Returns: undefined
@@ -1844,6 +1936,8 @@ export type Database = {
         | "dei"
         | "new_member"
         | "exec"
+      exec_goal_progress: "not_started" | "in_progress" | "met" | "missed"
+      exec_task_status: "open" | "done" | "cancelled"
       job_type: "internship" | "full_time" | "part_time" | "contract"
       member_status: "active" | "alumni" | "new_member" | "pnm" | "inactive"
     }
@@ -1988,6 +2082,8 @@ export const Constants = {
         "new_member",
         "exec",
       ],
+      exec_goal_progress: ["not_started", "in_progress", "met", "missed"],
+      exec_task_status: ["open", "done", "cancelled"],
       job_type: ["internship", "full_time", "part_time", "contract"],
       member_status: ["active", "alumni", "new_member", "pnm", "inactive"],
     },
