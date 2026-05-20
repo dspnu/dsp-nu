@@ -24,7 +24,7 @@ const SERVICE_HOURS_REQUIREMENT = 10;
 
 const DEFAULT_EVENT_TYPES = org.eventCategories.map((category) => category.label);
 const DEFAULT_POINT_CATEGORIES = org.eventCategories.map((category) => category.key);
-const DEFAULT_EXEC_POSITIONS = org.positions;
+const DEFAULT_EXEC_POSITIONS: string[] = [...org.positions];
 const DEFAULT_MEMBER_STATUS_TYPES = ['active', 'new_member', 'inactive', 'alumni', 'pnm'];
 const DEFAULT_FAMILIES = ['Unassigned'];
 
