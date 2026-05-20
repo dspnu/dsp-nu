@@ -41,6 +41,7 @@ import {
 import { TicketedEventFormDialog } from '@/features/ticketing/components/TicketedEventFormDialog';
 import { TicketQrBlock } from '@/features/ticketing/components/TicketQrBlock';
 import { TicketCheckInTools } from '@/features/ticketing/components/TicketCheckInTools';
+import { DigitalTicket } from '@/features/ticketing/components/DigitalTicket';
 import { format } from 'date-fns';
 import { ExternalLink, Loader2, Ticket as TicketIcon, Trash2, WalletCards } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
@@ -284,141 +285,151 @@ export function BrotherhoodTicketsManager({
         {myTickets.map((row: TicketWithEvent) => {
           const ev = row.ticketed_events;
           const ready = admissionReady(ev, row);
-          return (
-            <Card key={row.id}>
-              <CardHeader className="pb-2">
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div>
-                    <CardTitle className="text-lg">{ev.title}</CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      {format(new Date(ev.starts_at), 'PPp')}
-                      {ev.location ? ` · ${ev.location}` : ''}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    <Badge
-                      variant={
-                        row.payment_status === 'pending' && ev.price_cents > 0 ? 'destructive' : 'secondary'
-                      }
-                    >
-                      {ev.price_cents > 0 ? row.payment_status : 'confirmed'}
-                    </Badge>
-                    {row.checked_in_at && <Badge>Checked in</Badge>}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {ev.price_cents > 0 && row.payment_status === 'pending' && ev.payment_url && (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button size="sm" asChild variant="default">
-                      {ev.payment_url_internal && ev.payment_url.startsWith('/') ? (
-                        <Link to={ev.payment_url} className="gap-1">
-                          Pay in portal
-                        </Link>
-                      ) : (
-                        <a
-                          href={ev.payment_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="gap-1"
-                        >
-                          Pay now <ExternalLink className="h-3.5 w-3.5" />
-                        </a>
-                      )}
-                    </Button>
-                    <span className="text-xs text-muted-foreground">
-                      After paying, an officer will mark you paid so your QR activates.
-                    </span>
-                  </div>
-                )}
-                {isCloverCheckoutUiEnabled() && ev.price_cents > 0 && row.payment_status === 'pending' && (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="secondary"
+          const statusBadges = (
+            <>
+              <Badge
+                variant={
+                  row.payment_status === 'pending' && ev.price_cents > 0
+                    ? 'destructive'
+                    : 'secondary'
+                }
+              >
+                {ev.price_cents > 0 ? row.payment_status : 'confirmed'}
+              </Badge>
+              {ev.price_cents > 0 && (
+                <Badge variant="outline" className="border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground">
+                  {formatMoney(ev.price_cents)}
+                </Badge>
+              )}
+              {row.checked_in_at && <Badge>Checked in</Badge>}
+            </>
+          );
+
+          const actions = (
+            <>
+              {ev.price_cents > 0 && row.payment_status === 'pending' && ev.payment_url && (
+                <Button size="sm" asChild variant="default">
+                  {ev.payment_url_internal && ev.payment_url.startsWith('/') ? (
+                    <Link to={ev.payment_url} className="gap-1">
+                      Pay in portal
+                    </Link>
+                  ) : (
+                    <a
+                      href={ev.payment_url}
+                      target="_blank"
+                      rel="noreferrer"
                       className="gap-1"
-                      disabled={createCloverCheckout.isPending}
-                      onClick={() =>
-                        createCloverCheckout.mutate(
-                          {
-                            purpose: 'ticket',
-                            amountCents: ev.price_cents,
-                            eventTicketId: row.id,
-                          },
-                          {
-                            onSuccess: (res) => {
-                              window.open(res.url, '_blank', 'noopener,noreferrer');
-                            },
-                          }
-                        )
-                      }
                     >
-                      {createCloverCheckout.isPending ? 'Creating…' : 'Pay with Clover'}
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </Button>
-                    <span className="text-xs text-muted-foreground">
-                      Opens Clover; your ticket is marked paid automatically when the payment clears.
-                    </span>
-                  </div>
-                )}
-                {ready && !row.checked_in_at && (
-                  <div className="flex flex-col gap-4">
-                    <div className="flex flex-col sm:flex-row gap-4 sm:items-start">
-                      <TicketQrBlock ticket={row} />
-                      <p className="text-sm text-muted-foreground max-w-sm">
-                        Show this QR at the door. Officers can also check you in with the code below the QR.
-                      </p>
-                    </div>
-                    {isAppleWalletPassConfigured() && isLikelyIos() && (
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                        className="w-fit gap-2"
-                        disabled={walletPassLoadingId === row.id}
-                        onClick={async () => {
-                          setWalletPassLoadingId(row.id);
-                          try {
-                            await downloadBrotherhoodTicketPass(row.id);
-                          } catch (e) {
-                            toast({
-                              title: 'Could not add pass',
-                              description: e instanceof Error ? e.message : 'Unknown error',
-                              variant: 'destructive',
-                            });
-                          } finally {
-                            setWalletPassLoadingId(null);
-                          }
-                        }}
-                      >
-                        {walletPassLoadingId === row.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <WalletCards className="h-4 w-4" />
-                        )}
-                        Add to Apple Wallet
-                      </Button>
-                    )}
-                  </div>
-                )}
-                {!ready && ev.price_cents > 0 && (
-                  <p className="text-sm text-amber-700 dark:text-amber-400">
-                    Your QR will appear after payment is confirmed.
-                  </p>
-                )}
-                {!row.checked_in_at && (
+                      Pay now <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  )}
+                </Button>
+              )}
+              {isCloverCheckoutUiEnabled() &&
+                ev.price_cents > 0 &&
+                row.payment_status === 'pending' && (
                   <Button
-                    variant="outline"
                     size="sm"
-                    onClick={() => {
-                      if (confirm('Cancel this ticket?')) cancelTicket.mutate(row.id);
-                    }}
+                    variant="secondary"
+                    className="gap-1"
+                    disabled={createCloverCheckout.isPending}
+                    onClick={() =>
+                      createCloverCheckout.mutate(
+                        {
+                          purpose: 'ticket',
+                          amountCents: ev.price_cents,
+                          eventTicketId: row.id,
+                        },
+                        {
+                          onSuccess: (res) => {
+                            window.open(res.url, '_blank', 'noopener,noreferrer');
+                          },
+                        }
+                      )
+                    }
                   >
-                    Cancel ticket
+                    {createCloverCheckout.isPending ? 'Creating…' : 'Pay with Clover'}
+                    <ExternalLink className="h-3.5 w-3.5" />
                   </Button>
                 )}
-              </CardContent>
-            </Card>
+              {ready &&
+                !row.checked_in_at &&
+                isAppleWalletPassConfigured() &&
+                isLikelyIos() && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                    disabled={walletPassLoadingId === row.id}
+                    onClick={async () => {
+                      setWalletPassLoadingId(row.id);
+                      try {
+                        await downloadBrotherhoodTicketPass(row.id);
+                      } catch (e) {
+                        toast({
+                          title: 'Could not add pass',
+                          description: e instanceof Error ? e.message : 'Unknown error',
+                          variant: 'destructive',
+                        });
+                      } finally {
+                        setWalletPassLoadingId(null);
+                      }
+                    }}
+                  >
+                    {walletPassLoadingId === row.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <WalletCards className="h-4 w-4" />
+                    )}
+                    Add to Apple Wallet
+                  </Button>
+                )}
+              {!row.checked_in_at && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-auto text-muted-foreground"
+                  onClick={() => {
+                    if (confirm('Cancel this ticket?')) cancelTicket.mutate(row.id);
+                  }}
+                >
+                  Cancel ticket
+                </Button>
+              )}
+            </>
+          );
+
+          const footer = (
+            <>
+              {ready && !row.checked_in_at && (
+                <p className="text-xs text-muted-foreground">
+                  Show the QR at the door, or have an officer enter the code below it.
+                </p>
+              )}
+              {!ready && ev.price_cents > 0 && (
+                <p className="text-xs text-amber-700 dark:text-amber-400">
+                  Your QR will appear here once payment is confirmed.
+                </p>
+              )}
+              {ev.price_cents > 0 && row.payment_status === 'pending' && ev.payment_url && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  After paying, an officer will mark you paid so your QR activates.
+                </p>
+              )}
+            </>
+          );
+
+          return (
+            <DigitalTicket
+              key={row.id}
+              ticket={row}
+              event={ev}
+              ready={ready}
+              statusBadges={statusBadges}
+              actions={actions}
+              footer={footer}
+            />
           );
         })}
       </div>
