@@ -132,7 +132,7 @@ export default defineConfig(({ mode }) => ({
               "text/csv": [".csv"],
               "application/pdf": [".pdf"],
             },
-            launch_type: "single-client",
+            ...({ launch_type: "single-client" } as Record<string, unknown>),
           },
         ],
         widgets: [
