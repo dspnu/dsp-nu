@@ -41,6 +41,7 @@ import {
 import { TicketedEventFormDialog } from '@/features/ticketing/components/TicketedEventFormDialog';
 import { TicketQrBlock } from '@/features/ticketing/components/TicketQrBlock';
 import { TicketCheckInTools } from '@/features/ticketing/components/TicketCheckInTools';
+import { DigitalTicket } from '@/features/ticketing/components/DigitalTicket';
 import { format } from 'date-fns';
 import { ExternalLink, Loader2, Ticket as TicketIcon, Trash2, WalletCards } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
