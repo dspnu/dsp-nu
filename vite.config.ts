@@ -154,7 +154,7 @@ export default defineConfig(({ mode }) => ({
             ],
           },
         ],
-      },
+      } as any),
     }),
   ].filter(Boolean),
   resolve: {
