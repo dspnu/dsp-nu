@@ -178,7 +178,7 @@ export const exportDatasets: ExportDataset[] = ([
     dateColumn: 'created_at',
     semesterColumn: 'semester',
     enabled: isCapabilityEnabled('dues'),
-    fetchRows: (filters) => fetchAllFromTable<Tables<'dues_late_fees'>>({ table: 'dues_late_fees', filters, dateColumn: 'created_at', semesterColumn: 'semester' }),
+    fetchRows: (filters) => fetchAllFromTable({ table: 'dues_late_fees', filters, dateColumn: 'created_at', semesterColumn: 'semester' }),
   },
   {
     id: 'dues_config' as ExportDatasetId,
