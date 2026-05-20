@@ -74,7 +74,7 @@ export async function subscribeToWebPush(vapidPublicKey: string): Promise<PushSu
   const key = urlBase64ToUint8Array(vapidPublicKey);
   const sub = await reg.pushManager.subscribe({
     userVisibleOnly: true,
-    applicationServerKey: key,
+    applicationServerKey: key as BufferSource,
   });
   try {
     localStorage.setItem(PUSH_SUB_LS, JSON.stringify(sub.toJSON()));

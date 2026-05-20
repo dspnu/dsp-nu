@@ -182,7 +182,7 @@ export function useRealtimeVoteCounts() {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'eop_votes' },
         (payload: PgPayload) => {
-          queryClient.setQueryData(['eop-vote-counts-realtime'], (past) => {
+          queryClient.setQueryData<Record<string, VoteCounts>>(['eop-vote-counts-realtime'], (past) => {
             if (past === undefined) {
               void queryClient.invalidateQueries({ queryKey: ['eop-vote-counts-realtime'] });
               return past;
@@ -264,7 +264,7 @@ export function useRealtimeReadyCounts() {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'eop_ready' },
         (payload: PgPayload) => {
-          queryClient.setQueryData(['eop-ready-counts-realtime'], (past) => {
+          queryClient.setQueryData<Record<string, ReadyAgg>>(['eop-ready-counts-realtime'], (past) => {
             if (past === undefined) {
               void queryClient.invalidateQueries({ queryKey: ['eop-ready-counts-realtime'] });
               return past;

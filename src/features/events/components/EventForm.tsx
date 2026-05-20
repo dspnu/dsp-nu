@@ -45,9 +45,9 @@ export function EventForm({ event, trigger }: EventFormProps) {
   const categories: { value: EventCategory; label: string }[] = [
     ...org.eventCategories.map((category, index) => ({
       value: category.key as EventCategory,
-      label: customEventTypeLabels[index] || category.label,
+      label: String(customEventTypeLabels[index] || category.label),
     })),
-    { value: 'new_member' as EventCategory, label: `${org.newMemberCategory.label} / PDP` },
+    { value: 'new_member' as EventCategory, label: `${String(org.newMemberCategory.label)} / PDP` },
     { value: 'exec' as EventCategory, label: 'Exec (Officers Only)' },
   ];
 

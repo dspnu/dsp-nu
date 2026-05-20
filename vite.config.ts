@@ -31,7 +31,7 @@ export default defineConfig(({ mode }) => ({
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       },
-      manifest: {
+      manifest: ({
         name: `${org.name} - ${org.chapterName}`,
         short_name: org.shortName,
         id: "/",
@@ -41,7 +41,7 @@ export default defineConfig(({ mode }) => ({
         lang: "en",
         dir: "ltr",
         display: "standalone",
-        display_override: ["tabbed", "window-controls-overlay", "standalone"],
+        display_override: ["tabbed", "window-controls-overlay", "standalone"] as any,
         // Microsoft Edge: opt in to pinning the installed PWA in the browser side panel.
         // https://learn.microsoft.com/en-us/microsoft-edge/progressive-web-apps/how-to/sidebar
         edge_side_panel: {
@@ -132,7 +132,7 @@ export default defineConfig(({ mode }) => ({
               "text/csv": [".csv"],
               "application/pdf": [".pdf"],
             },
-            launch_type: "single-client",
+            ...({ launch_type: "single-client" } as Record<string, unknown>),
           },
         ],
         widgets: [
@@ -154,7 +154,7 @@ export default defineConfig(({ mode }) => ({
             ],
           },
         ],
-      },
+      } as any),
     }),
   ].filter(Boolean),
   resolve: {

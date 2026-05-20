@@ -12,13 +12,13 @@ export function useCloverCheckoutsList(options?: { limit?: number }) {
   return useQuery({
     queryKey: ['clover-checkouts', limit],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('clover_checkouts')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(limit);
       if (error) throw error;
-      return data as Tables<'clover_checkouts'>[];
+      return data as any[];
     },
     enabled: isCloverCheckoutUiEnabled(),
   });

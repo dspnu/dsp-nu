@@ -146,8 +146,8 @@ self.addEventListener('push', (event: ExtendableEvent) => {
     icon: payload.icon ?? '/icons/icon-192x192.png',
     badge: '/icons/icon-72x72.png',
     tag: 'dsp-notification',
-    renotify: true,
     data: { url },
+    ...({ renotify: true } as Record<string, unknown>),
   };
 
   pe.waitUntil(self.registration.showNotification(title, options));

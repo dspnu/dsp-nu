@@ -54,7 +54,7 @@ function normalizeRows<T extends Record<string, unknown>>(rows: T[]): Record<str
   });
 }
 
-async function fetchAllFromTable(opts: {
+async function fetchAllFromTable<_T = Record<string, unknown>>(opts: {
   table: string;
   select?: string;
   dateColumn?: string;
@@ -148,7 +148,7 @@ export const exportDatasets: ExportDataset[] = ([
     dateColumn: 'paid_at',
     semesterColumn: 'semester',
     enabled: isCapabilityEnabled('dues'),
-    fetchRows: (filters) => fetchAllFromTable<Tables<'dues_payments'>>({ table: 'dues_payments', filters, dateColumn: 'paid_at', semesterColumn: 'semester' }),
+    fetchRows: (filters) => fetchAllFromTable({ table: 'dues_payments', filters, dateColumn: 'paid_at', semesterColumn: 'semester' }),
   },
   {
     id: 'dues_line_items' as ExportDatasetId,
@@ -158,7 +158,7 @@ export const exportDatasets: ExportDataset[] = ([
     dateColumn: 'created_at',
     semesterColumn: 'semester',
     enabled: isCapabilityEnabled('dues'),
-    fetchRows: (filters) => fetchAllFromTable<Tables<'dues_line_items'>>({ table: 'dues_line_items', filters, dateColumn: 'created_at', semesterColumn: 'semester' }),
+    fetchRows: (filters) => fetchAllFromTable({ table: 'dues_line_items', filters, dateColumn: 'created_at', semesterColumn: 'semester' }),
   },
   {
     id: 'dues_installments' as ExportDatasetId,
@@ -168,7 +168,7 @@ export const exportDatasets: ExportDataset[] = ([
     dateColumn: 'created_at',
     semesterColumn: 'semester',
     enabled: isCapabilityEnabled('dues'),
-    fetchRows: (filters) => fetchAllFromTable<Tables<'dues_installments'>>({ table: 'dues_installments', filters, dateColumn: 'created_at', semesterColumn: 'semester' }),
+    fetchRows: (filters) => fetchAllFromTable({ table: 'dues_installments', filters, dateColumn: 'created_at', semesterColumn: 'semester' }),
   },
   {
     id: 'dues_late_fees' as ExportDatasetId,
@@ -178,7 +178,7 @@ export const exportDatasets: ExportDataset[] = ([
     dateColumn: 'created_at',
     semesterColumn: 'semester',
     enabled: isCapabilityEnabled('dues'),
-    fetchRows: (filters) => fetchAllFromTable<Tables<'dues_late_fees'>>({ table: 'dues_late_fees', filters, dateColumn: 'created_at', semesterColumn: 'semester' }),
+    fetchRows: (filters) => fetchAllFromTable({ table: 'dues_late_fees', filters, dateColumn: 'created_at', semesterColumn: 'semester' }),
   },
   {
     id: 'dues_config' as ExportDatasetId,
@@ -199,7 +199,7 @@ export const exportDatasets: ExportDataset[] = ([
     semesterColumn: 'semester',
     enabled: isCapabilityEnabled('dues'),
     fetchRows: (filters) =>
-      fetchAllFromTable<Tables<'clover_checkouts'>>({
+      fetchAllFromTable({
         table: 'clover_checkouts',
         filters,
         dateColumn: 'created_at',
