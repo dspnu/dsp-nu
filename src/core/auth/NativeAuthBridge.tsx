@@ -42,7 +42,7 @@ export function NativeAuthBridge() {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
-    const sub = App.addListener('appUrlOpen', async ({ url }) => {
+    const subPromise = App.addListener('appUrlOpen', async ({ url }) => {
       // Only handle our custom scheme.
       if (!url?.startsWith('dspnu://')) return;
 
@@ -77,7 +77,7 @@ export function NativeAuthBridge() {
     });
 
     return () => {
-      sub.remove();
+      subPromise.then((sub) => sub.remove()).catch(() => {});
     };
   }, []);
 
