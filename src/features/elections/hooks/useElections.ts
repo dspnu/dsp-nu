@@ -468,7 +468,7 @@ export function useCastVote() {
         if (!Array.isArray(ids) || !ids.includes(data.position_id)) return prev;
         return mergeMyElectionVotesCache(prev, data);
       });
-      qc.setQueriesData<ElectionVote[]>({ queryKey: ['election-votes'] }, (prev, query) => {
+      (qc.setQueriesData as any)({ queryKey: ['election-votes'] }, (prev: ElectionVote[] | undefined, query: { queryKey: unknown[] }) => {
         const ids = query.queryKey[1];
         if (!Array.isArray(ids) || !ids.includes(data.position_id)) return prev;
         if (prev === undefined) {
