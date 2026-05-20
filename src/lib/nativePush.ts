@@ -16,7 +16,6 @@ export async function enableNativePush(): Promise<void> {
   const permStatus = await PushNotifications.requestPermissions();
   if (permStatus.receive !== 'granted') throw new Error('Notifications permission not granted.');
 
-  // Ensure registration happens once and we listen for the callback token.
   await PushNotifications.register();
 
   await new Promise<void>((resolve, reject) => {
@@ -25,18 +24,12 @@ export async function enableNativePush(): Promise<void> {
       reject(new Error('Timed out while registering for push notifications.'));
     }, 15000);
 
-    const cleanup = () => {
-      clearTimeout(timeout);
-      tokenSub?.remove();
-      errSub?.remove();
-    };
-
-    const tokenSub = PushNotifications.addListener('registration', async (token: Token) => {
+    const tokenSubPromise = PushNotifications.addListener('registration', async (token: Token) => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Not authenticated');
 
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('device_push_tokens')
           .upsert(
             {
@@ -57,22 +50,26 @@ export async function enableNativePush(): Promise<void> {
       }
     });
 
-    const errSub = PushNotifications.addListener('registrationError', (err) => {
+    const errSubPromise = PushNotifications.addListener('registrationError', (err) => {
       cleanup();
       reject(new Error(typeof err === 'string' ? err : JSON.stringify(err)));
     });
+
+    const cleanup = () => {
+      clearTimeout(timeout);
+      void tokenSubPromise.then((s) => s.remove()).catch(() => {});
+      void errSubPromise.then((s) => s.remove()).catch(() => {});
+    };
   });
 }
 
 export async function disableNativePush(): Promise<void> {
   if (!isNativeApp()) return;
 
-  // There is no reliable way to revoke APNs permissions from inside the app.
-  // We disable server-side sending by marking tokens disabled.
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from('device_push_tokens')
     .update({ enabled: false })
     .eq('user_id', user.id)
@@ -80,4 +77,3 @@ export async function disableNativePush(): Promise<void> {
 
   if (error) throw error;
 }
-
