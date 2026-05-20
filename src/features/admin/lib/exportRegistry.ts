@@ -54,7 +54,7 @@ function normalizeRows<T extends Record<string, unknown>>(rows: T[]): Record<str
   });
 }
 
-async function fetchAllFromTable(opts: {
+async function fetchAllFromTable<_T = Record<string, unknown>>(opts: {
   table: string;
   select?: string;
   dateColumn?: string;
