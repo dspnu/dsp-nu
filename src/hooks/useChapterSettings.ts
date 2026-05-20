@@ -3,11 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Json } from '@/integrations/supabase/types';
 
-export function useChapterSetting(key: string, options?: { whenMissing?: boolean }) {
+export function useChapterSetting<T = Json>(
+  key: string,
+  options?: { whenMissing?: T },
+) {
   const whenMissing = options?.whenMissing;
 
-  return useQuery({
-    queryKey: ['chapter-settings', key, whenMissing ?? 'default'],
+  return useQuery<T | Json | null>({
+    queryKey: ['chapter-settings', key],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('chapter_settings')
@@ -15,10 +18,10 @@ export function useChapterSetting(key: string, options?: { whenMissing?: boolean
         .eq('key', key)
         .maybeSingle();
       if (error) throw error;
-      if (data == null && whenMissing !== undefined) {
-        return whenMissing;
+      if (data == null) {
+        return (whenMissing ?? null) as T | Json | null;
       }
-      return data?.value ?? false;
+      return (data.value ?? whenMissing ?? null) as T | Json | null;
     },
   });
 }
