@@ -199,7 +199,7 @@ export const exportDatasets: ExportDataset[] = ([
     semesterColumn: 'semester',
     enabled: isCapabilityEnabled('dues'),
     fetchRows: (filters) =>
-      fetchAllFromTable<Tables<'clover_checkouts'>>({
+      fetchAllFromTable({
         table: 'clover_checkouts',
         filters,
         dateColumn: 'created_at',
