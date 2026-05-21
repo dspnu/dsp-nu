@@ -63,7 +63,7 @@ export function DigitalTicket({
   return (
     <div className="relative mx-auto w-full max-w-sm overflow-hidden rounded-2xl border bg-card shadow-sm">
       {/* HEADER — purple panel */}
-      <div className="bg-gradient-to-br from-primary to-primary/80 px-5 pt-4 pb-5 text-primary-foreground">
+      <div className="bg-primary px-5 pt-4 pb-5 text-primary-foreground">
         <div className="flex items-center justify-between gap-3">
           <span className="rounded-full bg-background/95 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
             Brotherhood Pass
@@ -115,7 +115,7 @@ export function DigitalTicket({
             )}
           </div>
           <div className="min-w-0 flex-1 space-y-2.5">
-            <Field label="Passenger" value={passengerName ?? 'Brother'} />
+            <Field label="Name" value={passengerName ?? 'Member'} />
             <Field label="Ticket" value={`#${ticketShort}`} />
             <Field
               label="Status"
