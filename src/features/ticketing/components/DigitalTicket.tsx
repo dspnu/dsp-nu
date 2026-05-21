@@ -115,7 +115,7 @@ export function DigitalTicket({
             )}
           </div>
           <div className="min-w-0 flex-1 space-y-2.5">
-            <Field label="Passenger" value={passengerName ?? 'Brother'} />
+            <Field label="Name" value={passengerName ?? 'Member'} />
             <Field label="Ticket" value={`#${ticketShort}`} />
             <Field
               label="Status"
