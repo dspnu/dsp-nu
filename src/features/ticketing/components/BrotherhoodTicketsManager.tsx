@@ -80,7 +80,10 @@ export function BrotherhoodTicketsManager({
   syncRouterSearchParams = false,
   defaultTab = 'browse',
 }: BrotherhoodTicketsManagerProps) {
-  const { canManageEvents } = useAuth();
+  const { canManageEvents, profile } = useAuth();
+  const memberName = profile
+    ? `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim() || profile.email
+    : undefined;
   const { toast } = useToast();
   const createCloverCheckout = useCreateCloverCheckout();
   const [searchParams, setSearchParams] = useSearchParams();
