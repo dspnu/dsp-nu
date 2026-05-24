@@ -38,9 +38,8 @@ export default function ChapterPage() {
       { key: 'standing', label: 'Standing', icon: Award, component: StandingTab },
     ];
 
-    if (isCapabilityEnabled('jobBoard')) {
-      t.push({ key: 'jobs', label: 'Jobs', icon: Briefcase, component: JobsTab });
-    }
+
+
     if (isCapabilityEnabled('coffeeChats')) {
       t.push({ key: 'coffee-chats', label: 'Coffee Chats', icon: Coffee, component: CoffeeChatsTab });
     }
