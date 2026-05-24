@@ -279,6 +279,96 @@ export type Database = {
         }
         Relationships: []
       }
+      career_ai_runs: {
+        Row: {
+          created_at: string
+          id: string
+          input: Json
+          model: string | null
+          output: string
+          title: string | null
+          tool: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          input?: Json
+          model?: string | null
+          output?: string
+          title?: string | null
+          tool: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          input?: Json
+          model?: string | null
+          output?: string
+          title?: string | null
+          tool?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      career_credit_grants: {
+        Row: {
+          amount: number
+          created_at: string
+          expires_at: string | null
+          granted_by: string | null
+          id: string
+          reason: string | null
+          remaining: number
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          expires_at?: string | null
+          granted_by?: string | null
+          id?: string
+          reason?: string | null
+          remaining?: number
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          expires_at?: string | null
+          granted_by?: string | null
+          id?: string
+          reason?: string | null
+          remaining?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      career_credit_usage: {
+        Row: {
+          created_at: string
+          id: string
+          tool: string
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          tool: string
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          tool?: string
+          user_id?: string
+          week_start?: string
+        }
+        Relationships: []
+      }
       chair_positions: {
         Row: {
           created_at: string
@@ -1887,6 +1977,7 @@ export type Database = {
         Returns: Json
       }
       delete_user_account: { Args: never; Returns: Json }
+      get_career_credit_balance: { Args: { _user_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
