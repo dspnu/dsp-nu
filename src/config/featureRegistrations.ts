@@ -1,4 +1,4 @@
-import { Vote, GraduationCap } from 'lucide-react';
+import { Vote, GraduationCap, Briefcase } from 'lucide-react';
 import { registerFeature } from './featureRegistry';
 import { org } from './org';
 
@@ -11,6 +11,14 @@ import { ElectionVotingCards } from '@/features/elections/components/ElectionVot
 import { DuesDueStatusCard } from '@/components/home/DuesDueStatusCard';
 import TicketsPage from '@/features/ticketing/pages/TicketsPage';
 import { TicketsHomeCard } from '@/features/ticketing/components/TicketsHomeCard';
+import CareerHubPage from '@/features/career/pages/CareerHubPage';
+
+registerFeature({
+  key: 'careerHub',
+  paths: ['src/features/career', 'supabase/functions/career-ai'],
+  route: { path: '/career', component: CareerHubPage },
+  navItem: { icon: Briefcase, label: 'Career', path: '/career', position: 50 },
+});
 
 registerFeature({
   key: 'ticketing',

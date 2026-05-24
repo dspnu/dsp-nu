@@ -3,11 +3,10 @@ import { useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/core/layout/AppLayout';
 import { PageHeader } from '@/components/ui/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Award, Briefcase, Coffee, FolderOpen, Shield } from 'lucide-react';
+import { Award, Coffee, FolderOpen, Shield } from 'lucide-react';
 import { useAuth } from '@/core/auth/AuthContext';
 import { isCapabilityEnabled } from '@/config/capabilities';
 import { StandingTab } from '@/features/chapter/components/StandingTab';
-import { JobsTab } from '@/features/chapter/components/JobsTab';
 import { CoffeeChatsTab } from '@/features/chapter/components/CoffeeChatsTab';
 import { ResourcesTab } from '@/features/chapter/components/ResourcesTab';
 import { AdminTab } from '@/features/chapter/components/AdminTab';
@@ -39,9 +38,8 @@ export default function ChapterPage() {
       { key: 'standing', label: 'Standing', icon: Award, component: StandingTab },
     ];
 
-    if (isCapabilityEnabled('jobBoard')) {
-      t.push({ key: 'jobs', label: 'Jobs', icon: Briefcase, component: JobsTab });
-    }
+
+
     if (isCapabilityEnabled('coffeeChats')) {
       t.push({ key: 'coffee-chats', label: 'Coffee Chats', icon: Coffee, component: CoffeeChatsTab });
     }
