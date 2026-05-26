@@ -1,4 +1,5 @@
-// Career Hub AI gateway with weekly credit gating
+// Career Hub AI gateway with weekly credit gating.
+// Primary provider: Anthropic (Claude). Falls back to Lovable AI Gateway if Anthropic key missing.
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -15,42 +16,69 @@ type Tool =
   | "interview_prep"
   | "job_strategy";
 
-const TOOL_PROMPTS: Record<Tool, { system: string; model?: string; title: (i: any) => string }> = {
+type Tier = "sonnet" | "haiku";
+
+// Claude model ids (Anthropic Messages API).
+const CLAUDE_MODELS: Record<Tier, string> = {
+  sonnet: "claude-sonnet-4-5",
+  haiku: "claude-haiku-4-5",
+};
+
+// Fallback Lovable AI model per tier (used only if ANTHROPIC_API_KEY is missing).
+const FALLBACK_MODELS: Record<Tier, string> = {
+  sonnet: "google/gemini-2.5-pro",
+  haiku: "google/gemini-3-flash-preview",
+};
+
+const TOOL_PROMPTS: Record<
+  Tool,
+  { system: string; tier: Tier; maxTokens: number; title: (i: any) => string }
+> = {
   resume_review: {
-    model: "google/gemini-2.5-pro",
+    tier: "sonnet",
+    maxTokens: 4000,
     system:
       "You are an expert career coach for college students and early-career professionals. Review the user's resume and produce: (1) a Strengths section, (2) a Weaknesses / Red Flags section, (3) line-by-line Suggested Rewrites in a markdown table when applicable, (4) ATS keyword recommendations tailored to the target role if provided, (5) a final Polished Summary statement they can copy. Use clear markdown headings and bullet points. Be specific, kind, and actionable. Avoid generic advice.",
     title: (i) => `Resume review${i.targetRole ? ` — ${i.targetRole}` : ""}`,
   },
   linkedin: {
+    tier: "haiku",
+    maxTokens: 3000,
     system:
-      "You are a LinkedIn profile optimization expert. Given the user's current LinkedIn content (headline, about, experience), produce: (1) 3 rewritten headline options, (2) a rewritten About section using a hook + value + proof + CTA structure, (3) up to 3 rewritten experience bullets with stronger action verbs and quantification, (4) keyword/skill suggestions, (5) a profile checklist (photo, banner, featured, etc.). Output in well-formatted markdown.",
+      "You are a LinkedIn profile optimization expert. Given the user's current LinkedIn content (headline, about, experience, or a full PDF export), produce: (1) 3 rewritten headline options, (2) a rewritten About section using a hook + value + proof + CTA structure, (3) up to 3 rewritten experience bullets with stronger action verbs and quantification, (4) keyword/skill suggestions, (5) a profile checklist (photo, banner, featured, etc.). Output in well-formatted markdown.",
     title: () => "LinkedIn optimization",
   },
   personal_brand: {
+    tier: "haiku",
+    maxTokens: 2500,
     system:
       "You are a personal branding strategist. Given the user's goals, audience, strengths, and field, produce: (1) a one-sentence personal brand statement, (2) 3 short-bio variants (Twitter/X 160 chars, LinkedIn headline ~120 chars, conference bio ~80 words), (3) 5 content pillars they could post about, (4) a values + voice cheat-sheet. Format in markdown.",
     title: (i) => `Personal brand${i.field ? ` — ${i.field}` : ""}`,
   },
   outreach: {
+    tier: "haiku",
+    maxTokens: 2000,
     system:
       "You are an expert at recruiter and alumni outreach for students. Given the contact context and the user's ask, produce 3 distinct cold-message variants (LinkedIn 300 chars, email 100-150 words, follow-up 60-80 words). Each variant should have a different angle (warm/curious, direct/value-first, mutual-connection). End with a 'Tips for this contact' section. Use markdown.",
     title: (i) => `Outreach${i.contactName ? ` — ${i.contactName}` : ""}`,
   },
   interview_prep: {
-    model: "openai/gpt-5-mini",
+    tier: "sonnet",
+    maxTokens: 4000,
     system:
       "You are an interview-prep coach. Given a role, company (optional), and job description, produce: (1) 8 likely behavioral questions with one-line guidance, (2) 5 role-specific technical/case questions, (3) a STAR-formatted draft answer template the user can customize for one of the behavioral questions using their background if provided, (4) 5 sharp questions the user should ask the interviewer. Format as markdown with clear headings.",
     title: (i) => `Interview prep${i.company ? ` — ${i.company}` : i.role ? ` — ${i.role}` : ""}`,
   },
   job_strategy: {
+    tier: "haiku",
+    maxTokens: 3000,
     system:
       "You are a job-search strategist for students and early-career professionals. Given goals, timeline, current status, and target roles, produce: (1) a 30/60/90-day action plan with weekly checkpoints, (2) a target-company list framework (criteria + how to source), (3) weekly application/outreach targets, (4) a tracking template (table with columns), (5) common pitfalls to avoid. Markdown formatted.",
     title: (i) => `Job strategy${i.targetRole ? ` — ${i.targetRole}` : ""}`,
   },
 };
 
-function buildUserPrompt(tool: Tool, input: Record<string, any>): string {
+function buildUserPrompt(_tool: Tool, input: Record<string, any>): string {
   const parts: string[] = [];
   for (const [k, v] of Object.entries(input)) {
     if (v == null || v === "") continue;
@@ -62,10 +90,69 @@ function buildUserPrompt(tool: Tool, input: Record<string, any>): string {
 
 function mondayUtc(): string {
   const d = new Date();
-  const day = d.getUTCDay(); // 0 sun .. 6 sat
-  const diff = (day + 6) % 7; // days since monday
+  const day = d.getUTCDay();
+  const diff = (day + 6) % 7;
   d.setUTCDate(d.getUTCDate() - diff);
   return d.toISOString().slice(0, 10);
+}
+
+async function callClaude(
+  apiKey: string,
+  model: string,
+  system: string,
+  userPrompt: string,
+  maxTokens: number,
+): Promise<{ ok: true; text: string } | { ok: false; status: number; body: string }> {
+  const resp = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: maxTokens,
+      system,
+      messages: [{ role: "user", content: userPrompt }],
+    }),
+  });
+  if (!resp.ok) {
+    return { ok: false, status: resp.status, body: await resp.text() };
+  }
+  const data = await resp.json();
+  const text = (data?.content ?? [])
+    .filter((b: any) => b?.type === "text")
+    .map((b: any) => b.text)
+    .join("\n")
+    .trim();
+  return { ok: true, text };
+}
+
+async function callLovable(
+  apiKey: string,
+  model: string,
+  system: string,
+  userPrompt: string,
+): Promise<{ ok: true; text: string } | { ok: false; status: number; body: string }> {
+  const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: userPrompt },
+      ],
+    }),
+  });
+  if (!resp.ok) return { ok: false, status: resp.status, body: await resp.text() };
+  const data = await resp.json();
+  const text = (data?.choices?.[0]?.message?.content ?? "").trim();
+  return { ok: true, text };
 }
 
 Deno.serve(async (req) => {
@@ -73,15 +160,17 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return json({ error: "Unauthorized" }, 401);
-    }
+    if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
     const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) return json({ error: "LOVABLE_API_KEY not configured" }, 500);
+
+    if (!ANTHROPIC_API_KEY && !LOVABLE_API_KEY) {
+      return json({ error: "No AI provider configured" }, 500);
+    }
 
     const userClient = createClient(SUPABASE_URL, ANON, {
       global: { headers: { Authorization: authHeader } },
@@ -100,7 +189,7 @@ Deno.serve(async (req) => {
     const admin = createClient(SUPABASE_URL, SERVICE);
     const week = mondayUtc();
 
-    // Check weekly usage
+    // Weekly credit gate (this IS our rate limit)
     const { count: usedCount, error: countErr } = await admin
       .from("career_credit_usage")
       .select("*", { count: "exact", head: true })
@@ -112,7 +201,6 @@ Deno.serve(async (req) => {
     const weeklyAvailable = (usedCount ?? 0) < 1;
 
     if (!weeklyAvailable) {
-      // Try a bonus grant
       const { data: grant } = await admin
         .from("career_credit_grants")
         .select("id, remaining, expires_at")
@@ -146,35 +234,43 @@ Deno.serve(async (req) => {
     }
 
     const cfg = TOOL_PROMPTS[tool];
-    const model = cfg.model ?? "google/gemini-3-flash-preview";
+    const userPrompt = buildUserPrompt(tool, input);
 
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: cfg.system },
-          { role: "user", content: buildUserPrompt(tool, input) },
-        ],
-      }),
-    });
+    let usedModel = "";
+    let output = "";
 
-    if (!aiResp.ok) {
-      // refund
-      await refund(admin, userId, week, consumedGrantId);
-      if (aiResp.status === 429) return json({ error: "rate_limited", message: "AI is busy, try again in a minute." }, 429);
-      if (aiResp.status === 402) return json({ error: "payment_required", message: "AI credits depleted. Contact an officer." }, 402);
-      const txt = await aiResp.text();
-      console.error("AI gateway error", aiResp.status, txt);
-      return json({ error: "ai_error" }, 500);
+    if (ANTHROPIC_API_KEY) {
+      usedModel = CLAUDE_MODELS[cfg.tier];
+      const r = await callClaude(ANTHROPIC_API_KEY, usedModel, cfg.system, userPrompt, cfg.maxTokens);
+      if (!r.ok) {
+        console.error("Anthropic error", r.status, r.body);
+        // Try Lovable AI fallback before refunding
+        if (LOVABLE_API_KEY && r.status >= 500) {
+          usedModel = FALLBACK_MODELS[cfg.tier];
+          const fr = await callLovable(LOVABLE_API_KEY, usedModel, cfg.system, userPrompt);
+          if (fr.ok) {
+            output = fr.text;
+          } else {
+            await refund(admin, userId, week, consumedGrantId);
+            return mapProviderError(r.status);
+          }
+        } else {
+          await refund(admin, userId, week, consumedGrantId);
+          return mapProviderError(r.status);
+        }
+      } else {
+        output = r.text;
+      }
+    } else if (LOVABLE_API_KEY) {
+      usedModel = FALLBACK_MODELS[cfg.tier];
+      const r = await callLovable(LOVABLE_API_KEY, usedModel, cfg.system, userPrompt);
+      if (!r.ok) {
+        await refund(admin, userId, week, consumedGrantId);
+        return mapProviderError(r.status);
+      }
+      output = r.text;
     }
 
-    const data = await aiResp.json();
-    const output: string = data?.choices?.[0]?.message?.content ?? "";
     if (!output) {
       await refund(admin, userId, week, consumedGrantId);
       return json({ error: "empty_response" }, 500);
@@ -188,7 +284,7 @@ Deno.serve(async (req) => {
         title: cfg.title(input).slice(0, 120),
         input,
         output,
-        model,
+        model: usedModel,
       })
       .select("id, created_at, title")
       .single();
@@ -199,7 +295,7 @@ Deno.serve(async (req) => {
       run_id: run?.id,
       title: run?.title,
       output,
-      model,
+      model: usedModel,
       used_grant: !!consumedGrantId,
     });
   } catch (e) {
@@ -208,10 +304,16 @@ Deno.serve(async (req) => {
   }
 });
 
+function mapProviderError(status: number) {
+  if (status === 429) return json({ error: "rate_limited", message: "AI is busy, try again in a minute." }, 429);
+  if (status === 401 || status === 403) return json({ error: "ai_auth", message: "AI provider auth error. Contact an admin." }, 500);
+  if (status === 402) return json({ error: "payment_required", message: "AI credits depleted. Contact an admin." }, 402);
+  return json({ error: "ai_error" }, 500);
+}
+
 async function refund(admin: any, userId: string, week: string, grantId: string | null) {
   try {
     if (grantId) {
-      await admin.rpc; // noop placeholder
       const { data: g } = await admin
         .from("career_credit_grants")
         .select("remaining")
