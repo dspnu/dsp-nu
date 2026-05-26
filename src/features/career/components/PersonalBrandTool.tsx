@@ -1,9 +1,10 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Megaphone } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AIToolShell } from './AIToolShell';
+import { DocumentUpload } from './DocumentUpload';
 import { useToast } from '@/hooks/use-toast';
 
 export function PersonalBrandTool() {
@@ -11,6 +12,8 @@ export function PersonalBrandTool() {
   const audienceRef = useRef<HTMLInputElement>(null);
   const goalsRef = useRef<HTMLTextAreaElement>(null);
   const strengthsRef = useRef<HTMLTextAreaElement>(null);
+  const [bio, setBio] = useState('');
+  const [fileName, setFileName] = useState<string | null>(null);
   const { toast } = useToast();
 
   return (
@@ -39,6 +42,16 @@ export function PersonalBrandTool() {
             <Label htmlFor="strengths">Your strengths / experiences</Label>
             <Textarea id="strengths" ref={strengthsRef} rows={4} placeholder="Top accomplishments, skills, things you geek out about…" disabled={disabled} />
           </div>
+          <div className="space-y-1.5">
+            <Label>Existing bio or about doc (optional)</Label>
+            <DocumentUpload
+              attachedName={fileName}
+              disabled={disabled}
+              label="Upload current bio (PDF / DOCX)"
+              onExtracted={(text, name) => { setBio(text); setFileName(name); }}
+              onClear={() => { setFileName(null); setBio(''); }}
+            />
+          </div>
         </>
       )}
       collectInput={() => {
@@ -52,6 +65,7 @@ export function PersonalBrandTool() {
           audience: audienceRef.current?.value.trim() || undefined,
           goals,
           strengths: strengthsRef.current?.value.trim() || undefined,
+          existingBio: bio.trim() || undefined,
         };
       }}
     />
