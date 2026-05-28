@@ -1,0 +1,3 @@
+
+-- 1. Add 'president' to app_role enum
+ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'president';

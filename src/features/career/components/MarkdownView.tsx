@@ -26,7 +26,12 @@ function inline(s: string) {
   out = out.replace(/`([^`]+)`/g, '<code>$1</code>');
   out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   out = out.replace(/(^|\W)\*([^*\n]+)\*/g, '$1<em>$2</em>');
-  out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, url) => {
+    const safe = /^https?:\/\//i.test(url) || url.startsWith('/') || url.startsWith('mailto:');
+    return safe
+      ? `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`
+      : label;
+  });
   return out;
 }
 

@@ -252,7 +252,7 @@ Deno.serve(async (req) => {
 
     if (insertErr) {
       console.error('[clover-create-checkout] insert', insertErr);
-      return json(500, { error: 'db_insert_failed', details: insertErr.message });
+      return json(500, { error: 'db_insert_failed' });
     }
 
     return json(200, { url: href, checkoutSessionId, idempotencyKey });
