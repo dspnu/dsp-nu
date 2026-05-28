@@ -2013,7 +2013,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "officer" | "member" | "developer"
+      app_role: "admin" | "officer" | "member" | "developer" | "president"
       coffee_chat_status: "emailed" | "scheduled" | "completed"
       election_status: "draft" | "open" | "closed"
       eop_vote: "yes" | "no" | "abstain"
@@ -2158,7 +2158,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "officer", "member", "developer"],
+      app_role: ["admin", "officer", "member", "developer", "president"],
       coffee_chat_status: ["emailed", "scheduled", "completed"],
       election_status: ["draft", "open", "closed"],
       eop_vote: ["yes", "no", "abstain"],
