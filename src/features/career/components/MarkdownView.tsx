@@ -27,10 +27,13 @@ function inline(s: string) {
   out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   out = out.replace(/(^|\W)\*([^*\n]+)\*/g, '$1<em>$2</em>');
   out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, url) => {
-    const safe = /^https?:\/\//i.test(url) || url.startsWith('/') || url.startsWith('mailto:');
-    return safe
-      ? `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`
-      : label;
+    const safe =
+      /^https?:\/\//i.test(url) ||
+      (url.startsWith('/') && !url.startsWith('//')) ||
+      url.startsWith('mailto:');
+    if (!safe) return label;
+    const safeUrl = String(url).replace(/"/g, '&quot;');
+    return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${label}</a>`;
   });
   return out;
 }
