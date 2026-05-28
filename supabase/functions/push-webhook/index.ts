@@ -296,15 +296,41 @@ async function handleProfileStatusUpdate(payload: DbWebhookPayload): Promise<Res
   });
 }
 
+function timingSafeEqual(a: string, b: string): boolean {
+  const ae = new TextEncoder().encode(a);
+  const be = new TextEncoder().encode(b);
+  if (ae.length !== be.length) return false;
+  let diff = 0;
+  for (let i = 0; i < ae.length; i++) diff |= ae[i] ^ be[i];
+  return diff === 0;
+}
+
 Deno.serve(async (req) => {
   try {
     if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
+
+    const expectedSecret = Deno.env.get('WEBHOOK_SECRET');
+    if (!expectedSecret) {
+      console.error('[push-webhook] WEBHOOK_SECRET not configured');
+      return new Response(JSON.stringify({ ok: false, error: 'server_misconfigured' }), {
+        status: 500,
+        headers: { 'content-type': 'application/json' },
+      });
+    }
+    const providedSecret = req.headers.get('x-webhook-secret') ?? '';
+    if (!timingSafeEqual(providedSecret, expectedSecret)) {
+      return new Response(JSON.stringify({ ok: false, error: 'unauthorized' }), {
+        status: 401,
+        headers: { 'content-type': 'application/json' },
+      });
+    }
 
     const payload = (await req.json()) as DbWebhookPayload;
 
     if (payload.schema !== 'public') {
       return new Response('Ignored', { status: 200 });
     }
+
 
     if (payload.table === 'notifications' && payload.type === 'INSERT') {
       return await handleNotificationInsert(payload);
