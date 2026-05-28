@@ -299,8 +299,8 @@ Deno.serve(async (req) => {
       used_grant: !!consumedGrantId,
     });
   } catch (e) {
-    console.error("career-ai error", e);
-    return json({ error: e instanceof Error ? e.message : "unknown" }, 500);
+    console.error("career-ai unhandled error", e);
+    return json({ error: "internal_error" }, 500);
   }
 });
 
