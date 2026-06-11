@@ -205,8 +205,8 @@ export default function AuthPage() {
                     Continue with Google
                     {lastUsedLoginMethod === 'google' && (
                       <Badge
-                        variant="outline"
-                        className="pointer-events-none absolute -right-2 -top-2 border-primary/35 bg-primary/10 text-[10px] font-semibold uppercase tracking-wide text-primary"
+                        variant="default"
+                        className="pointer-events-none absolute -right-2 -top-2 border border-primary/40 bg-primary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary-foreground shadow-sm"
                       >
                         Last used
                       </Badge>
