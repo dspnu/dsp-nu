@@ -1978,6 +1978,7 @@ export type Database = {
       }
       delete_user_account: { Args: never; Returns: Json }
       get_career_credit_balance: { Args: { _user_id: string }; Returns: Json }
+      get_career_hub_usage_stats: { Args: { p_days?: number }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
