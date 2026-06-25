@@ -1,17 +1,56 @@
 import { format } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Briefcase, ExternalLink } from 'lucide-react';
+import { CheckCircle, Briefcase, ExternalLink, Sparkles, Users, Activity, Coins } from 'lucide-react';
 import { useJobs, useApproveJob } from '@/features/jobs/hooks/useJobs';
+import { supabase } from '@/integrations/supabase/client';
+
+const TOOL_LABELS: Record<string, string> = {
+  resume_review: 'Resume Review',
+  linkedin: 'LinkedIn',
+  personal_brand: 'Personal Brand',
+  outreach: 'Outreach',
+  interview_prep: 'Interview Prep',
+  job_strategy: 'Job Strategy',
+};
+
+interface CareerStats {
+  period_days: number;
+  total_runs: number;
+  runs_in_period: number;
+  unique_users: number;
+  unique_users_in_period: number;
+  by_tool: { tool: string; count: number }[];
+  by_day: { day: string; count: number }[];
+  top_users: { user_id: string; first_name: string | null; last_name: string | null; count: number }[];
+  week_start: string;
+  weekly_credits_used: number;
+  bonus_credits_outstanding: number;
+}
+
+function useCareerHubStats(days = 30) {
+  return useQuery({
+    queryKey: ['career-hub-stats', days],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_career_hub_usage_stats', { p_days: days });
+      if (error) throw error;
+      return data as unknown as CareerStats;
+    },
+  });
+}
 
 export function VPProfessionalActivitiesDashboard() {
   const { data: jobs = [] } = useJobs();
   const approveJob = useApproveJob();
+  const { data: stats, isLoading: statsLoading } = useCareerHubStats(30);
 
   const pendingJobs = jobs.filter(j => !j.is_approved);
   const approvedJobs = jobs.filter(j => j.is_approved);
+  const maxDay = Math.max(1, ...(stats?.by_day.map(d => d.count) ?? [0]));
+  const maxTool = Math.max(1, ...(stats?.by_tool.map(t => t.count) ?? [0]));
 
   return (
     <div className="space-y-6">
