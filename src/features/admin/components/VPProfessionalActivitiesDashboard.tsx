@@ -1,17 +1,56 @@
 import { format } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Briefcase, ExternalLink } from 'lucide-react';
+import { CheckCircle, Briefcase, ExternalLink, Sparkles, Users, Activity, Coins } from 'lucide-react';
 import { useJobs, useApproveJob } from '@/features/jobs/hooks/useJobs';
+import { supabase } from '@/integrations/supabase/client';
+
+const TOOL_LABELS: Record<string, string> = {
+  resume_review: 'Resume Review',
+  linkedin: 'LinkedIn',
+  personal_brand: 'Personal Brand',
+  outreach: 'Outreach',
+  interview_prep: 'Interview Prep',
+  job_strategy: 'Job Strategy',
+};
+
+interface CareerStats {
+  period_days: number;
+  total_runs: number;
+  runs_in_period: number;
+  unique_users: number;
+  unique_users_in_period: number;
+  by_tool: { tool: string; count: number }[];
+  by_day: { day: string; count: number }[];
+  top_users: { user_id: string; first_name: string | null; last_name: string | null; count: number }[];
+  week_start: string;
+  weekly_credits_used: number;
+  bonus_credits_outstanding: number;
+}
+
+function useCareerHubStats(days = 30) {
+  return useQuery({
+    queryKey: ['career-hub-stats', days],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_career_hub_usage_stats', { p_days: days });
+      if (error) throw error;
+      return data as unknown as CareerStats;
+    },
+  });
+}
 
 export function VPProfessionalActivitiesDashboard() {
   const { data: jobs = [] } = useJobs();
   const approveJob = useApproveJob();
+  const { data: stats, isLoading: statsLoading } = useCareerHubStats(30);
 
   const pendingJobs = jobs.filter(j => !j.is_approved);
   const approvedJobs = jobs.filter(j => j.is_approved);
+  const maxDay = Math.max(1, ...(stats?.by_day.map(d => d.count) ?? [0]));
+  const maxTool = Math.max(1, ...(stats?.by_tool.map(t => t.count) ?? [0]));
 
   return (
     <div className="space-y-6">
@@ -120,6 +159,143 @@ export function VPProfessionalActivitiesDashboard() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Career Hub usage */}
+      <div className="space-y-3 pt-2">
+        <div className="flex items-baseline justify-between">
+          <h4 className="font-display text-base font-semibold text-foreground">Career Hub usage</h4>
+          <span className="text-xs text-muted-foreground">Last {stats?.period_days ?? 30} days</span>
+        </div>
+
+        <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+          <Card>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <Sparkles className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{statsLoading ? '—' : stats?.runs_in_period ?? 0}</p>
+                <p className="text-xs text-muted-foreground">AI runs (period)</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <Activity className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{statsLoading ? '—' : stats?.total_runs ?? 0}</p>
+                <p className="text-xs text-muted-foreground">All-time runs</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <Users className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{statsLoading ? '—' : stats?.unique_users_in_period ?? 0}</p>
+                <p className="text-xs text-muted-foreground">Active users</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <Coins className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{statsLoading ? '—' : stats?.weekly_credits_used ?? 0}</p>
+                <p className="text-xs text-muted-foreground">Credits used this week</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Usage by tool</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {(stats?.by_tool ?? []).length === 0 && (
+                <p className="text-sm text-muted-foreground">No activity yet.</p>
+              )}
+              {(stats?.by_tool ?? []).map((row) => (
+                <div key={row.tool} className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium">{TOOL_LABELS[row.tool] ?? row.tool}</span>
+                    <span className="text-muted-foreground">{row.count}</span>
+                  </div>
+                  <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full bg-primary"
+                      style={{ width: `${(row.count / maxTool) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Daily activity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {(stats?.by_day ?? []).length === 0 ? (
+                <p className="text-sm text-muted-foreground">No activity yet.</p>
+              ) : (
+                <div className="flex items-end gap-1 h-32">
+                  {stats!.by_day.map((d) => (
+                    <div key={d.day} className="flex-1 flex flex-col items-center justify-end gap-1" title={`${d.day}: ${d.count}`}>
+                      <div
+                        className="w-full rounded-sm bg-primary/70 hover:bg-primary transition-colors"
+                        style={{ height: `${(d.count / maxDay) * 100}%`, minHeight: d.count > 0 ? 2 : 0 }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Top users</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Member</TableHead>
+                  <TableHead className="text-right">Runs</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(stats?.top_users ?? []).length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={2} className="text-sm text-muted-foreground">
+                      No activity yet.
+                    </TableCell>
+                  </TableRow>
+                )}
+                {(stats?.top_users ?? []).map((u) => (
+                  <TableRow key={u.user_id}>
+                    <TableCell className="text-sm">
+                      {[u.first_name, u.last_name].filter(Boolean).join(' ') || 'Unknown member'}
+                    </TableCell>
+                    <TableCell className="text-right text-sm font-medium">{u.count}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
