@@ -135,9 +135,45 @@ export function AIToolShell({
           <DialogHeader>
             <DialogTitle>{openRun?.title}</DialogTitle>
           </DialogHeader>
-          {openRun && <MarkdownView source={openRun.output} />}
+          {openRun && <RichResultView tool={tool} source={openRun.output} />}
         </DialogContent>
       </Dialog>
     </div>
   );
 }
+
+function ResultActions({ text, title }: { text: string; title: string }) {
+  const { toast } = useToast();
+  return (
+    <div className="flex items-center gap-1">
+      <Button
+        size="sm"
+        variant="ghost"
+        className="h-7 px-2 text-xs"
+        onClick={() => {
+          navigator.clipboard.writeText(text);
+          toast({ title: 'Copied result' });
+        }}
+      >
+        <Copy className="h-3 w-3 mr-1" /> Copy
+      </Button>
+      <Button
+        size="sm"
+        variant="ghost"
+        className="h-7 px-2 text-xs"
+        onClick={() => {
+          const blob = new Blob([text], { type: 'text/markdown' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${title.toLowerCase().replace(/\s+/g, '-')}.md`;
+          a.click();
+          URL.revokeObjectURL(url);
+        }}
+      >
+        <Download className="h-3 w-3 mr-1" /> Save
+      </Button>
+    </div>
+  );
+}
+
