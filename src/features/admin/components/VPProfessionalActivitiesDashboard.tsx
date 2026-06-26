@@ -7,6 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Briefcase, ExternalLink, Sparkles, Users, Activity, Coins } from 'lucide-react';
 import { useJobs, useApproveJob } from '@/features/jobs/hooks/useJobs';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
+} from 'recharts';
 
 const TOOL_LABELS: Record<string, string> = {
   resume_review: 'Resume Review',
