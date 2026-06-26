@@ -78,16 +78,17 @@ export function AIToolShell({
       </Card>
 
       {result && (
-        <Card className="p-4 sm:p-5">
-          <div className="flex items-center justify-between mb-3">
+        <Card className="p-4 sm:p-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="text-[10px]">Latest result</Badge>
               {run.data?.model && (
                 <span className="text-[10px] text-muted-foreground font-mono">{run.data.model}</span>
               )}
             </div>
+            <ResultActions text={result} title={title} />
           </div>
-          <MarkdownView source={result} />
+          <RichResultView tool={tool} source={result} />
         </Card>
       )}
 
