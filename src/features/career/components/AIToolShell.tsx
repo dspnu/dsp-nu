@@ -3,12 +3,13 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Sparkles, History, Trash2, Loader2 } from 'lucide-react';
+import { Sparkles, History, Trash2, Loader2, Copy, Download } from 'lucide-react';
 import { useCareerAIRun } from '../hooks/useCareerAIRun';
 import { useCareerHistory, useDeleteCareerRun, type CareerTool } from '../hooks/useCareerHistory';
 import { useCareerCredits } from '../hooks/useCareerCredits';
-import { MarkdownView } from './MarkdownView';
+import { RichResultView } from './RichResultView';
 import { formatDistanceToNow } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
@@ -77,16 +78,17 @@ export function AIToolShell({
       </Card>
 
       {result && (
-        <Card className="p-4 sm:p-5">
-          <div className="flex items-center justify-between mb-3">
+        <Card className="p-4 sm:p-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="text-[10px]">Latest result</Badge>
               {run.data?.model && (
                 <span className="text-[10px] text-muted-foreground font-mono">{run.data.model}</span>
               )}
             </div>
+            <ResultActions text={result} title={title} />
           </div>
-          <MarkdownView source={result} />
+          <RichResultView tool={tool} source={result} />
         </Card>
       )}
 
@@ -133,9 +135,45 @@ export function AIToolShell({
           <DialogHeader>
             <DialogTitle>{openRun?.title}</DialogTitle>
           </DialogHeader>
-          {openRun && <MarkdownView source={openRun.output} />}
+          {openRun && <RichResultView tool={tool} source={openRun.output} />}
         </DialogContent>
       </Dialog>
     </div>
   );
 }
+
+function ResultActions({ text, title }: { text: string; title: string }) {
+  const { toast } = useToast();
+  return (
+    <div className="flex items-center gap-1">
+      <Button
+        size="sm"
+        variant="ghost"
+        className="h-7 px-2 text-xs"
+        onClick={() => {
+          navigator.clipboard.writeText(text);
+          toast({ title: 'Copied result' });
+        }}
+      >
+        <Copy className="h-3 w-3 mr-1" /> Copy
+      </Button>
+      <Button
+        size="sm"
+        variant="ghost"
+        className="h-7 px-2 text-xs"
+        onClick={() => {
+          const blob = new Blob([text], { type: 'text/markdown' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${title.toLowerCase().replace(/\s+/g, '-')}.md`;
+          a.click();
+          URL.revokeObjectURL(url);
+        }}
+      >
+        <Download className="h-3 w-3 mr-1" /> Save
+      </Button>
+    </div>
+  );
+}
+

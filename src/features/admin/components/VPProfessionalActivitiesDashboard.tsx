@@ -7,6 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Briefcase, ExternalLink, Sparkles, Users, Activity, Coins } from 'lucide-react';
 import { useJobs, useApproveJob } from '@/features/jobs/hooks/useJobs';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid,
+} from 'recharts';
 
 const TOOL_LABELS: Record<string, string> = {
   resume_review: 'Resume Review',
@@ -248,15 +251,48 @@ export function VPProfessionalActivitiesDashboard() {
               {(stats?.by_day ?? []).length === 0 ? (
                 <p className="text-sm text-muted-foreground">No activity yet.</p>
               ) : (
-                <div className="flex items-end gap-1 h-32">
-                  {stats!.by_day.map((d) => (
-                    <div key={d.day} className="flex-1 flex flex-col items-center justify-end gap-1" title={`${d.day}: ${d.count}`}>
-                      <div
-                        className="w-full rounded-sm bg-primary/70 hover:bg-primary transition-colors"
-                        style={{ height: `${(d.count / maxDay) * 100}%`, minHeight: d.count > 0 ? 2 : 0 }}
+                <div className="h-40 -ml-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={(stats?.by_day ?? []).map((d) => ({
+                        day: format(new Date(d.day), 'MMM d'),
+                        count: d.count,
+                      }))}
+                      margin={{ top: 6, right: 8, left: 0, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                      <XAxis
+                        dataKey="day"
+                        tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                        tickLine={false}
+                        axisLine={false}
                       />
-                    </div>
-                  ))}
+                      <YAxis
+                        allowDecimals={false}
+                        tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                        tickLine={false}
+                        axisLine={false}
+                        width={24}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          background: 'hsl(var(--popover))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: 8,
+                          fontSize: 12,
+                        }}
+                        labelStyle={{ color: 'hsl(var(--foreground))' }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="count"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth={2}
+                        dot={{ r: 2.5, fill: 'hsl(var(--primary))' }}
+                        activeDot={{ r: 4 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </div>
               )}
             </CardContent>

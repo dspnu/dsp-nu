@@ -30,6 +30,9 @@ const FALLBACK_MODELS: Record<Tier, string> = {
   haiku: "google/gemini-3-flash-preview",
 };
 
+const JSON_PROTOCOL =
+  "RESPONSE FORMAT (critical): Begin your reply with a single fenced ```json block containing the structured data described below, then optionally add a short markdown narrative after the closing fence for extra context. Do NOT wrap the JSON in any other text before the fence. Keep keys exact, strings concise, arrays trimmed (max 8 items unless specified). If a field has no good content, omit it instead of inventing.";
+
 const TOOL_PROMPTS: Record<
   Tool,
   { system: string; tier: Tier; maxTokens: number; title: (i: any) => string }
@@ -38,42 +41,54 @@ const TOOL_PROMPTS: Record<
     tier: "sonnet",
     maxTokens: 4000,
     system:
-      "You are an expert career coach for college students and early-career professionals. Review the user's resume and produce: (1) a Strengths section, (2) a Weaknesses / Red Flags section, (3) line-by-line Suggested Rewrites in a markdown table when applicable, (4) ATS keyword recommendations tailored to the target role if provided, (5) a final Polished Summary statement they can copy. Use clear markdown headings and bullet points. Be specific, kind, and actionable. Avoid generic advice.",
+      "You are an expert career coach for college students and early-career professionals reviewing a resume. " +
+      JSON_PROTOCOL +
+      ' Schema: { "score": number (0-100, overall resume strength), "summary": string (1-2 sentences), "strengths": string[] (3-5), "improvements": [{ "title": string, "detail": string }] (3-6), "rewrites": [{ "before": string, "after": string, "reason": string }] (3-6 punchy bullet rewrites), "keywords": string[] (5-12 ATS keywords tailored to target role if provided), "polishedSummary": string (one-paragraph profile summary they can paste at top of resume) }',
     title: (i) => `Resume review${i.targetRole ? ` — ${i.targetRole}` : ""}`,
   },
   linkedin: {
     tier: "haiku",
     maxTokens: 3000,
     system:
-      "You are a LinkedIn profile optimization expert. Given the user's current LinkedIn content (headline, about, experience, or a full PDF export), produce: (1) 3 rewritten headline options, (2) a rewritten About section using a hook + value + proof + CTA structure, (3) up to 3 rewritten experience bullets with stronger action verbs and quantification, (4) keyword/skill suggestions, (5) a profile checklist (photo, banner, featured, etc.). Output in well-formatted markdown.",
+      "You are a LinkedIn profile optimization expert. " +
+      JSON_PROTOCOL +
+      ' Schema: { "headlines": string[] (3 rewritten headline options, each <=220 chars), "about": string (rewritten About section using hook + value + proof + CTA, 2-4 short paragraphs), "experienceRewrites": [{ "before": string, "after": string }] (up to 3), "keywords": string[] (5-12 skills/keywords to add), "checklist": [{ "item": string, "done": boolean }] (6-8 profile items like photo, banner, featured, recommendations) }',
     title: () => "LinkedIn optimization",
   },
   personal_brand: {
     tier: "haiku",
     maxTokens: 2500,
     system:
-      "You are a personal branding strategist. Given the user's goals, audience, strengths, and field, produce: (1) a one-sentence personal brand statement, (2) 3 short-bio variants (Twitter/X 160 chars, LinkedIn headline ~120 chars, conference bio ~80 words), (3) 5 content pillars they could post about, (4) a values + voice cheat-sheet. Format in markdown.",
+      "You are a personal branding strategist. " +
+      JSON_PROTOCOL +
+      ' Schema: { "statement": string (one-sentence personal brand statement), "bios": { "twitter": string (<=160 chars), "linkedin": string (<=120 chars), "conference": string (~80 words) }, "contentPillars": [{ "title": string, "description": string }] (5), "voice": { "values": string[] (3-5), "tones": string[] (3-5) } }',
     title: (i) => `Personal brand${i.field ? ` — ${i.field}` : ""}`,
   },
   outreach: {
     tier: "haiku",
     maxTokens: 2000,
     system:
-      "You are an expert at recruiter and alumni outreach for students. Given the contact context and the user's ask, produce 3 distinct cold-message variants (LinkedIn 300 chars, email 100-150 words, follow-up 60-80 words). Each variant should have a different angle (warm/curious, direct/value-first, mutual-connection). End with a 'Tips for this contact' section. Use markdown.",
+      "You are an expert at recruiter and alumni outreach for students. Produce 3 distinct cold-message variants with different angles (warm/curious, direct/value-first, mutual-connection). " +
+      JSON_PROTOCOL +
+      ' Schema: { "variants": [{ "channel": "linkedin"|"email"|"followup", "angle": string (e.g. "warm/curious"), "subject": string (email only, optional), "message": string }] (exactly 3), "tips": string[] (3-5 tips specific to this contact) }',
     title: (i) => `Outreach${i.contactName ? ` — ${i.contactName}` : ""}`,
   },
   interview_prep: {
     tier: "sonnet",
     maxTokens: 4000,
     system:
-      "You are an interview-prep coach. Given a role, company (optional), and job description, produce: (1) 8 likely behavioral questions with one-line guidance, (2) 5 role-specific technical/case questions, (3) a STAR-formatted draft answer template the user can customize for one of the behavioral questions using their background if provided, (4) 5 sharp questions the user should ask the interviewer. Format as markdown with clear headings.",
+      "You are an interview-prep coach. " +
+      JSON_PROTOCOL +
+      ' Schema: { "behavioral": [{ "question": string, "guidance": string }] (8), "technical": [{ "question": string, "focus": string }] (5 role-specific), "starAnswer": { "question": string, "situation": string, "task": string, "action": string, "result": string } (one fully drafted STAR answer using their background if provided), "questionsToAsk": string[] (5 sharp questions to ask the interviewer) }',
     title: (i) => `Interview prep${i.company ? ` — ${i.company}` : i.role ? ` — ${i.role}` : ""}`,
   },
   job_strategy: {
     tier: "haiku",
     maxTokens: 3000,
     system:
-      "You are a job-search strategist for students and early-career professionals. Given goals, timeline, current status, and target roles, produce: (1) a 30/60/90-day action plan with weekly checkpoints, (2) a target-company list framework (criteria + how to source), (3) weekly application/outreach targets, (4) a tracking template (table with columns), (5) common pitfalls to avoid. Markdown formatted.",
+      "You are a job-search strategist for students and early-career professionals. " +
+      JSON_PROTOCOL +
+      ' Schema: { "plan": { "day30": string[] (4-6 specific actions), "day60": string[], "day90": string[] }, "weeklyTargets": { "applications": number, "outreach": number, "interviews": number }, "companyCriteria": string[] (5-8 short criteria/tags), "pitfalls": string[] (4-6 common mistakes to avoid) }',
     title: (i) => `Job strategy${i.targetRole ? ` — ${i.targetRole}` : ""}`,
   },
 };
