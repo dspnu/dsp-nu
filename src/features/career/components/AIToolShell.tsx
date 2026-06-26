@@ -3,12 +3,13 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Sparkles, History, Trash2, Loader2 } from 'lucide-react';
+import { Sparkles, History, Trash2, Loader2, Copy, Download } from 'lucide-react';
 import { useCareerAIRun } from '../hooks/useCareerAIRun';
 import { useCareerHistory, useDeleteCareerRun, type CareerTool } from '../hooks/useCareerHistory';
 import { useCareerCredits } from '../hooks/useCareerCredits';
-import { MarkdownView } from './MarkdownView';
+import { RichResultView } from './RichResultView';
 import { formatDistanceToNow } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
