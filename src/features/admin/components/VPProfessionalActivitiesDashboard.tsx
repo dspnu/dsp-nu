@@ -248,53 +248,61 @@ export function VPProfessionalActivitiesDashboard() {
               <CardTitle className="text-base">Daily activity</CardTitle>
             </CardHeader>
             <CardContent>
-              {(stats?.by_day ?? []).length === 0 ? (
-                <p className="text-sm text-muted-foreground">No activity yet.</p>
-              ) : (
-                <div className="h-40 -ml-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={(stats?.by_day ?? []).map((d) => ({
-                        day: format(new Date(d.day), 'MMM d'),
-                        count: d.count,
-                      }))}
-                      margin={{ top: 6, right: 8, left: 0, bottom: 0 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                      <XAxis
-                        dataKey="day"
-                        tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                        tickLine={false}
-                        axisLine={false}
-                      />
-                      <YAxis
-                        allowDecimals={false}
-                        tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                        tickLine={false}
-                        axisLine={false}
-                        width={24}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          background: 'hsl(var(--popover))',
-                          border: '1px solid hsl(var(--border))',
-                          borderRadius: 8,
-                          fontSize: 12,
-                        }}
-                        labelStyle={{ color: 'hsl(var(--foreground))' }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="count"
-                        stroke="hsl(var(--primary))"
-                        strokeWidth={2}
-                        dot={{ r: 2.5, fill: 'hsl(var(--primary))' }}
-                        activeDot={{ r: 4 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
+              {(() => {
+                const days = stats?.period_days ?? 30;
+                const map = new Map(
+                  (stats?.by_day ?? []).map((d) => [d.day.slice(0, 10), d.count])
+                );
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const chartData = Array.from({ length: days }, (_, i) => {
+                  const d = new Date(today);
+                  d.setDate(d.getDate() - (days - 1 - i));
+                  const key = d.toISOString().slice(0, 10);
+                  return { day: format(d, 'MMM d'), count: map.get(key) ?? 0 };
+                });
+                const tickEvery = Math.max(1, Math.ceil(days / 8));
+                return (
+                  <div className="h-48 -ml-2">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={chartData} margin={{ top: 6, right: 8, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                        <XAxis
+                          dataKey="day"
+                          interval={tickEvery - 1}
+                          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                          tickLine={false}
+                          axisLine={false}
+                        />
+                        <YAxis
+                          allowDecimals={false}
+                          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                          tickLine={false}
+                          axisLine={false}
+                          width={24}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            background: 'hsl(var(--popover))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: 8,
+                            fontSize: 12,
+                          }}
+                          labelStyle={{ color: 'hsl(var(--foreground))' }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="count"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2.5}
+                          dot={false}
+                          activeDot={{ r: 4 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         </div>
