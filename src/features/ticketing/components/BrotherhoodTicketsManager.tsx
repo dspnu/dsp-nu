@@ -216,6 +216,27 @@ export function BrotherhoodTicketsManager({
     checkIn.mutate(code, { onSettled: syncRouterSearchParams ? clearVerifyParam : undefined });
   };
 
+  const handleClaim = (eventId: string) => {
+    claim.mutate(eventId, {
+      onSuccess: (res) => {
+        if (res?.ok) {
+          setTab('my');
+          if (syncRouterSearchParams) {
+            const sp = new URLSearchParams(searchParams);
+            sp.set('tab', 'my');
+            setSearchParams(sp, { replace: true });
+          }
+        }
+      },
+    });
+  };
+
+  const hueFromString = (s: string) => {
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+    return 250 + (Math.abs(h) % 70);
+  };
+
   const renderBrowse = () => {
     if (browseLoading) {
       return (
@@ -233,46 +254,215 @@ export function BrotherhoodTicketsManager({
         />
       );
     }
-    return (
-      <div className="grid gap-4 sm:grid-cols-2">
-        {effectiveBrowseEvents.map((ev) => {
-          const hasTicket = myEventIds.has(ev.id);
-          return (
-            <Card key={ev.id}>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg leading-snug">{ev.title}</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  {format(new Date(ev.starts_at), 'PPp')}
-                  {ev.location ? ` · ${ev.location}` : ''}
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {ev.description && (
-                  <p className="text-sm text-muted-foreground line-clamp-4">{ev.description}</p>
+
+    const now = Date.now();
+    const upcoming = [...effectiveBrowseEvents]
+      .filter((e) => new Date(e.starts_at).getTime() >= now)
+      .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
+    const past = effectiveBrowseEvents.filter((e) => new Date(e.starts_at).getTime() < now);
+    const hero = upcoming[0];
+    const rest = upcoming.slice(1);
+
+    const renderHero = (ev: TicketedEvent) => {
+      const hasTicket = myEventIds.has(ev.id);
+      const hue = hueFromString(ev.title);
+      return (
+        <div className="relative overflow-hidden rounded-3xl shadow-xl ring-1 ring-border">
+          <div
+            className="relative aspect-[16/10] sm:aspect-[5/2]"
+            style={{
+              background: `linear-gradient(135deg, hsl(${hue} 75% 32%) 0%, hsl(${hue + 25} 70% 48%) 55%, hsl(${hue + 45} 75% 60%) 100%)`,
+            }}
+          >
+            <div
+              aria-hidden
+              className="absolute inset-0 opacity-30 mix-blend-overlay"
+              style={{
+                backgroundImage:
+                  'radial-gradient(circle at 18% 20%, rgba(255,255,255,0.5) 0, transparent 45%), radial-gradient(circle at 85% 75%, rgba(0,0,0,0.4) 0, transparent 45%)',
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <div className="absolute inset-x-0 top-0 flex items-center justify-between p-5">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white ring-1 ring-white/20">
+                <Sparkles className="h-3 w-3" />
+                Featured
+              </span>
+              {hasTicket && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white shadow-lg">
+                  <CheckCircle2 className="h-3 w-3" />
+                  You're in
+                </span>
+              )}
+            </div>
+            <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7 text-white">
+              <h3 className="text-2xl sm:text-3xl font-extrabold leading-tight tracking-tight">
+                {ev.title}
+              </h3>
+              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/85">
+                <span className="inline-flex items-center gap-1.5">
+                  <CalendarDays className="h-4 w-4" />
+                  {format(new Date(ev.starts_at), 'EEE, MMM d · p')}
+                </span>
+                {ev.location && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <MapPin className="h-4 w-4" />
+                    {ev.location}
+                  </span>
                 )}
-                <div className="flex flex-wrap gap-2 text-sm">
+              </div>
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-sm font-semibold">
                   {ev.price_cents > 0 ? (
-                    <Badge variant="secondary">{formatMoney(ev.price_cents)}</Badge>
+                    <span className="rounded-full bg-white/15 backdrop-blur-md px-3 py-1 ring-1 ring-white/20">
+                      {formatMoney(ev.price_cents)}
+                    </span>
                   ) : (
-                    <Badge variant="outline">Free</Badge>
+                    <span className="rounded-full bg-white/15 backdrop-blur-md px-3 py-1 ring-1 ring-white/20">
+                      Free
+                    </span>
                   )}
-                  {ev.capacity != null && <Badge variant="outline">Cap {ev.capacity}</Badge>}
+                  {ev.capacity != null && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 ring-1 ring-white/20">
+                      <Users className="h-3.5 w-3.5" />
+                      {ev.capacity}
+                    </span>
+                  )}
                 </div>
                 {hasTicket ? (
-                  <p className="text-sm font-medium text-primary">You have a ticket — see My Tickets.</p>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="bg-white text-foreground hover:bg-white/90"
+                    onClick={() => setTab('my')}
+                  >
+                    View my ticket
+                  </Button>
                 ) : (
                   <Button
                     size="sm"
+                    className="bg-white text-foreground hover:bg-white/90 font-bold shadow-lg"
                     disabled={claim.isPending || !ev.registrations_open}
-                    onClick={() => claim.mutate(ev.id)}
+                    onClick={() => handleClaim(ev.id)}
                   >
-                    {ev.registrations_open ? 'Claim ticket' : 'Registration closed'}
+                    {claim.isPending && <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />}
+                    {ev.registrations_open ? 'Reserve your spot' : 'Registration closed'}
                   </Button>
                 )}
-              </CardContent>
-            </Card>
-          );
-        })}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const renderListItem = (ev: TicketedEvent) => {
+      const hasTicket = myEventIds.has(ev.id);
+      const hue = hueFromString(ev.title);
+      const isPast = new Date(ev.starts_at).getTime() < now;
+      return (
+        <div
+          key={ev.id}
+          className="group flex items-center gap-4 rounded-2xl border bg-card p-3 transition-all hover:shadow-md hover:-translate-y-0.5"
+        >
+          <div
+            className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl ring-1 ring-border"
+            style={{
+              background: `linear-gradient(135deg, hsl(${hue} 70% 38%), hsl(${hue + 30} 70% 55%))`,
+            }}
+          >
+            <div
+              aria-hidden
+              className="absolute inset-0 opacity-40 mix-blend-overlay"
+              style={{
+                backgroundImage:
+                  'radial-gradient(circle at 30% 20%, rgba(255,255,255,0.6) 0, transparent 50%)',
+              }}
+            />
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+              <div className="text-[9px] font-bold uppercase tracking-[0.18em] opacity-80">
+                {format(new Date(ev.starts_at), 'MMM')}
+              </div>
+              <div className="text-2xl font-extrabold leading-none">
+                {format(new Date(ev.starts_at), 'd')}
+              </div>
+            </div>
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <p className="truncate text-sm font-bold text-foreground">{ev.title}</p>
+              {hasTicket && (
+                <Badge variant="secondary" className="h-5 px-1.5 text-[10px] gap-1">
+                  <CheckCircle2 className="h-3 w-3" />
+                  Yours
+                </Badge>
+              )}
+            </div>
+            <p className="mt-0.5 text-xs text-muted-foreground truncate">
+              {format(new Date(ev.starts_at), 'EEE, MMM d · p')}
+              {ev.location ? ` · ${ev.location}` : ''}
+            </p>
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+              {ev.price_cents > 0 ? (
+                <Badge variant="outline" className="h-5 px-1.5 text-[10px]">
+                  {formatMoney(ev.price_cents)}
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="h-5 px-1.5 text-[10px]">
+                  Free
+                </Badge>
+              )}
+              {ev.capacity != null && (
+                <Badge variant="outline" className="h-5 px-1.5 text-[10px]">
+                  Cap {ev.capacity}
+                </Badge>
+              )}
+            </div>
+          </div>
+          {!isPast && !hasTicket && (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={claim.isPending || !ev.registrations_open}
+              onClick={() => handleClaim(ev.id)}
+              className="shrink-0"
+            >
+              {ev.registrations_open ? 'Claim' : 'Closed'}
+            </Button>
+          )}
+          {!isPast && hasTicket && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setTab('my')}
+              className="shrink-0"
+            >
+              View
+            </Button>
+          )}
+        </div>
+      );
+    };
+
+    return (
+      <div className="space-y-6">
+        {hero && renderHero(hero)}
+        {rest.length > 0 && (
+          <div className="space-y-3">
+            <h4 className="text-sm font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              Up next
+            </h4>
+            <div className="space-y-2">{rest.map(renderListItem)}</div>
+          </div>
+        )}
+        {past.length > 0 && (
+          <div className="space-y-3">
+            <h4 className="text-sm font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              Past events
+            </h4>
+            <div className="space-y-2 opacity-70">{past.map(renderListItem)}</div>
+          </div>
+        )}
       </div>
     );
   };
