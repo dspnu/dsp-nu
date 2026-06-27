@@ -43,7 +43,18 @@ import { TicketQrBlock } from '@/features/ticketing/components/TicketQrBlock';
 import { TicketCheckInTools } from '@/features/ticketing/components/TicketCheckInTools';
 import { DigitalTicket } from '@/features/ticketing/components/DigitalTicket';
 import { format } from 'date-fns';
-import { ExternalLink, Loader2, Ticket as TicketIcon, Trash2, WalletCards } from 'lucide-react';
+import {
+  CalendarDays,
+  CheckCircle2,
+  ExternalLink,
+  Loader2,
+  MapPin,
+  Sparkles,
+  Ticket as TicketIcon,
+  Trash2,
+  Users,
+  WalletCards,
+} from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
 import {
