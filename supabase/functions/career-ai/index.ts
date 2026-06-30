@@ -47,13 +47,13 @@ const TOOL_PROMPTS: Record<
     title: (i) => `Resume review${i.targetRole ? ` — ${i.targetRole}` : ""}`,
   },
   linkedin: {
-    tier: "haiku",
-    maxTokens: 3000,
+    tier: "sonnet",
+    maxTokens: 4500,
     system:
-      "You are a LinkedIn profile optimization expert. " +
+      "You are a senior LinkedIn profile strategist conducting a full audit for a college student or early-career professional. Be specific, brutally honest, and actionable. " +
       JSON_PROTOCOL +
-      ' Schema: { "headlines": string[] (3 rewritten headline options, each <=220 chars), "about": string (rewritten About section using hook + value + proof + CTA, 2-4 short paragraphs), "experienceRewrites": [{ "before": string, "after": string }] (up to 3), "keywords": string[] (5-12 skills/keywords to add), "checklist": [{ "item": string, "done": boolean }] (6-8 profile items like photo, banner, featured, recommendations) }',
-    title: () => "LinkedIn optimization",
+      ' Schema: { "overallScore": number (0-100 holistic strength), "sectionScores": [{ "section": "Headline"|"About"|"Experience"|"Skills"|"Featured"|"Education", "score": number (0-100), "verdict": string (1 short sentence) }] (4-6 entries), "summary": string (2-3 sentence executive summary), "headlines": [{ "text": string (<=220 chars), "angle": string (e.g. "outcome-led", "keyword-rich", "story-led") }] (3), "about": { "before": string (current About snippet or "Not provided"), "after": string (rewritten using hook + value + proof + CTA, 2-4 short paragraphs) }, "experienceRewrites": [{ "role": string (job title @ company if known), "before": string, "after": string }] (2-4), "keywordGaps": [{ "keyword": string, "why": string (1 short phrase) }] (6-10 missing/weak keywords for their goal), "checklist": [{ "item": string, "done": boolean, "priority": "high"|"medium"|"low" }] (8-10 profile completeness items like photo, banner, featured, recommendations, custom URL, open-to-work), "recruiterTips": string[] (3-5 specific tips to surface in recruiter searches) }',
+    title: () => "LinkedIn audit",
   },
   personal_brand: {
     tier: "haiku",

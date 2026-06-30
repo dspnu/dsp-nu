@@ -4,15 +4,13 @@ import { AppLayout } from '@/core/layout/AppLayout';
 import { PageHeader } from '@/components/ui/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Sparkles, FileText, Linkedin, Megaphone, Mail, MessagesSquare, Target, Briefcase,
+  Sparkles, FileText, Linkedin, Mail, MessagesSquare, Briefcase, Megaphone, Target,
 } from 'lucide-react';
 import { CreditBalanceCard } from '../components/CreditBalanceCard';
 import { ResumeReviewTool } from '../components/ResumeReviewTool';
 import { LinkedInTool } from '../components/LinkedInTool';
-import { PersonalBrandTool } from '../components/PersonalBrandTool';
 import { OutreachTool } from '../components/OutreachTool';
 import { InterviewPrepTool } from '../components/InterviewPrepTool';
-import { JobStrategyTool } from '../components/JobStrategyTool';
 import { JobsTab } from '@/features/chapter/components/JobsTab';
 import { Card } from '@/components/ui/card';
 import { useCareerHistory } from '../hooks/useCareerHistory';
@@ -22,9 +20,10 @@ import { isCapabilityEnabled } from '@/config/capabilities';
 const TOOL_META: Record<string, { label: string; icon: typeof FileText }> = {
   resume_review: { label: 'Resume', icon: FileText },
   linkedin: { label: 'LinkedIn', icon: Linkedin },
-  personal_brand: { label: 'Brand', icon: Megaphone },
   outreach: { label: 'Outreach', icon: Mail },
   interview_prep: { label: 'Interview', icon: MessagesSquare },
+  // legacy entries kept so old history rows still render labels
+  personal_brand: { label: 'Brand', icon: Megaphone },
   job_strategy: { label: 'Strategy', icon: Target },
 };
 
@@ -33,11 +32,9 @@ function OverviewTab({ onJump }: { onJump: (key: string) => void }) {
 
   const tools = [
     { key: 'resume', label: 'Resume Review', icon: FileText, desc: 'Get line-by-line feedback' },
-    { key: 'linkedin', label: 'LinkedIn', icon: Linkedin, desc: 'Sharpen your profile' },
-    { key: 'brand', label: 'Personal Brand', icon: Megaphone, desc: 'Statement + bio variants' },
+    { key: 'linkedin', label: 'LinkedIn Audit', icon: Linkedin, desc: 'Full profile scorecard' },
     { key: 'outreach', label: 'Outreach', icon: Mail, desc: 'Cold messages that land' },
-    { key: 'interview', label: 'Interview Prep', icon: MessagesSquare, desc: 'Likely Q&A + STAR' },
-    { key: 'strategy', label: 'Job Strategy', icon: Target, desc: '30/60/90 day plan' },
+    { key: 'interview', label: 'Interview Prep', icon: MessagesSquare, desc: 'Question deck + STAR' },
   ];
 
   return (
@@ -113,10 +110,8 @@ export default function CareerHubPage() {
       { key: 'overview', label: 'Overview', icon: Sparkles },
       { key: 'resume', label: 'Resume', icon: FileText },
       { key: 'linkedin', label: 'LinkedIn', icon: Linkedin },
-      { key: 'brand', label: 'Brand', icon: Megaphone },
       { key: 'outreach', label: 'Outreach', icon: Mail },
       { key: 'interview', label: 'Interview', icon: MessagesSquare },
-      { key: 'strategy', label: 'Strategy', icon: Target },
     ];
     if (isCapabilityEnabled('jobBoard')) {
       base.push({ key: 'jobs', label: 'Jobs', icon: Briefcase });
@@ -146,10 +141,8 @@ export default function CareerHubPage() {
         <TabsContent value="overview" className="mt-0"><OverviewTab onJump={handleSet} /></TabsContent>
         <TabsContent value="resume" className="mt-0"><ResumeReviewTool /></TabsContent>
         <TabsContent value="linkedin" className="mt-0"><LinkedInTool /></TabsContent>
-        <TabsContent value="brand" className="mt-0"><PersonalBrandTool /></TabsContent>
         <TabsContent value="outreach" className="mt-0"><OutreachTool /></TabsContent>
         <TabsContent value="interview" className="mt-0"><InterviewPrepTool /></TabsContent>
-        <TabsContent value="strategy" className="mt-0"><JobStrategyTool /></TabsContent>
         {isCapabilityEnabled('jobBoard') && (
           <TabsContent value="jobs" className="mt-0"><JobsTab /></TabsContent>
         )}
