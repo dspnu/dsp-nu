@@ -713,6 +713,79 @@ function OutreachResult({ data }: { data: any }) {
 
 /* ------------------------------- interview ------------------------------- */
 
+function QuestionDeck({ items, kind }: { items: any[]; kind: 'behavioral' | 'technical' }) {
+  const [idx, setIdx] = useState(0);
+  const [revealed, setRevealed] = useState(false);
+  const total = items.length;
+  if (!total) return null;
+  const q = items[idx];
+  const question = typeof q === 'string' ? q : q.question ?? `Question ${idx + 1}`;
+  const answer = typeof q === 'object' ? (q.guidance ?? q.focus ?? '') : '';
+
+  const next = () => { setIdx((i) => (i + 1) % total); setRevealed(false); };
+  const prev = () => { setIdx((i) => (i - 1 + total) % total); setRevealed(false); };
+
+  return (
+    <div className="rounded-xl border border-border bg-gradient-to-br from-card to-muted/30 overflow-hidden">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border/60 bg-muted/40">
+        <div className="flex items-center gap-2">
+          <Badge variant={kind === 'behavioral' ? 'default' : 'secondary'} className="text-[10px] capitalize">
+            {kind}
+          </Badge>
+          <span className="text-[11px] text-muted-foreground tabular-nums">{idx + 1} / {total}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={prev}>
+            <ChevronDown className="h-3.5 w-3.5 rotate-90" />
+          </Button>
+          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={next}>
+            <ChevronDown className="h-3.5 w-3.5 -rotate-90" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="p-4 sm:p-5 min-h-[140px] flex flex-col">
+        <div className="flex items-start gap-2 mb-3">
+          <HelpCircle className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+          <p className="text-sm sm:text-base font-medium text-foreground leading-relaxed">{question}</p>
+        </div>
+
+        {answer && (
+          <>
+            {revealed ? (
+              <div className="mt-2 rounded-lg bg-primary/5 border border-primary/20 p-3 animate-in fade-in slide-in-from-bottom-1 duration-200">
+                <div className="text-[10px] uppercase tracking-wider text-primary font-medium mb-1">Coach tip</div>
+                <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed">{answer}</p>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-auto self-start text-xs"
+                onClick={() => setRevealed(true)}
+              >
+                <Lightbulb className="h-3 w-3 mr-1.5" /> Show coach tip
+              </Button>
+            )}
+          </>
+        )}
+      </div>
+
+      <div className="flex gap-1 px-3 pb-3">
+        {items.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => { setIdx(i); setRevealed(false); }}
+            className={`h-1 flex-1 rounded-full transition-colors ${
+              i === idx ? 'bg-primary' : i < idx ? 'bg-primary/40' : 'bg-muted'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function InterviewResult({ data }: { data: any }) {
   const behavioral = asArray<any>(data.behavioral);
   const technical = asArray<any>(data.technical);
@@ -720,67 +793,82 @@ function InterviewResult({ data }: { data: any }) {
   const ask = asArray<string>(data.questionsToAsk);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
+      {/* Overview pills */}
+      <div className="grid grid-cols-3 gap-2">
+        <Tile tone="primary">
+          <div className="text-2xl font-semibold tabular-nums text-foreground">{behavioral.length}</div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">Behavioral</div>
+        </Tile>
+        <Tile>
+          <div className="text-2xl font-semibold tabular-nums text-foreground">{technical.length}</div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">Technical</div>
+        </Tile>
+        <Tile>
+          <div className="text-2xl font-semibold tabular-nums text-foreground">{ask.length}</div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">Ask back</div>
+        </Tile>
+      </div>
+
       {behavioral.length > 0 && (
         <div>
-          <SectionTitle icon={MessagesSquare}>Behavioral questions</SectionTitle>
-          <div className="space-y-1.5">
-            {behavioral.map((q, i) => (
-              <Collapse key={i} title={typeof q === 'string' ? q : q.question ?? `Question ${i + 1}`}>
-                {typeof q === 'object' && q.guidance && (
-                  <p className="text-sm text-foreground/90">{q.guidance}</p>
-                )}
-              </Collapse>
-            ))}
-          </div>
+          <SectionTitle icon={MessagesSquare}>Behavioral deck</SectionTitle>
+          <QuestionDeck items={behavioral} kind="behavioral" />
         </div>
       )}
 
       {technical.length > 0 && (
         <div>
-          <SectionTitle icon={Target}>Technical / case</SectionTitle>
-          <div className="space-y-1.5">
-            {technical.map((q, i) => (
-              <Collapse key={i} title={typeof q === 'string' ? q : q.question ?? `Question ${i + 1}`}>
-                {typeof q === 'object' && (q.focus || q.guidance) && (
-                  <p className="text-sm text-foreground/90">{q.focus ?? q.guidance}</p>
-                )}
-              </Collapse>
-            ))}
-          </div>
+          <SectionTitle icon={Target}>Technical deck</SectionTitle>
+          <QuestionDeck items={technical} kind="technical" />
         </div>
       )}
 
       {star && (
         <div>
-          <SectionTitle icon={Sparkles}>STAR answer template</SectionTitle>
-          <Tile tone="primary">
-            {star.question && <p className="text-sm font-medium text-foreground mb-3">{star.question}</p>}
-            <div className="space-y-2">
-              {(['situation', 'task', 'action', 'result'] as const).map((k) =>
+          <SectionTitle icon={Sparkles}>STAR answer</SectionTitle>
+          <div className="rounded-xl border border-primary/20 overflow-hidden">
+            {star.question && (
+              <div className="px-3.5 py-2.5 bg-primary/10 border-b border-primary/20">
+                <p className="text-sm font-medium text-foreground">{star.question}</p>
+              </div>
+            )}
+            <div className="bg-card divide-y divide-border/60">
+              {(['situation', 'task', 'action', 'result'] as const).map((k, i) =>
                 star[k] ? (
-                  <div key={k} className="grid grid-cols-[60px_1fr] gap-2">
-                    <Badge variant="outline" className="text-[10px] uppercase justify-center self-start">{k}</Badge>
-                    <p className="text-sm text-foreground/90">{star[k]}</p>
+                  <div key={k} className="flex gap-3 p-3">
+                    <div className="flex flex-col items-center shrink-0">
+                      <div className="h-7 w-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
+                        {k[0].toUpperCase()}
+                      </div>
+                      {i < 3 && <div className="w-px flex-1 bg-border/60 mt-1" />}
+                    </div>
+                    <div className="min-w-0 flex-1 pt-0.5">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">
+                        {k}
+                      </div>
+                      <p className="text-sm text-foreground/90 leading-relaxed">{star[k]}</p>
+                    </div>
                   </div>
                 ) : null
               )}
             </div>
-          </Tile>
+          </div>
         </div>
       )}
 
       {ask.length > 0 && (
         <div>
-          <SectionTitle icon={Quote}>Ask the interviewer</SectionTitle>
+          <SectionTitle icon={Quote}>Questions to ask them</SectionTitle>
           <div className="space-y-1.5">
             {ask.map((q, i) => (
-              <Tile key={i}>
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-sm text-foreground/90">{q}</p>
-                  <CopyButton text={q} />
+              <div key={i} className="flex items-start gap-2.5 rounded-lg border border-border/60 bg-card p-3 hover:bg-muted/40 transition-colors">
+                <div className="h-5 w-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold shrink-0">
+                  {i + 1}
                 </div>
-              </Tile>
+                <p className="flex-1 text-sm text-foreground/90">{q}</p>
+                <CopyButton text={q} />
+              </div>
             ))}
           </div>
         </div>
