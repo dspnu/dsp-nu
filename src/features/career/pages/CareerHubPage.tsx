@@ -34,11 +34,9 @@ function OverviewTab({ onJump }: { onJump: (key: string) => void }) {
 
   const tools = [
     { key: 'resume', label: 'Resume Review', icon: FileText, desc: 'Get line-by-line feedback' },
-    { key: 'linkedin', label: 'LinkedIn', icon: Linkedin, desc: 'Sharpen your profile' },
-    { key: 'brand', label: 'Personal Brand', icon: Megaphone, desc: 'Statement + bio variants' },
+    { key: 'linkedin', label: 'LinkedIn Audit', icon: Linkedin, desc: 'Full profile scorecard' },
     { key: 'outreach', label: 'Outreach', icon: Mail, desc: 'Cold messages that land' },
-    { key: 'interview', label: 'Interview Prep', icon: MessagesSquare, desc: 'Likely Q&A + STAR' },
-    { key: 'strategy', label: 'Job Strategy', icon: Target, desc: '30/60/90 day plan' },
+    { key: 'interview', label: 'Interview Prep', icon: MessagesSquare, desc: 'Question deck + STAR' },
   ];
 
   return (
