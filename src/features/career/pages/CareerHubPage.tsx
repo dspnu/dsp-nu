@@ -22,9 +22,10 @@ import { isCapabilityEnabled } from '@/config/capabilities';
 const TOOL_META: Record<string, { label: string; icon: typeof FileText }> = {
   resume_review: { label: 'Resume', icon: FileText },
   linkedin: { label: 'LinkedIn', icon: Linkedin },
-  personal_brand: { label: 'Brand', icon: Megaphone },
   outreach: { label: 'Outreach', icon: Mail },
   interview_prep: { label: 'Interview', icon: MessagesSquare },
+  // legacy entries kept so old history rows still render labels
+  personal_brand: { label: 'Brand', icon: Megaphone },
   job_strategy: { label: 'Strategy', icon: Target },
 };
 
