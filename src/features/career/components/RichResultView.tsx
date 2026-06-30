@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import {
-  CheckCircle2, AlertTriangle, Sparkles, Copy, ChevronDown, Quote,
+  CheckCircle2, AlertTriangle, Sparkles, Copy, ChevronDown, Quote, Circle,
   Linkedin as LinkedinIcon, Mail, MessagesSquare, Target, Megaphone, FileText, ListChecks,
+  Eye, Zap, TrendingUp, MessageCircle, Send, ArrowRight, Lightbulb, HelpCircle,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
