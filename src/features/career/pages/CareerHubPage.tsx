@@ -112,10 +112,8 @@ export default function CareerHubPage() {
       { key: 'overview', label: 'Overview', icon: Sparkles },
       { key: 'resume', label: 'Resume', icon: FileText },
       { key: 'linkedin', label: 'LinkedIn', icon: Linkedin },
-      { key: 'brand', label: 'Brand', icon: Megaphone },
       { key: 'outreach', label: 'Outreach', icon: Mail },
       { key: 'interview', label: 'Interview', icon: MessagesSquare },
-      { key: 'strategy', label: 'Strategy', icon: Target },
     ];
     if (isCapabilityEnabled('jobBoard')) {
       base.push({ key: 'jobs', label: 'Jobs', icon: Briefcase });
@@ -145,10 +143,8 @@ export default function CareerHubPage() {
         <TabsContent value="overview" className="mt-0"><OverviewTab onJump={handleSet} /></TabsContent>
         <TabsContent value="resume" className="mt-0"><ResumeReviewTool /></TabsContent>
         <TabsContent value="linkedin" className="mt-0"><LinkedInTool /></TabsContent>
-        <TabsContent value="brand" className="mt-0"><PersonalBrandTool /></TabsContent>
         <TabsContent value="outreach" className="mt-0"><OutreachTool /></TabsContent>
         <TabsContent value="interview" className="mt-0"><InterviewPrepTool /></TabsContent>
-        <TabsContent value="strategy" className="mt-0"><JobStrategyTool /></TabsContent>
         {isCapabilityEnabled('jobBoard') && (
           <TabsContent value="jobs" className="mt-0"><JobsTab /></TabsContent>
         )}
