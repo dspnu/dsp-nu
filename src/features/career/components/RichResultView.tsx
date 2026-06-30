@@ -262,94 +262,278 @@ function ResumeResult({ data }: { data: any }) {
 
 /* -------------------------------- linkedin -------------------------------- */
 
+function ScoreRing({ value, size = 72 }: { value: number; size?: number }) {
+  const v = Math.max(0, Math.min(100, value));
+  const r = (size - 8) / 2;
+  const c = 2 * Math.PI * r;
+  const offset = c - (v / 100) * c;
+  const color = v >= 80 ? 'hsl(var(--primary))' : v >= 60 ? 'hsl(38 92% 50%)' : 'hsl(0 72% 51%)';
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={r} stroke="hsl(var(--muted))" strokeWidth="6" fill="none" />
+        <circle
+          cx={size / 2} cy={size / 2} r={r}
+          stroke={color} strokeWidth="6" fill="none"
+          strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round"
+          className="transition-all duration-700"
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-lg font-semibold tabular-nums text-foreground">{v}</span>
+      </div>
+    </div>
+  );
+}
+
 function LinkedInResult({ data }: { data: any }) {
-  const headlines = asArray<string>(data.headlines);
-  const about = typeof data.about === 'string' ? data.about : null;
+  const overall = typeof data.overallScore === 'number' ? data.overallScore : null;
+  const summary = typeof data.summary === 'string' ? data.summary : null;
+  const sectionScores = asArray<any>(data.sectionScores);
+  const headlines = asArray<any>(data.headlines);
+  const aboutObj = data.about && typeof data.about === 'object' ? data.about : null;
+  // Back-compat: older runs returned `about` as a string
+  const aboutString = typeof data.about === 'string' ? data.about : null;
   const exp = asArray<any>(data.experienceRewrites);
-  const keywords = asArray<string>(data.keywords);
+  const keywordGaps = asArray<any>(data.keywordGaps);
+  const legacyKeywords = asArray<string>(data.keywords);
   const checklist = asArray<any>(data.checklist);
+  const recruiterTips = asArray<string>(data.recruiterTips);
+
+  const [activeHeadline, setActiveHeadline] = useState(0);
 
   return (
-    <div className="space-y-4">
-      {headlines.length > 0 && (
-        <div>
-          <SectionTitle icon={LinkedinIcon}>Headline options</SectionTitle>
-          <div className="space-y-2">
-            {headlines.map((h, i) => (
-              <Tile key={i}>
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-sm text-foreground font-medium">{h}</p>
-                  <CopyButton text={h} />
-                </div>
-              </Tile>
-            ))}
+    <div className="space-y-5">
+      {/* Hero scorecard */}
+      {overall !== null && (
+        <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-4 sm:p-5">
+          <div className="flex items-center gap-4">
+            <ScoreRing value={overall} size={84} />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                <LinkedinIcon className="h-3 w-3" /> Profile audit
+              </div>
+              <div className="text-base sm:text-lg font-semibold text-foreground leading-tight">
+                {overall >= 80 ? 'Strong profile' : overall >= 60 ? 'Solid, with room to grow' : 'Needs work'}
+              </div>
+              {summary && <p className="text-xs sm:text-sm text-foreground/80 mt-1.5 line-clamp-3">{summary}</p>}
+            </div>
           </div>
         </div>
       )}
 
-      {about && (
+      {/* Section scores grid */}
+      {sectionScores.length > 0 && (
         <div>
-          <SectionTitle icon={FileText}>About section</SectionTitle>
-          <Tile tone="primary">
-            <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{about}</p>
-            <div className="flex justify-end mt-2"><CopyButton text={about} /></div>
-          </Tile>
-        </div>
-      )}
-
-      {exp.length > 0 && (
-        <div>
-          <SectionTitle icon={Sparkles}>Experience rewrites</SectionTitle>
-          <div className="space-y-2">
-            {exp.map((rw, i) => (
-              <Tile key={i}>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  <div>
-                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Before</div>
-                    <p className="text-sm text-foreground/70 line-through decoration-muted-foreground/40">{rw.before}</p>
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="text-[10px] uppercase tracking-wider text-primary">After</div>
-                      <CopyButton text={rw.after ?? ''} />
-                    </div>
-                    <p className="text-sm text-foreground font-medium">{rw.after}</p>
-                  </div>
-                </div>
-              </Tile>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {keywords.length > 0 && (
-        <div>
-          <SectionTitle icon={Target}>Keywords to add</SectionTitle>
-          <div className="flex flex-wrap gap-1.5">
-            {keywords.map((k, i) => (
-              <Badge key={i} variant="secondary" className="text-xs">{k}</Badge>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {checklist.length > 0 && (
-        <div>
-          <SectionTitle icon={ListChecks}>Profile checklist</SectionTitle>
-          <div className="space-y-1.5">
-            {checklist.map((c: any, i) => {
-              const label = typeof c === 'string' ? c : c.item ?? c.label ?? '';
-              const done = typeof c === 'object' ? !!c.done : false;
+          <SectionTitle icon={TrendingUp}>Section scores</SectionTitle>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {sectionScores.map((s, i) => {
+              const score = Math.max(0, Math.min(100, Number(s.score ?? 0)));
+              const tone = score >= 80 ? 'emerald' : score >= 60 ? 'amber' : 'rose';
+              const colors: Record<string, string> = {
+                emerald: 'text-emerald-500',
+                amber: 'text-amber-500',
+                rose: 'text-rose-500',
+              };
               return (
-                <div key={i} className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className={`h-4 w-4 ${done ? 'text-emerald-500' : 'text-muted-foreground/50'}`} />
-                  <span className={done ? 'text-muted-foreground line-through' : 'text-foreground/90'}>{label}</span>
+                <div key={i} className="rounded-lg border border-border/60 bg-card p-3">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-medium text-foreground truncate">{s.section}</span>
+                    <span className={`text-sm font-semibold tabular-nums ${colors[tone]}`}>{score}</span>
+                  </div>
+                  <Progress value={score} className="h-1.5 mb-1.5" />
+                  {s.verdict && <p className="text-[11px] text-muted-foreground line-clamp-2">{s.verdict}</p>}
                 </div>
               );
             })}
           </div>
         </div>
       )}
+
+      {/* Headline picker */}
+      {headlines.length > 0 && (
+        <div>
+          <SectionTitle icon={Zap}>Headline options</SectionTitle>
+          <div className="flex gap-1.5 mb-2 overflow-x-auto pb-1">
+            {headlines.map((h, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveHeadline(i)}
+                className={`shrink-0 px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all ${
+                  activeHeadline === i
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-card text-muted-foreground border-border/60 hover:text-foreground'
+                }`}
+              >
+                {typeof h === 'object' ? (h.angle ?? `Option ${i + 1}`) : `Option ${i + 1}`}
+              </button>
+            ))}
+          </div>
+          <Tile tone="primary">
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-sm text-foreground font-medium leading-relaxed">
+                {typeof headlines[activeHeadline] === 'object'
+                  ? headlines[activeHeadline].text
+                  : headlines[activeHeadline]}
+              </p>
+              <CopyButton
+                text={typeof headlines[activeHeadline] === 'object'
+                  ? headlines[activeHeadline].text ?? ''
+                  : String(headlines[activeHeadline])}
+              />
+            </div>
+          </Tile>
+        </div>
+      )}
+
+      {/* About: before/after */}
+      {(aboutObj || aboutString) && (
+        <div>
+          <SectionTitle icon={FileText}>About section</SectionTitle>
+          {aboutObj ? (
+            <div className="grid md:grid-cols-2 gap-2">
+              <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Before</div>
+                <p className="text-xs text-foreground/70 whitespace-pre-wrap leading-relaxed line-clamp-[12]">
+                  {aboutObj.before || 'Not provided'}
+                </p>
+              </div>
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="text-[10px] uppercase tracking-wider text-primary font-medium">After</div>
+                  <CopyButton text={aboutObj.after ?? ''} />
+                </div>
+                <p className="text-xs text-foreground whitespace-pre-wrap leading-relaxed">{aboutObj.after}</p>
+              </div>
+            </div>
+          ) : (
+            <Tile tone="primary">
+              <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{aboutString}</p>
+              <div className="flex justify-end mt-2"><CopyButton text={aboutString ?? ''} /></div>
+            </Tile>
+          )}
+        </div>
+      )}
+
+      {/* Experience rewrites */}
+      {exp.length > 0 && (
+        <div>
+          <SectionTitle icon={Sparkles}>Experience rewrites</SectionTitle>
+          <div className="space-y-2">
+            {exp.map((rw, i) => (
+              <div key={i} className="rounded-lg border border-border/60 bg-card overflow-hidden">
+                {rw.role && (
+                  <div className="px-3 py-1.5 bg-muted/50 border-b border-border/60 text-[11px] font-medium text-foreground">
+                    {rw.role}
+                  </div>
+                )}
+                <div className="p-3 space-y-2">
+                  <p className="text-xs text-muted-foreground line-through decoration-muted-foreground/40">{rw.before}</p>
+                  <div className="flex items-start gap-2">
+                    <ArrowRight className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+                    <p className="text-sm text-foreground font-medium flex-1">{rw.after}</p>
+                    <CopyButton text={rw.after ?? ''} />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Keyword gaps */}
+      {(keywordGaps.length > 0 || legacyKeywords.length > 0) && (
+        <div>
+          <SectionTitle icon={Target}>Keyword gaps</SectionTitle>
+          {keywordGaps.length > 0 ? (
+            <div className="grid sm:grid-cols-2 gap-1.5">
+              {keywordGaps.map((k, i) => (
+                <div key={i} className="flex items-start gap-2 rounded-lg border border-border/60 bg-card p-2.5">
+                  <Badge variant="default" className="text-[10px] shrink-0">{k.keyword}</Badge>
+                  {k.why && <span className="text-[11px] text-muted-foreground">{k.why}</span>}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-1.5">
+              {legacyKeywords.map((k, i) => <Badge key={i} variant="secondary" className="text-xs">{k}</Badge>)}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Checklist with priority */}
+      {checklist.length > 0 && (
+        <div>
+          <SectionTitle icon={ListChecks}>Profile checklist</SectionTitle>
+          <ChecklistView items={checklist} />
+        </div>
+      )}
+
+      {/* Recruiter tips */}
+      {recruiterTips.length > 0 && (
+        <div>
+          <SectionTitle icon={Eye}>Recruiter visibility</SectionTitle>
+          <div className="space-y-1.5">
+            {recruiterTips.map((t, i) => (
+              <Tile key={i}>
+                <div className="flex gap-2 text-sm text-foreground/90">
+                  <Lightbulb className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                  <span>{t}</span>
+                </div>
+              </Tile>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ChecklistView({ items }: { items: any[] }) {
+  const [doneState, setDoneState] = useState<Record<number, boolean>>(() =>
+    Object.fromEntries(items.map((c, i) => [i, typeof c === 'object' ? !!c.done : false]))
+  );
+  const completed = Object.values(doneState).filter(Boolean).length;
+  const pct = items.length ? Math.round((completed / items.length) * 100) : 0;
+  const priorityColor: Record<string, string> = {
+    high: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+    medium: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+    low: 'bg-muted text-muted-foreground border-border',
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-3">
+        <Progress value={pct} className="h-2 flex-1" />
+        <span className="text-xs font-medium text-foreground tabular-nums">{completed}/{items.length}</span>
+      </div>
+      <div className="space-y-1">
+        {items.map((c, i) => {
+          const label = typeof c === 'string' ? c : c.item ?? c.label ?? '';
+          const priority = (typeof c === 'object' && c.priority) ? String(c.priority).toLowerCase() : null;
+          const done = doneState[i];
+          return (
+            <button
+              key={i}
+              onClick={() => setDoneState(s => ({ ...s, [i]: !s[i] }))}
+              className="w-full flex items-center gap-2.5 rounded-lg border border-border/60 bg-card px-3 py-2 hover:bg-muted/50 transition-colors text-left"
+            >
+              {done
+                ? <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                : <Circle className="h-4 w-4 text-muted-foreground/50 shrink-0" />}
+              <span className={`flex-1 text-sm ${done ? 'text-muted-foreground line-through' : 'text-foreground/90'}`}>
+                {label}
+              </span>
+              {priority && priorityColor[priority] && (
+                <span className={`text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded border ${priorityColor[priority]}`}>
+                  {priority}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
