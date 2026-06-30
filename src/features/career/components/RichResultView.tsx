@@ -621,43 +621,87 @@ function BrandResult({ data }: { data: any }) {
 function OutreachResult({ data }: { data: any }) {
   const variants = asArray<any>(data.variants);
   const tips = asArray<string>(data.tips);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const active = variants[activeIdx];
+
+  const channelIcon: Record<string, any> = {
+    linkedin: LinkedinIcon,
+    email: Mail,
+    followup: Send,
+  };
 
   return (
     <div className="space-y-4">
       {variants.length > 0 && (
         <div>
-          <SectionTitle icon={Mail}>Message variants</SectionTitle>
-          <div className="space-y-3">
-            {variants.map((v, i) => (
-              <Tile key={i}>
-                <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
-                  <div className="flex items-center gap-1.5">
-                    {v.channel && <Badge variant="default" className="text-[10px] capitalize">{v.channel}</Badge>}
-                    {v.angle && <Badge variant="secondary" className="text-[10px]">{v.angle}</Badge>}
-                  </div>
-                  <CopyButton text={[v.subject ? `Subject: ${v.subject}` : '', v.message].filter(Boolean).join('\n\n')} label="Copy message" />
-                </div>
-                {v.subject && (
-                  <div className="mb-2 pb-2 border-b border-border/60">
-                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground mr-2">Subject</span>
-                    <span className="text-sm font-medium text-foreground">{v.subject}</span>
-                  </div>
-                )}
-                <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{v.message}</p>
-              </Tile>
-            ))}
+          <SectionTitle icon={MessageCircle}>Pick a message</SectionTitle>
+
+          {/* Variant picker */}
+          <div className="grid grid-cols-3 gap-1.5 mb-3">
+            {variants.map((v, i) => {
+              const Icon = channelIcon[String(v.channel ?? '').toLowerCase()] ?? Mail;
+              const isActive = i === activeIdx;
+              return (
+                <button
+                  key={i}
+                  onClick={() => setActiveIdx(i)}
+                  className={`rounded-lg border p-2.5 text-left transition-all ${
+                    isActive
+                      ? 'border-primary bg-primary/5 ring-1 ring-primary/30'
+                      : 'border-border/60 bg-card hover:border-border'
+                  }`}
+                >
+                  <Icon className={`h-4 w-4 mb-1.5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <div className="text-[11px] font-medium text-foreground capitalize truncate">{v.channel ?? `Variant ${i + 1}`}</div>
+                  {v.angle && <div className="text-[10px] text-muted-foreground truncate">{v.angle}</div>}
+                </button>
+              );
+            })}
           </div>
+
+          {/* Phone-style message preview */}
+          {active && (
+            <div className="rounded-2xl border border-border bg-gradient-to-b from-card to-muted/30 overflow-hidden shadow-sm">
+              <div className="flex items-center justify-between px-3 py-2 border-b border-border/60 bg-muted/40">
+                <div className="flex items-center gap-2">
+                  {(() => {
+                    const Icon = channelIcon[String(active.channel ?? '').toLowerCase()] ?? Mail;
+                    return <Icon className="h-3.5 w-3.5 text-primary" />;
+                  })()}
+                  <span className="text-[11px] font-medium text-foreground capitalize">{active.channel ?? 'Message'}</span>
+                  {active.angle && (
+                    <Badge variant="secondary" className="text-[9px] h-4 px-1.5">{active.angle}</Badge>
+                  )}
+                </div>
+                <CopyButton
+                  text={[active.subject ? `Subject: ${active.subject}` : '', active.message].filter(Boolean).join('\n\n')}
+                  label="Copy"
+                />
+              </div>
+              {active.subject && (
+                <div className="px-3.5 py-2 border-b border-border/40">
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground mr-2">Subject</span>
+                  <span className="text-sm font-medium text-foreground">{active.subject}</span>
+                </div>
+              )}
+              <div className="p-3.5">
+                <div className="rounded-2xl rounded-tl-sm bg-primary/10 text-foreground px-3.5 py-2.5 max-w-[92%]">
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{active.message}</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {tips.length > 0 && (
         <div>
-          <SectionTitle icon={Sparkles}>Tips for this contact</SectionTitle>
-          <div className="space-y-1.5">
+          <SectionTitle icon={Lightbulb}>Tips for this contact</SectionTitle>
+          <div className="grid sm:grid-cols-2 gap-1.5">
             {tips.map((t, i) => (
-              <div key={i} className="flex gap-2 text-sm text-foreground/90">
-                <span className="text-primary mt-0.5">•</span>
-                <span>{t}</span>
+              <div key={i} className="flex gap-2 rounded-lg border border-border/60 bg-card p-2.5">
+                <Lightbulb className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+                <span className="text-xs text-foreground/90">{t}</span>
               </div>
             ))}
           </div>
