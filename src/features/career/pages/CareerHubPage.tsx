@@ -4,15 +4,13 @@ import { AppLayout } from '@/core/layout/AppLayout';
 import { PageHeader } from '@/components/ui/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Sparkles, FileText, Linkedin, Megaphone, Mail, MessagesSquare, Target, Briefcase,
+  Sparkles, FileText, Linkedin, Mail, MessagesSquare, Briefcase, Megaphone, Target,
 } from 'lucide-react';
 import { CreditBalanceCard } from '../components/CreditBalanceCard';
 import { ResumeReviewTool } from '../components/ResumeReviewTool';
 import { LinkedInTool } from '../components/LinkedInTool';
-import { PersonalBrandTool } from '../components/PersonalBrandTool';
 import { OutreachTool } from '../components/OutreachTool';
 import { InterviewPrepTool } from '../components/InterviewPrepTool';
-import { JobStrategyTool } from '../components/JobStrategyTool';
 import { JobsTab } from '@/features/chapter/components/JobsTab';
 import { Card } from '@/components/ui/card';
 import { useCareerHistory } from '../hooks/useCareerHistory';
