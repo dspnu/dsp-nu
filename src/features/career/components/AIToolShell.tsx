@@ -13,6 +13,8 @@ import { useToast } from '@/hooks/use-toast';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
+import { RequestHelpDialog } from './RequestHelpDialog';
+import { LifeBuoy } from 'lucide-react';
 
 interface AIToolShellProps {
   tool: CareerTool;
