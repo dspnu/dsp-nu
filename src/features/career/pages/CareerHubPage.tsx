@@ -113,6 +113,7 @@ export default function CareerHubPage() {
       { key: 'linkedin', label: 'LinkedIn', icon: Linkedin },
       { key: 'outreach', label: 'Outreach', icon: Mail },
       { key: 'interview', label: 'Interview', icon: MessagesSquare },
+      { key: 'requests', label: 'Help', icon: LifeBuoy },
     ];
     if (isCapabilityEnabled('jobBoard')) {
       base.push({ key: 'jobs', label: 'Jobs', icon: Briefcase });
