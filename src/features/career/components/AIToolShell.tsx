@@ -59,22 +59,34 @@ export function AIToolShell({
 
         <div className="space-y-3">{renderForm({ disabled: run.isPending })}</div>
 
-        <div className="flex items-center justify-between gap-3 mt-4 pt-4 border-t border-border/60">
+        <div className="flex items-center justify-between gap-3 mt-4 pt-4 border-t border-border/60 flex-wrap">
           <div className="text-xs text-muted-foreground">
             Cost: <span className="font-medium text-foreground">1 credit</span> · You have{' '}
             <span className="font-medium text-foreground tabular-nums">{total}</span>
           </div>
-          <Button onClick={handleRun} disabled={!canRun} size="sm">
-            {run.isPending ? (
-              <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> Generating…</>
-            ) : (
-              <><Sparkles className="h-3.5 w-3.5 mr-1.5" /> Generate</>
-            )}
-          </Button>
+          <div className="flex items-center gap-2">
+            <RequestHelpDialog
+              tool={tool}
+              toolLabel={title}
+              defaultSubject={`Help with ${title}`}
+              trigger={
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                  <LifeBuoy className="h-3.5 w-3.5 mr-1.5" /> Ask a chair
+                </Button>
+              }
+            />
+            <Button onClick={handleRun} disabled={!canRun} size="sm">
+              {run.isPending ? (
+                <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> Generating…</>
+              ) : (
+                <><Sparkles className="h-3.5 w-3.5 mr-1.5" /> Generate</>
+              )}
+            </Button>
+          </div>
         </div>
         {total === 0 && (
           <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
-            No credits left this week. Resets Monday.
+            No credits left this week. Resets Monday. You can still request help from a chair above.
           </p>
         )}
       </Card>
