@@ -369,6 +369,45 @@ export type Database = {
         }
         Relationships: []
       }
+      career_help_requests: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          resolved_at: string | null
+          resolver_id: string | null
+          status: string
+          subject: string
+          tool: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          resolved_at?: string | null
+          resolver_id?: string | null
+          status?: string
+          subject: string
+          tool?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          resolved_at?: string | null
+          resolver_id?: string | null
+          status?: string
+          subject?: string
+          tool?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       chair_positions: {
         Row: {
           created_at: string
@@ -1992,6 +2031,10 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      is_professionalism_helper: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       notify_event_rsvps_updated: {
         Args: { p_event_id: string; p_message: string; p_title: string }
         Returns: undefined
@@ -2010,6 +2053,10 @@ export type Database = {
       }
       purge_exported_data: {
         Args: { p_datasets: string[]; p_from: string; p_to: string }
+        Returns: Json
+      }
+      request_career_help: {
+        Args: { p_message: string; p_subject: string; p_tool: string }
         Returns: Json
       }
     }

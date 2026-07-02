@@ -4,7 +4,7 @@ import { AppLayout } from '@/core/layout/AppLayout';
 import { PageHeader } from '@/components/ui/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Sparkles, FileText, Linkedin, Mail, MessagesSquare, Briefcase, Megaphone, Target,
+  Sparkles, FileText, Linkedin, Mail, MessagesSquare, Briefcase, Megaphone, Target, LifeBuoy,
 } from 'lucide-react';
 import { CreditBalanceCard } from '../components/CreditBalanceCard';
 import { ResumeReviewTool } from '../components/ResumeReviewTool';
@@ -12,6 +12,7 @@ import { LinkedInTool } from '../components/LinkedInTool';
 import { OutreachTool } from '../components/OutreachTool';
 import { InterviewPrepTool } from '../components/InterviewPrepTool';
 import { JobsTab } from '@/features/chapter/components/JobsTab';
+import { HelpRequestsTab } from '../components/HelpRequestsTab';
 import { Card } from '@/components/ui/card';
 import { useCareerHistory } from '../hooks/useCareerHistory';
 import { formatDistanceToNow } from 'date-fns';
@@ -112,6 +113,7 @@ export default function CareerHubPage() {
       { key: 'linkedin', label: 'LinkedIn', icon: Linkedin },
       { key: 'outreach', label: 'Outreach', icon: Mail },
       { key: 'interview', label: 'Interview', icon: MessagesSquare },
+      { key: 'requests', label: 'Help', icon: LifeBuoy },
     ];
     if (isCapabilityEnabled('jobBoard')) {
       base.push({ key: 'jobs', label: 'Jobs', icon: Briefcase });
@@ -143,6 +145,7 @@ export default function CareerHubPage() {
         <TabsContent value="linkedin" className="mt-0"><LinkedInTool /></TabsContent>
         <TabsContent value="outreach" className="mt-0"><OutreachTool /></TabsContent>
         <TabsContent value="interview" className="mt-0"><InterviewPrepTool /></TabsContent>
+        <TabsContent value="requests" className="mt-0"><HelpRequestsTab /></TabsContent>
         {isCapabilityEnabled('jobBoard') && (
           <TabsContent value="jobs" className="mt-0"><JobsTab /></TabsContent>
         )}
