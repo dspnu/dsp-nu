@@ -12,6 +12,7 @@ import { LinkedInTool } from '../components/LinkedInTool';
 import { OutreachTool } from '../components/OutreachTool';
 import { InterviewPrepTool } from '../components/InterviewPrepTool';
 import { JobsTab } from '@/features/chapter/components/JobsTab';
+import { HelpRequestsTab } from '../components/HelpRequestsTab';
 import { Card } from '@/components/ui/card';
 import { useCareerHistory } from '../hooks/useCareerHistory';
 import { formatDistanceToNow } from 'date-fns';
