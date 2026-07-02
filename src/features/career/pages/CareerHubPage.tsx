@@ -4,7 +4,7 @@ import { AppLayout } from '@/core/layout/AppLayout';
 import { PageHeader } from '@/components/ui/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Sparkles, FileText, Linkedin, Mail, MessagesSquare, Briefcase, Megaphone, Target,
+  Sparkles, FileText, Linkedin, Mail, MessagesSquare, Briefcase, Megaphone, Target, LifeBuoy,
 } from 'lucide-react';
 import { CreditBalanceCard } from '../components/CreditBalanceCard';
 import { ResumeReviewTool } from '../components/ResumeReviewTool';
