@@ -145,6 +145,7 @@ export default function CareerHubPage() {
         <TabsContent value="linkedin" className="mt-0"><LinkedInTool /></TabsContent>
         <TabsContent value="outreach" className="mt-0"><OutreachTool /></TabsContent>
         <TabsContent value="interview" className="mt-0"><InterviewPrepTool /></TabsContent>
+        <TabsContent value="requests" className="mt-0"><HelpRequestsTab /></TabsContent>
         {isCapabilityEnabled('jobBoard') && (
           <TabsContent value="jobs" className="mt-0"><JobsTab /></TabsContent>
         )}
