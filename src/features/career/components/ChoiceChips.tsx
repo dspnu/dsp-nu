@@ -1,9 +1,9 @@
 import { cn } from '@/lib/utils';
 
 interface ChoiceChipsProps<T extends string> {
-  options: { value: T; label: string; icon?: React.ReactNode }[];
+  options: readonly { value: T; label: string; icon?: React.ReactNode }[];
   value: T;
-  onChange: (v: T) => void;
+  onChange: React.Dispatch<React.SetStateAction<T>>;
   disabled?: boolean;
   size?: 'sm' | 'md';
 }
