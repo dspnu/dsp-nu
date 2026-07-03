@@ -371,8 +371,10 @@ export type Database = {
       }
       career_help_requests: {
         Row: {
+          attachments: Json
           created_at: string
           id: string
+          links: string[]
           message: string
           resolved_at: string | null
           resolver_id: string | null
@@ -383,8 +385,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          attachments?: Json
           created_at?: string
           id?: string
+          links?: string[]
           message: string
           resolved_at?: string | null
           resolver_id?: string | null
@@ -395,8 +399,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          attachments?: Json
           created_at?: string
           id?: string
+          links?: string[]
           message?: string
           resolved_at?: string | null
           resolver_id?: string | null
@@ -2055,10 +2061,21 @@ export type Database = {
         Args: { p_datasets: string[]; p_from: string; p_to: string }
         Returns: Json
       }
-      request_career_help: {
-        Args: { p_message: string; p_subject: string; p_tool: string }
-        Returns: Json
-      }
+      request_career_help:
+        | {
+            Args: { p_message: string; p_subject: string; p_tool: string }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_attachments?: Json
+              p_links?: string[]
+              p_message: string
+              p_subject: string
+              p_tool: string
+            }
+            Returns: Json
+          }
     }
     Enums: {
       app_role: "admin" | "officer" | "member" | "developer" | "president"
