@@ -2,6 +2,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+export interface HelpAttachment {
+  name: string;
+  path: string;
+  size: number;
+  type: string;
+}
+
 export interface CareerHelpRequest {
   id: string;
   user_id: string;
@@ -13,8 +20,11 @@ export interface CareerHelpRequest {
   resolver_id: string | null;
   created_at: string;
   updated_at: string;
+  links?: string[] | null;
+  attachments?: HelpAttachment[] | null;
   requester?: { first_name: string | null; last_name: string | null; email: string | null } | null;
 }
+
 
 export function useCareerHelpRequests(scope: 'mine' | 'all' = 'mine') {
   return useQuery({
@@ -50,15 +60,18 @@ export function useSubmitCareerHelp() {
   const qc = useQueryClient();
   const { toast } = useToast();
   return useMutation({
-    mutationFn: async (args: { tool?: string; subject: string; message: string }) => {
+    mutationFn: async (args: { tool?: string; subject: string; message: string; links?: string[]; attachments?: HelpAttachment[] }) => {
       const { data, error } = await supabase.rpc('request_career_help' as any, {
         p_tool: args.tool ?? null,
         p_subject: args.subject,
         p_message: args.message,
+        p_links: args.links ?? [],
+        p_attachments: (args.attachments ?? []) as any,
       });
       if (error) throw error;
       return data as { ok: boolean; id: string };
     },
+
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['career-help-requests'] });
       toast({

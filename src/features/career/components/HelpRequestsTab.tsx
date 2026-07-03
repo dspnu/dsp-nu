@@ -6,13 +6,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   LifeBuoy, MessageSquare, CheckCircle2, Clock, PlayCircle, User as UserIcon,
+  Link as LinkIcon, Paperclip, Download, Mail,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import {
   useCareerHelpRequests, useCanTriageCareerHelp, useUpdateCareerHelpStatus,
-  type CareerHelpRequest,
+  type CareerHelpRequest, type HelpAttachment,
 } from '../hooks/useCareerHelp';
 import { RequestHelpDialog } from './RequestHelpDialog';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+
 
 const STATUS_META: Record<CareerHelpRequest['status'], { label: string; icon: React.ElementType; className: string }> = {
   open: { label: 'Open', icon: Clock, className: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30' },
@@ -20,25 +24,46 @@ const STATUS_META: Record<CareerHelpRequest['status'], { label: string; icon: Re
   resolved: { label: 'Resolved', icon: CheckCircle2, className: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30' },
 };
 
+function AttachmentRow({ a }: { a: HelpAttachment }) {
+  const { toast } = useToast();
+  const open = async () => {
+    const { data, error } = await supabase.storage
+      .from('career-help-attachments')
+      .createSignedUrl(a.path, 60 * 5);
+    if (error || !data?.signedUrl) {
+      toast({ title: 'Could not open file', description: error?.message, variant: 'destructive' });
+      return;
+    }
+    window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+  };
+  return (
+    <button
+      type="button"
+      onClick={open}
+      className="w-full flex items-center gap-2 text-xs bg-muted/50 hover:bg-muted rounded-md px-2 py-1.5 text-left transition-colors"
+    >
+      <Paperclip className="h-3 w-3 text-muted-foreground shrink-0" />
+      <span className="truncate flex-1 text-foreground">{a.name}</span>
+      <span className="text-muted-foreground shrink-0">{Math.max(1, Math.round(a.size / 1024))} KB</span>
+      <Download className="h-3 w-3 text-muted-foreground shrink-0" />
+    </button>
+  );
+}
+
 function RequestCard({ r, canTriage }: { r: CareerHelpRequest; canTriage: boolean }) {
   const update = useUpdateCareerHelpStatus();
   const meta = STATUS_META[r.status];
   const Icon = meta.icon;
   const requesterName = [r.requester?.first_name, r.requester?.last_name].filter(Boolean).join(' ') || r.requester?.email || 'Member';
+  const links = r.links ?? [];
+  const attachments = r.attachments ?? [];
 
   return (
     <Card className="p-4 space-y-3">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="text-sm font-semibold text-foreground truncate">{r.subject}</div>
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-semibold text-foreground">{r.subject}</div>
           <div className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1.5 flex-wrap">
-            {canTriage && (
-              <>
-                <UserIcon className="h-3 w-3" />
-                <span>{requesterName}</span>
-                <span>·</span>
-              </>
-            )}
             {r.tool && <><span className="uppercase tracking-wide">{r.tool.replace('_', ' ')}</span><span>·</span></>}
             <span>{formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}</span>
           </div>
@@ -47,7 +72,61 @@ function RequestCard({ r, canTriage }: { r: CareerHelpRequest; canTriage: boolea
           <Icon className="h-3 w-3" /> {meta.label}
         </Badge>
       </div>
+
+      {canTriage && (
+        <div className="flex items-center gap-2 text-xs bg-muted/40 rounded-md px-2.5 py-1.5">
+          <UserIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          <span className="font-medium text-foreground truncate">{requesterName}</span>
+          {r.requester?.email && (
+            <>
+              <span className="text-muted-foreground">·</span>
+              <a
+                href={`mailto:${r.requester.email}?subject=${encodeURIComponent('Re: ' + r.subject)}`}
+                className="inline-flex items-center gap-1 text-primary hover:underline truncate"
+              >
+                <Mail className="h-3 w-3" /> {r.requester.email}
+              </a>
+            </>
+          )}
+        </div>
+      )}
+
       <p className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">{r.message}</p>
+
+      {links.length > 0 && (
+        <div className="space-y-1">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+            <LinkIcon className="h-3 w-3" /> Links
+          </div>
+          <ul className="space-y-1">
+            {links.map((l, i) => (
+              <li key={i}>
+                <a
+                  href={l}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-xs bg-muted/50 hover:bg-muted rounded-md px-2 py-1.5 text-primary hover:underline"
+                >
+                  <LinkIcon className="h-3 w-3 shrink-0" />
+                  <span className="truncate flex-1">{l}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {attachments.length > 0 && (
+        <div className="space-y-1">
+          <div className="text-[11px] uppercase tracking-wide text-muted-foreground flex items-center gap-1">
+            <Paperclip className="h-3 w-3" /> Attachments
+          </div>
+          <ul className="space-y-1">
+            {attachments.map((a, i) => <li key={i}><AttachmentRow a={a} /></li>)}
+          </ul>
+        </div>
+      )}
+
       {canTriage && r.status !== 'resolved' && (
         <div className="flex gap-2 pt-1">
           {r.status === 'open' && (
@@ -63,6 +142,7 @@ function RequestCard({ r, canTriage }: { r: CareerHelpRequest; canTriage: boolea
     </Card>
   );
 }
+
 
 export function HelpRequestsTab() {
   const { data: canTriage } = useCanTriageCareerHelp();
