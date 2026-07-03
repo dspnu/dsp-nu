@@ -6,13 +6,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   LifeBuoy, MessageSquare, CheckCircle2, Clock, PlayCircle, User as UserIcon,
+  Link as LinkIcon, Paperclip, Download, Mail,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import {
   useCareerHelpRequests, useCanTriageCareerHelp, useUpdateCareerHelpStatus,
-  type CareerHelpRequest,
+  type CareerHelpRequest, type HelpAttachment,
 } from '../hooks/useCareerHelp';
 import { RequestHelpDialog } from './RequestHelpDialog';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+
 
 const STATUS_META: Record<CareerHelpRequest['status'], { label: string; icon: React.ElementType; className: string }> = {
   open: { label: 'Open', icon: Clock, className: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30' },
