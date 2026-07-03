@@ -60,15 +60,18 @@ export function useSubmitCareerHelp() {
   const qc = useQueryClient();
   const { toast } = useToast();
   return useMutation({
-    mutationFn: async (args: { tool?: string; subject: string; message: string }) => {
+    mutationFn: async (args: { tool?: string; subject: string; message: string; links?: string[]; attachments?: HelpAttachment[] }) => {
       const { data, error } = await supabase.rpc('request_career_help' as any, {
         p_tool: args.tool ?? null,
         p_subject: args.subject,
         p_message: args.message,
+        p_links: args.links ?? [],
+        p_attachments: (args.attachments ?? []) as any,
       });
       if (error) throw error;
       return data as { ok: boolean; id: string };
     },
+
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['career-help-requests'] });
       toast({
