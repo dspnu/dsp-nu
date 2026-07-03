@@ -2,6 +2,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+export interface HelpAttachment {
+  name: string;
+  path: string;
+  size: number;
+  type: string;
+}
+
 export interface CareerHelpRequest {
   id: string;
   user_id: string;
@@ -13,8 +20,11 @@ export interface CareerHelpRequest {
   resolver_id: string | null;
   created_at: string;
   updated_at: string;
+  links?: string[] | null;
+  attachments?: HelpAttachment[] | null;
   requester?: { first_name: string | null; last_name: string | null; email: string | null } | null;
 }
+
 
 export function useCareerHelpRequests(scope: 'mine' | 'all' = 'mine') {
   return useQuery({
