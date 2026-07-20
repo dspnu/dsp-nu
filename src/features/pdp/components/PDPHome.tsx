@@ -12,6 +12,7 @@ import {
   Calendar, CheckCircle2, XCircle, Clock, ChevronDown, ChevronRight, Link as LinkIcon,
   ArrowUp, ArrowDown
 } from 'lucide-react';
+import { ExternalLink as ExternalAnchor } from '@/components/ExternalLink';
 import { format, isPast, differenceInDays } from 'date-fns';
 import { usePDPModules, useCreatePDPModule, useDeletePDPModule, useUpdatePDPModule, useReorderPDPModules } from '@/features/pdp/hooks/usePDPModules';
 import { usePDPAssignments, useCreateAssignment, useDeleteAssignment, useMySubmissions } from '@/features/pdp/hooks/usePDPAssignments';
@@ -314,9 +315,9 @@ export function PDPHome({ isVP, isNewMember, onNavigateToAssignments }: Props) {
                           <Badge variant="outline" className="text-[10px]">Resource</Badge>
                           {r.url && (
                             <Button size="icon" variant="ghost" className="h-6 w-6" asChild>
-                              <a href={r.url} target="_blank" rel="noreferrer">
+                              <ExternalAnchor href={r.url}>
                                 <ExternalLink className="h-3 w-3" />
-                              </a>
+                              </ExternalAnchor>
                             </Button>
                           )}
                           {isVP && (

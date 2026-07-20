@@ -7,6 +7,7 @@ import { Tables } from '@/integrations/supabase/types';
 import { EditJobButton } from './JobForm';
 import { useAuth } from '@/core/auth/AuthContext';
 import { useDeleteJob } from '@/features/jobs/hooks/useJobs';
+import { ExternalLink as ExternalAnchor } from '@/components/ExternalLink';
 
 type JobPost = Tables<'job_posts'>;
 
@@ -96,10 +97,10 @@ export function JobCard({ job, isBookmarked, onToggleBookmark }: JobCardProps) {
         )}
         {job.apply_url && (
           <Button asChild size="sm" className="gap-1 mt-2">
-            <a href={job.apply_url} target="_blank" rel="noopener noreferrer">
+            <ExternalAnchor href={job.apply_url}>
               <ExternalLink className="h-3 w-3" />
               Apply Now
-            </a>
+            </ExternalAnchor>
           </Button>
         )}
       </CardContent>

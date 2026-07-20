@@ -66,6 +66,9 @@ import {
   isCloverCheckoutUiEnabled,
   useCreateCloverCheckout,
 } from '@/features/payments/hooks/useCloverCheckout';
+import { openExternalUrl, onExternalBrowserFinished } from '@/lib/openExternalUrl';
+import { ExternalLink as ExternalAnchor } from '@/components/ExternalLink';
+import { useQueryClient } from '@tanstack/react-query';
 
 type TicketedEvent = Tables<'ticketed_events'>;
 
@@ -96,6 +99,7 @@ export function BrotherhoodTicketsManager({
     ? `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim() || profile.email
     : undefined;
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const createCloverCheckout = useCreateCloverCheckout();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -518,14 +522,12 @@ export function BrotherhoodTicketsManager({
                       Pay in portal
                     </Link>
                   ) : (
-                    <a
+                    <ExternalAnchor
                       href={ev.payment_url}
-                      target="_blank"
-                      rel="noreferrer"
                       className="gap-1"
                     >
                       Pay now <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
+                    </ExternalAnchor>
                   )}
                 </Button>
               )}
@@ -545,8 +547,13 @@ export function BrotherhoodTicketsManager({
                           eventTicketId: row.id,
                         },
                         {
-                          onSuccess: (res) => {
-                            window.open(res.url, '_blank', 'noopener,noreferrer');
+                          onSuccess: async (res) => {
+                            const unsub = await onExternalBrowserFinished(() => {
+                              void queryClient.invalidateQueries({ queryKey: ['tickets'] });
+                              void queryClient.invalidateQueries({ queryKey: ['my-tickets'] });
+                              void unsub();
+                            });
+                            await openExternalUrl(res.url);
                           },
                         }
                       )

@@ -26,6 +26,7 @@ import OnboardingPage from "@/core/auth/OnboardingPage";
 import { PwaLaunchBridge } from "@/components/pwa/PwaLaunchBridge";
 import { PwaBackgroundSyncBridge } from "@/components/pwa/PwaBackgroundSyncBridge";
 import { NativePushBridge } from "@/components/native/NativePushBridge";
+import { NativeChromeBridge } from "@/components/native/NativeChromeBridge";
 import PwaOpenPage from "./pages/PwaOpenPage";
 import PwaProtocolPage from "./pages/PwaProtocolPage";
 
@@ -43,6 +44,7 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <NativeAuthBridge />
+            <NativeChromeBridge />
             <PwaLaunchBridge />
             <PwaBackgroundSyncBridge />
             <NativePushBridge />

@@ -16,6 +16,13 @@ const config: CapacitorConfig = {
       launchAutoHide: true,
       backgroundColor: '#faf9f7',
     },
+    StatusBar: {
+      style: 'LIGHT',
+      backgroundColor: '#faf9f7',
+    },
+    Keyboard: {
+      resize: 'body',
+    },
   },
 };
 

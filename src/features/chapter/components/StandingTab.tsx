@@ -21,6 +21,7 @@ import { org, allCategories } from '@/config/org';
 import { useChapterSetting } from '@/hooks/useChapterSettings';
 import { ScholarshipsStandingSection } from '@/features/chapter/components/ScholarshipsStandingSection';
 import { CloverDuesStandingCard } from '@/features/dues/components/CloverDuesStandingCard';
+import { capturePhotoFile, ensureCameraPermission, isNativeCameraAvailable } from '@/lib/nativeCamera';
 
 const POINTS_REQUIREMENT = org.standing.minPoints;
 const SERVICE_HOURS_REQUIREMENT = org.standing.minServiceHours;
@@ -62,6 +63,21 @@ export function StandingTab() {
 
   const openCamera = useCallback(async () => {
     try {
+      if (isNativeCameraAvailable()) {
+        const file = await capturePhotoFile({ fileName: `capture-${Date.now()}.jpg` });
+        if (file) {
+          setServicePhoto(file);
+          setServicePhotoPreview(URL.createObjectURL(file));
+        }
+        return;
+      }
+
+      const allowed = await ensureCameraPermission();
+      if (!allowed) {
+        toast.error('Camera permission not granted');
+        return;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       streamRef.current = stream;
       setCameraOpen(true);

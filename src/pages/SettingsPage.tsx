@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { LogOut, Bell, Palette, ExternalLink, ChevronRight, Download, Trash2, Shield, ShieldCheck, Loader2, Upload, Award, Clock, DollarSign, Coffee, Crop, Smartphone, RefreshCw } from 'lucide-react';
 import { legal } from '@/config/legal';
+import { ExternalLink as ExternalAnchor } from '@/components/ExternalLink';
 import { supabase } from '@/integrations/supabase/client';
 import { useServiceHours } from '@/features/service-hours/hooks/useServiceHours';
 import { useDuesPersonalSchedule } from '@/features/dues/hooks/useDuesPersonalSchedule';
@@ -704,15 +705,13 @@ function SettingsPageContent() {
                     <p className="text-xs text-muted-foreground mt-0.5">
                       Allow us to use your activity and usage data to improve features, personalize your experience,
                       and inform product improvements. You can turn this on or off anytime.{' '}
-                      <a
+                      <ExternalAnchor
                         href={legal.privacyUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
                         className="inline-flex items-center gap-0.5 text-primary hover:underline font-medium"
                       >
                         Privacy Policy
                         <ExternalLink className="h-3 w-3 shrink-0 opacity-80" />
-                      </a>
+                      </ExternalAnchor>
                     </p>
                     <p className="text-xs text-muted-foreground/90 mt-2">
                       {prefs.data_usage_consent_updated_at
@@ -807,42 +806,34 @@ function SettingsPageContent() {
             aria-label="Legal"
             className="flex flex-wrap items-center justify-center sm:justify-start gap-x-5 gap-y-2 text-sm text-muted-foreground"
           >
-            <a
+            <ExternalAnchor
               href={legal.eulaUrl}
-              target="_blank"
-              rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors"
             >
               EULA
               <ExternalLink className="h-3 w-3 opacity-70" />
-            </a>
-            <a
+            </ExternalAnchor>
+            <ExternalAnchor
               href={legal.privacyUrl}
-              target="_blank"
-              rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors"
             >
               Privacy Policy
               <ExternalLink className="h-3 w-3 opacity-70" />
-            </a>
-            <a
+            </ExternalAnchor>
+            <ExternalAnchor
               href={legal.termsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors"
             >
               Terms of Service
               <ExternalLink className="h-3 w-3 opacity-70" />
-            </a>
-            <a
+            </ExternalAnchor>
+            <ExternalAnchor
               href={legal.cookiesUrl}
-              target="_blank"
-              rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors"
             >
               Cookie Policy
               <ExternalLink className="h-3 w-3 opacity-70" />
-            </a>
+            </ExternalAnchor>
           </nav>
         </footer>
       </div>

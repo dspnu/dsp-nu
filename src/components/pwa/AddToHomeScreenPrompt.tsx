@@ -11,6 +11,7 @@ import { MoreVertical, X } from 'lucide-react';
 import { org } from '@/config/org';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AppLogo } from '@/components/branding/AppLogo';
+import { isNativeApp } from '@/lib/nativePush';
 
 const STORAGE_KEY = 'dsp-nu-a2hs-dismissed';
 
@@ -171,6 +172,7 @@ function AddToHomeScreenOverlay({
 
 export function AddToHomeScreenProvider({ children }: { children: ReactNode }) {
   const isMobile = useIsMobile();
+  const native = isNativeApp();
   const [open, setOpen] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
@@ -195,15 +197,17 @@ export function AddToHomeScreenProvider({ children }: { children: ReactNode }) {
   }, [deferredPrompt]);
 
   const openPrompt = useCallback(() => {
+    if (native) return;
     if (deferredPrompt) {
       void promptInstall();
       return;
     }
     if (typeof window !== 'undefined' && window.innerWidth >= 768) return;
     setOpen(true);
-  }, [deferredPrompt, promptInstall]);
+  }, [deferredPrompt, promptInstall, native]);
 
   useEffect(() => {
+    if (native) return;
     const onBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
       setDeferredPrompt(event as BeforeInstallPromptEvent);
@@ -218,10 +222,10 @@ export function AddToHomeScreenProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt);
       window.removeEventListener('appinstalled', onAppInstalled);
     };
-  }, []);
+  }, [native]);
 
   useEffect(() => {
-    if (!isMobile) return;
+    if (native || !isMobile) return;
     const os = detectMobileOS();
     if (os !== 'ios' && os !== 'android') return;
     if (isStandalone()) return;
@@ -232,7 +236,7 @@ export function AddToHomeScreenProvider({ children }: { children: ReactNode }) {
     }
     const id = window.setTimeout(() => setOpen(true), 2800);
     return () => window.clearTimeout(id);
-  }, [isMobile]);
+  }, [isMobile, native]);
 
   const overlayVariant: 'ios' | 'android' | null = useMemo(() => {
     if (!open || !isMobile) return null;

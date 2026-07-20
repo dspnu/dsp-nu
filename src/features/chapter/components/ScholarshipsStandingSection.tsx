@@ -2,6 +2,7 @@ import { format } from 'date-fns';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { GraduationCap, ExternalLink, FileText, Calendar } from 'lucide-react';
+import { ExternalLink as ExternalAnchor } from '@/components/ExternalLink';
 import { useMembers } from '@/core/members/hooks/useMembers';
 import { useChapterScholarships } from '@/features/chapter/hooks/useChapterScholarships';
 import { useMemo } from 'react';
@@ -95,24 +96,20 @@ export function ScholarshipsStandingSection() {
                 )}
                 <div className="flex flex-wrap gap-3 pt-0.5">
                   {s.info_url && (
-                    <a
+                    <ExternalAnchor
                       href={s.info_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
                       className="text-xs text-primary inline-flex items-center gap-1 hover:underline"
                     >
                       Details <ExternalLink className="h-3 w-3" />
-                    </a>
+                    </ExternalAnchor>
                   )}
                   {s.application_url && (
-                    <a
+                    <ExternalAnchor
                       href={s.application_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
                       className="text-xs text-primary inline-flex items-center gap-1 hover:underline"
                     >
                       Apply <FileText className="h-3 w-3" />
-                    </a>
+                    </ExternalAnchor>
                   )}
                 </div>
               </li>

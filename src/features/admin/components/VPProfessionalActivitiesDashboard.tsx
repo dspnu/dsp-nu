@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Briefcase, ExternalLink, Sparkles, Users, Activity, Coins } from 'lucide-react';
+import { ExternalLink as ExternalAnchor } from '@/components/ExternalLink';
 import { useJobs, useApproveJob } from '@/features/jobs/hooks/useJobs';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -151,9 +152,9 @@ export function VPProfessionalActivitiesDashboard() {
                   <TableCell className="text-sm text-muted-foreground">{format(new Date(job.created_at), 'MMM d')}</TableCell>
                   <TableCell>
                     {job.apply_url && (
-                      <a href={job.apply_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                      <ExternalAnchor href={job.apply_url} className="text-primary hover:underline">
                         <ExternalLink className="h-3.5 w-3.5" />
-                      </a>
+                      </ExternalAnchor>
                     )}
                   </TableCell>
                 </TableRow>

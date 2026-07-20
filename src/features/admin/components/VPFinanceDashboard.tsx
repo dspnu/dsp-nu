@@ -26,6 +26,7 @@ import {
   Copy,
   ExternalLink,
 } from 'lucide-react';
+import { ExternalLink as ExternalAnchor } from '@/components/ExternalLink';
 import { useMembers } from '@/core/members/hooks/useMembers';
 import { useAuth } from '@/core/auth/AuthContext';
 import { useChapterSetting, useUpdateChapterSetting } from '@/hooks/useChapterSettings';
@@ -516,9 +517,9 @@ export function VPFinanceDashboard() {
                                   <TableCell>
                                     {c.link_url && (
                                       <Button variant="ghost" size="sm" className="h-8 px-2" asChild>
-                                        <a href={c.link_url} target="_blank" rel="noreferrer" title="Open checkout">
+                                        <ExternalAnchor href={c.link_url} title="Open checkout">
                                           <ExternalLink className="h-4 w-4" />
-                                        </a>
+                                        </ExternalAnchor>
                                       </Button>
                                     )}
                                   </TableCell>
@@ -541,9 +542,9 @@ export function VPFinanceDashboard() {
                   <p className="text-sm text-muted-foreground break-all">{cloverCreatedUrl}</p>
                   <div className="flex flex-wrap gap-2">
                     <Button type="button" asChild>
-                      <a href={cloverCreatedUrl} target="_blank" rel="noreferrer" className="gap-2">
+                      <ExternalAnchor href={cloverCreatedUrl} className="gap-2">
                         Open Clover <ExternalLink className="h-4 w-4" />
-                      </a>
+                      </ExternalAnchor>
                     </Button>
                     <Button
                       type="button"
