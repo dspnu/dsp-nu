@@ -54,7 +54,7 @@ export function MobileNav() {
           className="fixed inset-0 z-[90] md:hidden"
           onClick={() => setShowMore(false)}
         >
-          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-sm">
+          <div className="absolute bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-sm">
             <div
               className="rounded-2xl border border-border/40 bg-card/95 backdrop-blur-xl shadow-lg p-2 space-y-0.5"
               onClick={e => e.stopPropagation()}
@@ -85,7 +85,7 @@ export function MobileNav() {
       )}
 
       {/* Floating pill nav bar */}
-      <nav className="fixed bottom-4 left-4 right-4 z-[100] md:hidden">
+      <nav className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-4 right-4 z-[100] md:hidden">
         <div className="flex items-center justify-around rounded-2xl bg-card/80 backdrop-blur-2xl border border-border/30 shadow-lg px-2 py-1.5"
           style={{ boxShadow: '0 8px 32px hsl(270 50% 40% / 0.08), 0 2px 8px hsl(0 0% 0% / 0.06)' }}
         >

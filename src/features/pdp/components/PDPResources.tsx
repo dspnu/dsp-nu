@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Plus, FolderOpen, ExternalLink, Trash2, Edit2 } from 'lucide-react';
+import { ExternalLink as ExternalAnchor } from '@/components/ExternalLink';
 import { format } from 'date-fns';
 import { usePDPResources, useCreatePDPResource, useDeletePDPResource, useUpdatePDPResource, PDPResource } from '@/features/pdp/hooks/usePDPResources';
 import { usePDPModules } from '@/features/pdp/hooks/usePDPModules';
@@ -152,9 +153,9 @@ export function PDPResources({ isVP }: Props) {
                   <div className="flex items-center gap-1 shrink-0">
                     {resource.url && (
                       <Button size="icon" variant="ghost" className="h-8 w-8" asChild>
-                        <a href={resource.url} target="_blank" rel="noreferrer">
+                        <ExternalAnchor href={resource.url}>
                           <ExternalLink className="h-4 w-4" />
-                        </a>
+                        </ExternalAnchor>
                       </Button>
                     )}
                     {isVP && (

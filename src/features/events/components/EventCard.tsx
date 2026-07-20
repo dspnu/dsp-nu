@@ -8,6 +8,7 @@ import { Tables } from '@/integrations/supabase/types';
 import { DeleteEventButton, EditEventButton } from './EventForm';
 import { useAuth } from '@/core/auth/AuthContext';
 import { generateGoogleCalendarUrl, generateOutlookUrl } from '@/lib/calendar';
+import { ExternalLink as ExternalAnchor } from '@/components/ExternalLink';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 type Event = Tables<'events'>;
@@ -78,14 +79,14 @@ export function EventCard({ event, onOpenAttendance }: EventCardProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem asChild>
-                <a href={generateGoogleCalendarUrl(event)} target="_blank" rel="noopener noreferrer">
+                <ExternalAnchor href={generateGoogleCalendarUrl(event)}>
                   Google Calendar
-                </a>
+                </ExternalAnchor>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <a href={generateOutlookUrl(event)} target="_blank" rel="noopener noreferrer">
+                <ExternalAnchor href={generateOutlookUrl(event)}>
                   Outlook
-                </a>
+                </ExternalAnchor>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -6,15 +6,18 @@ import {
   registerPeriodicContentSync,
   supportsBackgroundSync,
 } from '@/lib/pwaAdvancedFeatures';
+import { isNativeApp } from '@/lib/nativePush';
 
 /**
  * Re-applies periodic sync after load when the user opted in, registers Background Sync
  * when the device comes online, and refreshes client cache after SW background work completes.
+ * No-op inside Capacitor native shells.
  */
 export function PwaBackgroundSyncBridge() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    if (isNativeApp()) return;
     const onMessage = (event: MessageEvent) => {
       const t = event.data?.type;
       if (t === 'DSP_PERIODIC_SYNC_COMPLETE' || t === 'DSP_BACKGROUND_SYNC_COMPLETE') {
@@ -26,6 +29,7 @@ export function PwaBackgroundSyncBridge() {
   }, [queryClient]);
 
   useEffect(() => {
+    if (isNativeApp()) return;
     if (!getPeriodicSyncEnabled()) return;
     let cancelled = false;
     void (async () => {
@@ -46,6 +50,7 @@ export function PwaBackgroundSyncBridge() {
   }, []);
 
   useEffect(() => {
+    if (isNativeApp()) return;
     if (!supportsBackgroundSync()) return;
     const onOnline = () => {
       void registerDeferredBackgroundSync();

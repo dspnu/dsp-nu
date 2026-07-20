@@ -16,6 +16,8 @@ import {
 import { RequestHelpDialog } from './RequestHelpDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { openExternalUrl } from '@/lib/openExternalUrl';
+import { ExternalLink as ExternalAnchor } from '@/components/ExternalLink';
 
 
 const STATUS_META: Record<CareerHelpRequest['status'], { label: string; icon: React.ElementType; className: string }> = {
@@ -34,7 +36,7 @@ function AttachmentRow({ a }: { a: HelpAttachment }) {
       toast({ title: 'Could not open file', description: error?.message, variant: 'destructive' });
       return;
     }
-    window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+    await openExternalUrl(data.signedUrl);
   };
   return (
     <button
@@ -101,15 +103,13 @@ function RequestCard({ r, canTriage }: { r: CareerHelpRequest; canTriage: boolea
           <ul className="space-y-1">
             {links.map((l, i) => (
               <li key={i}>
-                <a
+                <ExternalAnchor
                   href={l}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="flex items-center gap-2 text-xs bg-muted/50 hover:bg-muted rounded-md px-2 py-1.5 text-primary hover:underline"
                 >
                   <LinkIcon className="h-3 w-3 shrink-0" />
                   <span className="truncate flex-1">{l}</span>
-                </a>
+                </ExternalAnchor>
               </li>
             ))}
           </ul>

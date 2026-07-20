@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/sheet';
 import { Camera, Keyboard, Loader2, SwitchCamera, X, Zap, ZapOff } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { ensureCameraPermission } from '@/lib/nativeCamera';
 
 function extractVerifyCode(text: string): string | null {
   const t = text.trim();
@@ -136,25 +137,35 @@ function ScannerView({ onScan, onClose }: ScannerViewProps) {
   const [status, setStatus] = useState<'starting' | 'scanning' | 'error'>('starting');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Discover cameras once.
+  // Discover cameras once (after native permission).
   useEffect(() => {
     let cancelled = false;
-    Html5Qrcode.getCameras()
-      .then((devices) => {
+    void (async () => {
+      const allowed = await ensureCameraPermission();
+      if (cancelled) return;
+      if (!allowed) {
+        setStatus('error');
+        setErrorMessage('Camera permission denied. Enable camera access and try again.');
+        return;
+      }
+      try {
+        const devices = await Html5Qrcode.getCameras();
         if (cancelled) return;
         const list = devices.map((d) => ({ id: d.id, label: d.label || 'Camera' }));
         setCameras(list);
         const back =
           list.find((c) => /back|rear|environment/i.test(c.label)) ?? list[list.length - 1];
         setActiveCamera(back?.id ?? list[0]?.id ?? null);
-      })
-      .catch((err) => {
+      } catch (err: unknown) {
         if (cancelled) return;
         setStatus('error');
         setErrorMessage(
-          err?.message ?? 'Camera permission denied. Enable camera access and try again.'
+          err instanceof Error
+            ? err.message
+            : 'Camera permission denied. Enable camera access and try again.'
         );
-      });
+      }
+    })();
     return () => {
       cancelled = true;
     };

@@ -1,5 +1,6 @@
 import { legal } from '@/config/legal';
 import { cn } from '@/lib/utils';
+import { ExternalLink } from '@/components/ExternalLink';
 
 const linkClass = 'text-primary underline-offset-2 hover:underline font-medium';
 
@@ -10,21 +11,21 @@ export function AccountLegalNotice({ className }: { className?: string }) {
   return (
     <p className={cn('text-center text-[11px] sm:text-xs text-muted-foreground leading-relaxed', className)}>
       By continuing, you agree to our{' '}
-      <a href={legal.eulaUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
+      <ExternalLink href={legal.eulaUrl} className={linkClass}>
         End User License Agreement (EULA)
-      </a>
+      </ExternalLink>
       ,{' '}
-      <a href={legal.termsUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
+      <ExternalLink href={legal.termsUrl} className={linkClass}>
         Terms of Service
-      </a>
+      </ExternalLink>
       ,{' '}
-      <a href={legal.privacyUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
+      <ExternalLink href={legal.privacyUrl} className={linkClass}>
         Privacy Policy
-      </a>
+      </ExternalLink>
       , and{' '}
-      <a href={legal.cookiesUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
+      <ExternalLink href={legal.cookiesUrl} className={linkClass}>
         Cookie Policy
-      </a>
+      </ExternalLink>
       .
     </p>
   );

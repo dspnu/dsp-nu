@@ -3,6 +3,8 @@ import { Html5QrcodeScanner } from 'html5-qrcode';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Camera, X } from 'lucide-react';
+import { ensureCameraPermission } from '@/lib/nativeCamera';
+import { toast } from 'sonner';
 
 interface QRScannerProps {
   onScan: (eventId: string) => void;
@@ -12,6 +14,7 @@ interface QRScannerProps {
 export function QRScanner({ onScan, onClose }: QRScannerProps) {
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [starting, setStarting] = useState(false);
 
   useEffect(() => {
     if (!isScanning) return;
@@ -25,7 +28,6 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
     scanner.render(
       (decodedText) => {
         try {
-          // Extract event ID from URL
           const url = new URL(decodedText);
           const eventId = url.searchParams.get('checkin');
           if (eventId) {
@@ -36,7 +38,7 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
           // Not a URL; ignore.
         }
       },
-      (error) => {
+      () => {
         // Ignore scan errors
       }
     );
@@ -48,6 +50,20 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
     };
   }, [isScanning, onScan]);
 
+  const startScanning = async () => {
+    setStarting(true);
+    try {
+      const allowed = await ensureCameraPermission();
+      if (!allowed) {
+        toast.error('Camera permission is required to scan QR codes');
+        return;
+      }
+      setIsScanning(true);
+    } finally {
+      setStarting(false);
+    }
+  };
+
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -58,9 +74,9 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         {!isScanning ? (
-          <Button onClick={() => setIsScanning(true)} className="w-full gap-2">
+          <Button onClick={() => void startScanning()} className="w-full gap-2" disabled={starting}>
             <Camera className="h-4 w-4" />
-            Start Scanning
+            {starting ? 'Starting…' : 'Start Scanning'}
           </Button>
         ) : (
           <div id="qr-reader" className="w-full" />

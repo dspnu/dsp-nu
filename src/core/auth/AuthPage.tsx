@@ -27,7 +27,7 @@ const LAST_USED_LOGIN_METHOD_KEY = 'dsp:last-login-method';
 export default function AuthPage() {
   const { user, loading, signIn, signUp, requestPasswordReset, profile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [oauthProviderLoading, setOauthProviderLoading] = useState<'google' | 'apple' | null>(null);
   const [isResetSubmitting, setIsResetSubmitting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [lastUsedLoginMethod, setLastUsedLoginMethod] = useState<LastUsedLoginMethod | null>(null);
@@ -51,14 +51,11 @@ export default function AuthPage() {
     return isLocal ? `${origin}/auth/callback` : `https://${org.domain}/auth/callback`;
   };
 
-  const getPasswordResetRedirectUrl = () => {
-    const origin = window.location.origin.replace(/\/$/, '');
-    const isLocal = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
-    return isLocal ? `${origin}/auth/callback` : `https://${org.domain}/auth/callback`;
-  };
+  /** Same deep link as OAuth so recovery emails open the native app. */
+  const getPasswordResetRedirectUrl = () => getRedirectUrl();
 
   const signInWithProvider = async (provider: 'google' | 'apple') => {
-    setIsGoogleLoading(true);
+    setOauthProviderLoading(provider);
     try {
       const redirectTo = getRedirectUrl();
 
@@ -66,8 +63,6 @@ export default function AuthPage() {
         provider,
         options: {
           redirectTo,
-          // In Capacitor, we want the URL so we can open it in the system browser.
-          // Web build keeps the normal redirect behavior.
           ...(Capacitor.isNativePlatform() ? { skipBrowserRedirect: true } : {}),
           queryParams: provider === 'google'
             ? {
@@ -86,13 +81,16 @@ export default function AuthPage() {
         const url = (data as unknown as { url?: string } | null)?.url;
         if (!url) throw new Error('Missing OAuth redirect URL.');
         await Browser.open({ url, windowName: '_system' });
+        setOauthProviderLoading(null);
       }
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Sign in failed';
       toast.error(message);
-      setIsGoogleLoading(false);
+      setOauthProviderLoading(null);
     }
   };
+
+  const oauthBusy = oauthProviderLoading !== null;
 
   if (loading) {
     return (
@@ -190,12 +188,12 @@ export default function AuthPage() {
                       lastUsedLoginMethod === 'google' && 'border-primary/50 bg-primary/5 ring-1 ring-primary/30'
                     )}
                     onClick={() => signInWithProvider('google')}
-                    disabled={isGoogleLoading}
+                    disabled={oauthBusy}
                   >
-                    {isGoogleLoading ? (
+                    {oauthProviderLoading === 'google' ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
-                      <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                      <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden>
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
                         <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
                         <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
@@ -204,6 +202,33 @@ export default function AuthPage() {
                     )}
                     Continue with Google
                     {lastUsedLoginMethod === 'google' && (
+                      <Badge
+                        variant="default"
+                        className="pointer-events-none absolute -right-2 -top-2 border border-primary/40 bg-primary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary-foreground shadow-sm"
+                      >
+                        Last used
+                      </Badge>
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={cn(
+                      'relative w-full',
+                      lastUsedLoginMethod === 'apple' && 'border-primary/50 bg-primary/5 ring-1 ring-primary/30'
+                    )}
+                    onClick={() => signInWithProvider('apple')}
+                    disabled={oauthBusy}
+                  >
+                    {oauthProviderLoading === 'apple' ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden fill="currentColor">
+                        <path d="M16.365 1.43c0 1.14-.418 2.206-1.17 3.023-.79.86-2.09 1.52-3.18 1.43-.14-1.1.4-2.25 1.14-3.06.79-.88 2.16-1.52 3.21-1.39zM20.5 17.14c-.58 1.33-.86 1.92-1.61 3.1-1.05 1.6-2.53 3.59-4.37 3.61-1.63.03-2.05-1.06-4.27-1.05-2.22.01-2.68 1.08-4.31 1.05-1.84-.03-3.25-1.82-4.3-3.41C-.08 17.7-1.1 12.6 1.2 9.2c1.12-1.66 2.9-2.71 4.55-2.71 1.7 0 2.77 1.1 4.18 1.1 1.37 0 2.2-1.11 4.2-1.11 1.5 0 3.09.82 4.2 2.24-3.7 2.03-3.1 7.31.17 8.42z" />
+                      </svg>
+                    )}
+                    Continue with Apple
+                    {lastUsedLoginMethod === 'apple' && (
                       <Badge
                         variant="default"
                         className="pointer-events-none absolute -right-2 -top-2 border border-primary/40 bg-primary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary-foreground shadow-sm"
@@ -293,12 +318,12 @@ export default function AuthPage() {
                     variant="outline"
                     className="w-full"
                     onClick={() => signInWithProvider('google')}
-                    disabled={isGoogleLoading}
+                    disabled={oauthBusy}
                   >
-                    {isGoogleLoading ? (
+                    {oauthProviderLoading === 'google' ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
-                      <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                      <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden>
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
                         <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
                         <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
@@ -306,6 +331,22 @@ export default function AuthPage() {
                       </svg>
                     )}
                     Continue with Google
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => signInWithProvider('apple')}
+                    disabled={oauthBusy}
+                  >
+                    {oauthProviderLoading === 'apple' ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden fill="currentColor">
+                        <path d="M16.365 1.43c0 1.14-.418 2.206-1.17 3.023-.79.86-2.09 1.52-3.18 1.43-.14-1.1.4-2.25 1.14-3.06.79-.88 2.16-1.52 3.21-1.39zM20.5 17.14c-.58 1.33-.86 1.92-1.61 3.1-1.05 1.6-2.53 3.59-4.37 3.61-1.63.03-2.05-1.06-4.27-1.05-2.22.01-2.68 1.08-4.31 1.05-1.84-.03-3.25-1.82-4.3-3.41C-.08 17.7-1.1 12.6 1.2 9.2c1.12-1.66 2.9-2.71 4.55-2.71 1.7 0 2.77 1.1 4.18 1.1 1.37 0 2.2-1.11 4.2-1.11 1.5 0 3.09.82 4.2 2.24-3.7 2.03-3.1 7.31.17 8.42z" />
+                      </svg>
+                    )}
+                    Continue with Apple
                   </Button>
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">

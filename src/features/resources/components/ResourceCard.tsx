@@ -16,6 +16,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { ExternalLink as ExternalAnchor } from '@/components/ExternalLink';
 
 type Resource = Tables<'resources'>;
 
@@ -61,9 +62,9 @@ export function ResourceCard({ resource, isOfficer }: ResourceCardProps) {
           <div className="flex items-center gap-1">
             {resource.file_url && (
               <Button variant="ghost" size="icon" asChild>
-                <a href={resource.file_url} target="_blank" rel="noopener noreferrer">
+                <ExternalAnchor href={resource.file_url}>
                   <ExternalLink className="h-4 w-4" />
-                </a>
+                </ExternalAnchor>
               </Button>
             )}
             {isOfficer && (

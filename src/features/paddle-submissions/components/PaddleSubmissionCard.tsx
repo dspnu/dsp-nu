@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Clapperboard, CheckCircle, ExternalLink, ChevronDown, Send, Link2, Upload, X, Loader2 } from 'lucide-react';
+import { ExternalLink as ExternalAnchor } from '@/components/ExternalLink';
 import { useAuth } from '@/core/auth/AuthContext';
 import { useChapterSetting } from '@/hooks/useChapterSettings';
 import { useMyPaddleSubmission, useSubmitPaddle } from '@/features/paddle-submissions/hooks/usePaddleSubmissions';
@@ -90,14 +91,12 @@ export function PaddleSubmissionCard() {
                 Video of <span className="font-medium text-foreground">{existing.subject_name}</span>
               </p>
             </div>
-            <a
+            <ExternalAnchor
               href={existing.link_url}
-              target="_blank"
-              rel="noopener noreferrer"
               className="text-xs text-primary hover:underline inline-flex items-center gap-1 shrink-0"
             >
               View <ExternalLink className="h-3 w-3" />
-            </a>
+            </ExternalAnchor>
           </div>
         </CardContent>
       </Card>

@@ -70,5 +70,7 @@
 	<string>Allow saving photos to your library when exporting or sharing.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Allow selecting photos for profile pictures and service-hour verification.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

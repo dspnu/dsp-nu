@@ -4,10 +4,12 @@ import {
   type PwaIncomingFilePayload,
   PWA_INCOMING_FILES_KEY,
 } from '@/lib/pwaIncomingStorage';
+import { isNativeApp } from '@/lib/nativePush';
 
 /**
  * Handles `window.launchQueue` for file_handlers and coalesced launches.
  * Stores payloads in sessionStorage and routes to `/pwa-open` for a consistent UX.
+ * No-op inside Capacitor native shells.
  */
 export function PwaLaunchBridge() {
   const navigate = useNavigate();
@@ -15,6 +17,7 @@ export function PwaLaunchBridge() {
   navigateRef.current = navigate;
 
   useEffect(() => {
+    if (isNativeApp()) return;
     if (typeof window === 'undefined' || !('launchQueue' in window) || !window.launchQueue) {
       return;
     }

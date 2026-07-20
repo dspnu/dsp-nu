@@ -48,7 +48,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         {ticketingEnabled && <TicketPaymentReminderSync />}
         <DuesReminderSync />
         <DesktopSidebar />
-        <main className="md:ml-64 pb-28 md:pb-0">
+        <main className="md:ml-64 pb-[calc(7rem+env(safe-area-inset-bottom))] md:pb-0">
           <div className="px-4 sm:px-6 lg:px-8 py-5 md:py-8 max-w-7xl mx-auto">
             {children}
             <AppCopyrightFooter className="mt-10 pt-6 border-t border-border/50" />
