@@ -5,14 +5,17 @@ import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
 
 function parseTokensFromUrl(rawUrl: string): { access_token: string; refresh_token: string } | null {
-  // Supabase returns tokens in the URL fragment for implicit flow
-  // and can also return errors via query params / fragment.
   const url = new URL(rawUrl);
   const hashParams = new URLSearchParams(url.hash.replace(/^#/, ''));
   const accessToken = hashParams.get('access_token');
   const refreshToken = hashParams.get('refresh_token');
   if (!accessToken || !refreshToken) return null;
   return { access_token: accessToken, refresh_token: refreshToken };
+}
+
+function parseCodeFromUrl(rawUrl: string): string | null {
+  const url = new URL(rawUrl);
+  return url.searchParams.get('code');
 }
 
 function parseCallbackType(rawUrl: string): string | null {
@@ -35,20 +38,18 @@ function parseErrorFromUrl(rawUrl: string): string | null {
 }
 
 /**
- * Capacitor-only: handles OAuth redirects back into the native app.
- * This keeps web auth flow unchanged (still uses /auth/callback route).
+ * Capacitor-only: handles OAuth / password-recovery redirects back into the native app.
+ * Web auth continues to use /auth/callback.
  */
 export function NativeAuthBridge() {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
     const subPromise = App.addListener('appUrlOpen', async ({ url }) => {
-      // Only handle our custom scheme.
       if (!url?.startsWith('dspnu://')) return;
 
       const error = parseErrorFromUrl(url);
       if (error) {
-        // Surface errors in the console; UI feedback is handled by the auth page once it becomes active.
         console.error('OAuth redirect error:', error);
         try {
           await Browser.close();
@@ -58,15 +59,25 @@ export function NativeAuthBridge() {
         return;
       }
 
-      const tokens = parseTokensFromUrl(url);
-      if (!tokens) return;
       const callbackType = parseCallbackType(url);
+      const tokens = parseTokensFromUrl(url);
+      const code = parseCodeFromUrl(url);
 
       try {
-        await supabase.auth.setSession(tokens);
+        if (tokens) {
+          await supabase.auth.setSession(tokens);
+        } else if (code) {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          if (exchangeError) throw exchangeError;
+        } else {
+          return;
+        }
+
         if (callbackType === 'recovery') {
           window.location.href = '/auth/reset-password';
         }
+      } catch (e) {
+        console.error('Native auth callback failed:', e);
       } finally {
         try {
           await Browser.close();
@@ -83,4 +94,3 @@ export function NativeAuthBridge() {
 
   return null;
 }
-

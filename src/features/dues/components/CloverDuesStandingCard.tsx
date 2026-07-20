@@ -7,6 +7,8 @@ import {
   useCreateCloverCheckout,
 } from '@/features/payments/hooks/useCloverCheckout';
 import { CreditCard, ExternalLink } from 'lucide-react';
+import { openExternalUrl, onExternalBrowserFinished } from '@/lib/openExternalUrl';
+import { useQueryClient } from '@tanstack/react-query';
 
 /**
  * Standing tab: pay remaining chapter balance via Clover Hosted Checkout (when enabled).
@@ -15,6 +17,7 @@ export function CloverDuesStandingCard() {
   const { user } = useAuth();
   const { balanceInfo, semester } = useDuesPersonalSchedule();
   const createClover = useCreateCloverCheckout();
+  const queryClient = useQueryClient();
 
   if (!isCloverCheckoutUiEnabled() || !user || !balanceInfo || balanceInfo.balance <= 0) {
     return null;
@@ -44,8 +47,12 @@ export function CloverDuesStandingCard() {
             createClover.mutate(
               { purpose: 'dues', amountCents, semester },
               {
-                onSuccess: (res) => {
-                  window.open(res.url, '_blank', 'noopener,noreferrer');
+                onSuccess: async (res) => {
+                  const unsub = await onExternalBrowserFinished(() => {
+                    void queryClient.invalidateQueries({ queryKey: ['dues'] });
+                    void unsub();
+                  });
+                  await openExternalUrl(res.url);
                 },
               }
             )

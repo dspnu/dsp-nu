@@ -14,6 +14,7 @@ import {
   Mail, Phone, GraduationCap, Linkedin, MapPin, Users, Heart, 
   ArrowLeft, Coffee, Calendar, Award, Clock, User, CheckCircle
 } from 'lucide-react';
+import { ExternalLink } from '@/components/ExternalLink';
 import { useMembers, useMemberPoints } from '@/core/members/hooks/useMembers';
 import { useServiceHours } from '@/features/service-hours/hooks/useServiceHours';
 import { useAuth } from '@/core/auth/AuthContext';
@@ -244,14 +245,12 @@ export default function MemberProfilePage() {
                 {member.linkedin_url && (
                   <div className="flex items-center gap-3">
                     <Linkedin className="h-4 w-4 text-muted-foreground" />
-                    <a 
-                      href={member.linkedin_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
+                    <ExternalLink
+                      href={member.linkedin_url}
                       className="hover:underline text-primary"
                     >
                       LinkedIn Profile
-                    </a>
+                    </ExternalLink>
                   </div>
                 )}
               </CardContent>

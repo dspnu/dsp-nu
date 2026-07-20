@@ -5,6 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { CheckCircle2, XCircle, Minus, Clock, Coffee, ClipboardList } from 'lucide-react';
 import { format, isPast } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
+import { openExternalUrl } from '@/lib/openExternalUrl';
 import type { PDPAssignment, PDPSubmission } from '@/features/pdp/hooks/usePDPAssignments';
 
 interface MemberDetailDialogProps {
@@ -89,13 +90,13 @@ export function MemberDetailDialog({
                                 className="text-[10px] text-primary underline"
                                 onClick={async () => {
                                   if (fileUrls[path]) {
-                                    window.open(fileUrls[path], '_blank');
+                                    await openExternalUrl(fileUrls[path]);
                                     return;
                                   }
                                   const { data } = await supabase.storage.from('pdp-submissions').createSignedUrl(path, 3600);
                                   if (data?.signedUrl) {
                                     setFileUrls(prev => ({ ...prev, [path]: data.signedUrl }));
-                                    window.open(data.signedUrl, '_blank');
+                                    await openExternalUrl(data.signedUrl);
                                   }
                                 }}
                               >

@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Palette, ExternalLink, Award } from 'lucide-react';
+import { ExternalLink as ExternalAnchor } from '@/components/ExternalLink';
 import { useChapterSetting, useUpdateChapterSetting } from '@/hooks/useChapterSettings';
 import { useAllPaddleSubmissions } from '@/features/paddle-submissions/hooks/usePaddleSubmissions';
 import { useMembers } from '@/core/members/hooks/useMembers';
@@ -83,9 +84,9 @@ export function VPScholarshipDashboard() {
                     <TableCell className="font-medium text-sm">{getMemberName(sub.user_id)}</TableCell>
                     <TableCell className="text-sm">{sub.subject_name}</TableCell>
                     <TableCell>
-                      <a href={sub.link_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1 text-sm">
+                      <ExternalAnchor href={sub.link_url} className="text-primary hover:underline inline-flex items-center gap-1 text-sm">
                         View <ExternalLink className="h-3 w-3" />
-                      </a>
+                      </ExternalAnchor>
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">{format(new Date(sub.created_at), 'MMM d, yyyy')}</TableCell>
                   </TableRow>

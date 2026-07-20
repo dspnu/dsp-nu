@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => ({
       // Inline registration in index.html so tools (e.g. PWABuilder report card) that scan HTML
       // can see the SW without parsing the main bundle. With default `auto` + `virtual:pwa-register`
       // in the app bundle, the plugin does not inject into HTML.
-      injectRegister: "inline",
+      injectRegister: false,
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "icons/*.png"],
       injectManifest: {

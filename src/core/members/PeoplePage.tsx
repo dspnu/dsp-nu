@@ -165,7 +165,7 @@ export default function PeoplePage() {
                     <MemberCard member={member} />
                   </Link>
                   {(isDeveloper || canManageAdminRoles) && (
-                    <div className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1.5 items-end">
+                    <div className="absolute top-1.5 right-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity flex flex-col gap-1.5 items-end">
                       {canManageAdminRoles && <AdminRoleDialog member={member} />}
                       {isDeveloper && <AdminPositionsDialog member={member} />}
                     </div>

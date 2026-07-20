@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { CheckCircle, Clock, Heart } from 'lucide-react';
+import { ExternalLink as ExternalAnchor } from '@/components/ExternalLink';
 import { useAllServiceHours, useVerifyServiceHours } from '@/features/service-hours/hooks/useServiceHours';
 import { useMembers } from '@/core/members/hooks/useMembers';
 import { useAuth } from '@/core/auth/AuthContext';
@@ -121,9 +122,9 @@ export function VPCommunityServiceDashboard() {
                   </div>
                   <div className="flex items-center gap-2">
                     {(entry as any).photo_url && (
-                      <a href={(entry as any).photo_url} target="_blank" rel="noopener noreferrer">
+                      <ExternalAnchor href={(entry as any).photo_url}>
                         <img src={(entry as any).photo_url} alt="Proof" className="h-8 w-8 rounded object-cover border" />
-                      </a>
+                      </ExternalAnchor>
                     )}
                     <Button size="sm" onClick={() => verifyHours.mutate({ id: entry.id, verified_by: user?.id ?? '' })} disabled={verifyHours.isPending}>
                       <CheckCircle className="h-4 w-4 mr-1" />Verify

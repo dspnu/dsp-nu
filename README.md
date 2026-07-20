@@ -173,17 +173,85 @@ This repo includes a `vercel.json`, so Vercel deployment is straightforward.
 
 ---
 
-## 8) Suggested “buyer handoff” checklist
+## 8) iOS native app (Capacitor)
+
+The web app ships as a Capacitor 8 iOS shell under `ios/`.
+
+### Prerequisites
+
+- macOS with **Xcode 16+**
+- Apple Developer account (signing + App Store Connect)
+- CocoaPods not required (SPM via CapApp-SPM)
+
+### Build / open
+
+```bash
+npm install
+npm run cap:sync:ios   # vite build + npx cap sync ios
+npm run ios:open       # opens Xcode
+```
+
+In Xcode: select your Team, set a unique Marketing Version / Build, then Run on a device or Archive for TestFlight.
+
+### Auth deep links (required)
+
+Add this redirect URL in **Supabase → Authentication → URL Configuration → Redirect URLs**:
+
+- `dspnu://auth/callback`
+
+That scheme is registered in `ios/App/App/Info.plist` and used for Google OAuth, Sign in with Apple, and password-reset emails when running inside the native app.
+
+### Sign in with Apple (App Store Guideline 4.8)
+
+Because Google OAuth is offered, Apple Sign In must also be available:
+
+1. Enable the **Apple** provider in Supabase Auth.
+2. Configure the Apple Services ID / key per [Supabase Apple docs](https://supabase.com/docs/guides/auth/social-login/auth-apple).
+3. In Apple Developer, enable **Sign In with Apple** on App ID `com.tartabinienterprises.dspnu`.
+
+### Push notifications (APNs)
+
+Edge function `supabase/functions/push-webhook` sends via APNs. Set secrets:
+
+- `APNS_TEAM_ID`
+- `APNS_KEY_ID`
+- `APNS_P8_PRIVATE_KEY`
+- `APNS_BUNDLE_ID=com.tartabinienterprises.dspnu`
+
+Members enable push from **Settings** in the native app (`device_push_tokens` table).
+
+### Store listing checklist
+
+- [ ] Privacy Policy / Terms / EULA URLs live ([`src/config/legal.ts`](src/config/legal.ts))
+- [ ] App Privacy questionnaire matches `PrivacyInfo.xcprivacy`
+- [ ] Screenshots for 6.7" and 6.1" iPhones
+- [ ] Age rating / content rights
+- [ ] Account deletion path works (Settings → Delete Account)
+- [ ] Export compliance: `ITSAppUsesNonExemptEncryption` is `false` (HTTPS only)
+- [ ] Camera / Photos / Notifications permission strings accurate in Info.plist
+
+### Useful scripts
+
+| Script | Purpose |
+|--------|---------|
+| `npm run cap:sync:ios` | Production web build + sync into `ios/` |
+| `npm run ios:open` | Open the Xcode workspace/project |
+
+---
+
+## 9) Suggested “buyer handoff” checklist
 
 If you monetize this template, include this in your product docs:
 
 - [ ] Add `.env` with Supabase URL + anon key
 - [ ] Run DB migrations
-- [ ] Configure auth providers (Email/Google)
+- [ ] Configure auth providers (Email / Google / Apple)
+- [ ] Add `dspnu://auth/callback` to Supabase redirect URLs (for iOS)
 - [ ] Update `src/config/org.ts` branding + domain
 - [ ] Create initial admin account / role records
 - [ ] Verify key flows: sign-in, onboarding, events, attendance, dashboards
 - [ ] Deploy and confirm OAuth callback URLs match production domain
+- [ ] (iOS) `npm run cap:sync:ios`, signing, APNs secrets, TestFlight smoke test
 
 ---
 

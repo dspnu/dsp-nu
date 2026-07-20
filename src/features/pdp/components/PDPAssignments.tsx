@@ -10,6 +10,8 @@ import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, ClipboardList, Calendar, Trash2, CheckCircle2, XCircle, Clock, Send, MessageSquare, CalendarPlus, Upload, Paperclip, X, Pencil } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { openExternalUrl } from '@/lib/openExternalUrl';
+import { ExternalLink as ExternalAnchor } from '@/components/ExternalLink';
 import { format, isPast, differenceInDays } from 'date-fns';
 import { useAuth } from '@/core/auth/AuthContext';
 import { useMembers } from '@/core/members/hooks/useMembers';
@@ -88,13 +90,13 @@ function SubmissionDetail({ submission, isVP, members }: { submission: PDPSubmis
               className="text-xs text-primary underline cursor-pointer"
               onClick={async () => {
                 if (fileUrls[path]) {
-                  window.open(fileUrls[path], '_blank');
+                  await openExternalUrl(fileUrls[path]);
                   return;
                 }
                 const { data } = await supabase.storage.from('pdp-submissions').createSignedUrl(path, 3600);
                 if (data?.signedUrl) {
                   setFileUrls(prev => ({ ...prev, [path]: data.signedUrl }));
-                  window.open(data.signedUrl, '_blank');
+                  await openExternalUrl(data.signedUrl);
                 }
               }}
             >
@@ -280,9 +282,9 @@ function AssignmentCard({ assignment, isVP, isNewMember, mySubmission, allSubmis
             </span>
             <div className="flex gap-1">
               {(['google', 'outlook', 'apple'] as const).map(type => (
-                <a key={type} href={generateCalendarUrl(type, assignment)} target="_blank" rel="noreferrer" className="text-[10px] text-primary hover:underline">
+                <ExternalAnchor key={type} href={generateCalendarUrl(type, assignment)} className="text-[10px] text-primary hover:underline">
                   {type === 'google' ? 'Google' : type === 'outlook' ? 'Outlook' : 'Apple'}
-                </a>
+                </ExternalAnchor>
               ))}
             </div>
           </div>

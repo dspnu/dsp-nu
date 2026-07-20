@@ -5,6 +5,7 @@ import { Tables } from '@/integrations/supabase/types';
 import { EditAlumniButton } from './AlumniForm';
 import { useAuth } from '@/core/auth/AuthContext';
 import { useDeleteAlumni } from '@/features/alumni/hooks/useAlumni';
+import { ExternalLink as ExternalAnchor } from '@/components/ExternalLink';
 
 type Alumni = Tables<'alumni'>;
 
@@ -83,10 +84,10 @@ export function AlumniCard({ alumni }: AlumniCardProps) {
             )}
             {alumni.linkedin_url && (
               <Button asChild variant="outline" size="sm" className="h-6 text-[11px] px-2 gap-1">
-                <a href={alumni.linkedin_url} target="_blank" rel="noopener noreferrer">
+                <ExternalAnchor href={alumni.linkedin_url}>
                   <Linkedin className="h-3 w-3" />
                   LinkedIn
-                </a>
+                </ExternalAnchor>
               </Button>
             )}
           </div>
