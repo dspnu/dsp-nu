@@ -1,11 +1,11 @@
-import { type ComponentType } from 'react';
+import { type ComponentType, type LazyExoticComponent } from 'react';
 import { type LucideIcon } from 'lucide-react';
 import type { FeatureKey } from './capabilities';
 import { isCapabilityEnabled } from './capabilities';
 
 export interface FeatureRoute {
   path: string;
-  component: ComponentType;
+  component: ComponentType | LazyExoticComponent<ComponentType>;
 }
 
 export interface FeatureNavItem {

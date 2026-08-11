@@ -68,6 +68,7 @@ export function useLogServiceHours() {
       toast.success('Service hours logged');
       queryClient.invalidateQueries({ queryKey: ['service-hours'] });
       queryClient.invalidateQueries({ queryKey: ['all-service-hours'] });
+      queryClient.invalidateQueries({ queryKey: ['service-hours-totals'] });
     },
     onError: () => {
       toast.error('Failed to log service hours');
@@ -90,6 +91,7 @@ export function useVerifyServiceHours() {
       toast.success('Service hours verified');
       queryClient.invalidateQueries({ queryKey: ['service-hours'] });
       queryClient.invalidateQueries({ queryKey: ['all-service-hours'] });
+      queryClient.invalidateQueries({ queryKey: ['service-hours-totals'] });
     },
     onError: () => {
       toast.error('Failed to verify service hours');

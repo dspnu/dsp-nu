@@ -19,6 +19,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useMembers } from '@/core/members/hooks/useMembers';
 import { useAllAttendance } from '@/features/events/hooks/useAttendance';
 import { useChapterSetting, useUpdateChapterSetting } from '@/hooks/useChapterSettings';
+import {
+  useMemberPointsBreakdown,
+  useServiceHoursTotals,
+} from '@/features/admin/hooks/useMemberAggregates';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useRealtimeCandidates, useRealtimeVoteCounts } from '@/features/eop/hooks/useEOPRealtime';
@@ -103,32 +107,18 @@ export function VPChapterOpsDashboard() {
     updateSetting.mutate({ key: 'eop_base_voters', value: newPresentCount });
   };
 
-  const { data: allPoints = [] } = useQuery({
-    queryKey: ['all-points'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('points_ledger').select('*');
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { data: allPoints = [] } = useMemberPointsBreakdown();
 
   const { data: events = [] } = useQuery({
-    queryKey: ['events'],
+    queryKey: ['events', 'ids-only'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('events').select('*').order('start_time', { ascending: false });
+      const { data, error } = await supabase.from('events').select('id').order('start_time', { ascending: false });
       if (error) throw error;
       return data;
     },
   });
 
-  const { data: allHours = [] } = useQuery({
-    queryKey: ['all-service-hours'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('service_hours').select('*');
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { data: hoursTotals = [] } = useServiceHoursTotals();
 
   const totalEvents = events.length;
   const totalPresent = allAttendance.filter(a => a.status === 'present').length;
@@ -147,9 +137,9 @@ export function VPChapterOpsDashboard() {
         });
         const totalPts = pts.reduce((s, p) => s + p.points, 0);
 
-        const hrs = allHours.filter(h => h.user_id === member.user_id);
-        const verifiedHrs = hrs.filter(h => h.verified).reduce((s, h) => s + Number(h.hours), 0);
-        const pendingHrs = hrs.filter(h => !h.verified).reduce((s, h) => s + Number(h.hours), 0);
+        const hourRow = hoursTotals.find(h => h.user_id === member.user_id);
+        const verifiedHrs = hourRow?.verified_hours ?? 0;
+        const pendingHrs = Math.max(0, (hourRow?.total_hours ?? 0) - verifiedHrs);
 
         const memberAttendance = allAttendance.filter(a => a.user_id === member.user_id);
         const attended = memberAttendance.filter(a => a.status === 'present').length;
@@ -171,7 +161,7 @@ export function VPChapterOpsDashboard() {
         };
       })
       .sort((a, b) => b.totalPts - a.totalPts);
-  }, [members, allPoints, allHours, allAttendance, totalEvents, categories, serviceHoursRequirement]);
+  }, [members, allPoints, hoursTotals, allAttendance, totalEvents, categories, serviceHoursRequirement]);
 
   const filteredRows = useMemo(() => {
     return memberRows.filter(row => {

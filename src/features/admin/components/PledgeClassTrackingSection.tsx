@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,8 +7,11 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Users } from 'lucide-react';
 import { useMembers } from '@/core/members/hooks/useMembers';
-import { useAllServiceHours } from '@/features/service-hours/hooks/useServiceHours';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  sumPointsForUser,
+  useMemberPointsBreakdown,
+  useServiceHoursTotals,
+} from '@/features/admin/hooks/useMemberAggregates';
 import { org } from '@/config/org';
 import { useChapterSetting, useUpdateChapterSetting } from '@/hooks/useChapterSettings';
 import { toast } from 'sonner';
@@ -60,7 +62,8 @@ function suggestCurrentPc(members: { status: string; pledge_class: string | null
 
 export function PledgeClassTrackingSection() {
   const { data: members = [] } = useMembers();
-  const { data: allHours = [] } = useAllServiceHours();
+  const { data: allPoints = [] } = useMemberPointsBreakdown();
+  const { data: hoursTotals = [] } = useServiceHoursTotals();
   const updateSetting = useUpdateChapterSetting();
   const { data: orderSetting } = useChapterSetting('pledge_class_order', { whenMissing: [] as string[] });
   const { data: currentPcSetting } = useChapterSetting('current_pc_pledge_class', { whenMissing: '' });
@@ -78,15 +81,6 @@ export function PledgeClassTrackingSection() {
     typeof serviceHoursRequirementSetting === 'number'
       ? serviceHoursRequirementSetting
       : Number(serviceHoursRequirementSetting) || DEFAULT_SERVICE_HOURS;
-
-  const { data: allPoints = [] } = useQuery({
-    queryKey: ['all-points'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('points_ledger').select('*');
-      if (error) throw error;
-      return data;
-    },
-  });
 
   const suggestedCurrent = useMemo(() => suggestCurrentPc(members), [members]);
 
@@ -108,12 +102,12 @@ export function PledgeClassTrackingSection() {
   const rows = useMemo(() => {
     return previousMembers.map((m) => {
       const uid = m.user_id;
-      const pts = allPoints.filter((p: { user_id: string }) => p.user_id === uid).reduce((s: number, p: { points: number }) => s + p.points, 0);
-      const hrs = allHours.filter((h) => h.user_id === uid && h.verified).reduce((s, h) => s + Number(h.hours), 0);
+      const pts = sumPointsForUser(allPoints, uid);
+      const hrs = hoursTotals.find((h) => h.user_id === uid)?.verified_hours ?? 0;
       const good = pts >= POINTS_REQUIREMENT && hrs >= serviceHoursRequirement;
       return { m, pts, hrs, good };
     });
-  }, [previousMembers, allPoints, allHours, serviceHoursRequirement]);
+  }, [previousMembers, allPoints, hoursTotals, serviceHoursRequirement]);
 
   const saveOrder = (next: string[]) => {
     updateSetting.mutate({ key: 'pledge_class_order', value: next.length > 0 ? next : [] });

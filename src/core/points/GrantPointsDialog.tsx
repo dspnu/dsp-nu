@@ -60,6 +60,7 @@ export function GrantPointsDialog() {
     onSuccess: () => {
       toast.success('Points granted successfully');
       queryClient.invalidateQueries({ queryKey: ['all-points'] });
+      queryClient.invalidateQueries({ queryKey: ['member-points-breakdown'] });
       queryClient.invalidateQueries({ queryKey: ['member-points'] });
       form.reset();
       setOpen(false);

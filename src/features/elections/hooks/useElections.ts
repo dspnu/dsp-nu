@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tansta
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/core/auth/AuthContext';
 import { toast } from 'sonner';
+import { pingSupabaseHealth, isHealthSlow } from '@/lib/supabaseHealth';
+import { enterMeetingMode, exitMeetingMode } from '@/lib/meetingMode';
 
 export interface Election {
   id: string;
@@ -39,106 +41,14 @@ export interface ElectionVote {
   created_at: string;
 }
 
-type PgPayload = {
-  eventType: string;
-  new: Record<string, unknown> | null;
-  old: Record<string, unknown> | null;
+export type ElectionVoteTally = {
+  position_id: string;
+  candidate_id: string;
+  vote_count: number;
 };
 
-function parseElectionVoteRow(r: Record<string, unknown> | null): ElectionVote | null {
-  if (
-    !r ||
-    typeof r.id !== 'string' ||
-    typeof r.position_id !== 'string' ||
-    typeof r.candidate_id !== 'string' ||
-    typeof r.voter_id !== 'string' ||
-    typeof r.created_at !== 'string'
-  ) {
-    return null;
-  }
-  return {
-    id: r.id,
-    position_id: r.position_id,
-    candidate_id: r.candidate_id,
-    voter_id: r.voter_id,
-    created_at: r.created_at,
-  };
-}
-
-function applyElectionVotesRealtime(
-  prev: ElectionVote[] | undefined,
-  payload: PgPayload,
-  allowed: Set<string>
-): ElectionVote[] | undefined {
-  if (!prev) return prev;
-
-  const inScope = (row: ElectionVote | null) => !!row && allowed.has(row.position_id);
-
-  if (payload.eventType === 'INSERT') {
-    const row = parseElectionVoteRow(payload.new);
-    if (!inScope(row)) return prev;
-    if (prev.some((v) => v.id === row!.id)) return prev;
-    return [...prev, row!];
-  }
-  if (payload.eventType === 'DELETE') {
-    const row = parseElectionVoteRow(payload.old);
-    if (!inScope(row)) return prev;
-    return prev.filter((v) => v.id !== row!.id);
-  }
-  if (payload.eventType === 'UPDATE') {
-    const oldRow = parseElectionVoteRow(payload.old);
-    const newRow = parseElectionVoteRow(payload.new);
-    let next = prev;
-    if (oldRow && inScope(oldRow)) {
-      next = next.filter((v) => v.id !== oldRow.id);
-    }
-    if (newRow && inScope(newRow)) {
-      next = next.filter(
-        (v) => !(v.position_id === newRow.position_id && v.voter_id === newRow.voter_id)
-      );
-      return [...next, newRow];
-    }
-    return next;
-  }
-  return prev;
-}
-
-function applyMyElectionVotesRealtime(
-  prev: ElectionVote[] | undefined,
-  payload: PgPayload,
-  allowed: Set<string>,
-  myUserId: string
-): ElectionVote[] | undefined {
-  if (!prev) return prev;
-
-  const touchesMe = (row: ElectionVote | null) =>
-    !!row && row.voter_id === myUserId && allowed.has(row.position_id);
-
-  if (payload.eventType === 'INSERT') {
-    const row = parseElectionVoteRow(payload.new);
-    if (!touchesMe(row)) return prev;
-    const without = prev.filter((v) => v.position_id !== row!.position_id);
-    return [...without, row!];
-  }
-  if (payload.eventType === 'DELETE') {
-    const row = parseElectionVoteRow(payload.old);
-    if (!touchesMe(row)) return prev;
-    return prev.filter((v) => v.id !== row!.id);
-  }
-  if (payload.eventType === 'UPDATE') {
-    const newRow = parseElectionVoteRow(payload.new);
-    const oldRow = parseElectionVoteRow(payload.old);
-    if (touchesMe(newRow)) {
-      const without = prev.filter((v) => v.position_id !== newRow!.position_id);
-      return [...without, newRow!];
-    }
-    if (touchesMe(oldRow)) {
-      return prev.filter((v) => v.id !== oldRow!.id);
-    }
-    return prev;
-  }
-  return prev;
-}
+const ELECTION_META_POLL_MS = 3000;
+const ELECTION_RESULTS_POLL_MS = 2000;
 
 function invalidateElectionCandidatesForPosition(qc: QueryClient, positionId: string) {
   qc.invalidateQueries({
@@ -149,7 +59,6 @@ function invalidateElectionCandidatesForPosition(qc: QueryClient, positionId: st
   });
 }
 
-/** Stable query key + Realtime channel id: avoids busting cache when `positions` is a new array reference with the same ids. */
 export function useStableSortedPositionIds(positions: { id: string }[] | undefined): string[] {
   const signature = (positions ?? [])
     .map((p) => p.id)
@@ -158,33 +67,45 @@ export function useStableSortedPositionIds(positions: { id: string }[] | undefin
   return useMemo(() => (signature ? signature.split('|') : []), [signature]);
 }
 
-export function useElections() {
+export function useElections(options?: { pollWhenOpen?: boolean }) {
+  const pollWhenOpen = options?.pollWhenOpen ?? false;
+
   return useQuery({
     queryKey: ['elections'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('elections')
-        .select('*')
+        .select('id, title, description, status, created_by, created_at, updated_at')
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data as Election[];
     },
+    refetchInterval: (q) => {
+      if (!pollWhenOpen) return false;
+      const rows = q.state.data as Election[] | undefined;
+      return rows?.some((e) => e.status === 'open') ? ELECTION_META_POLL_MS : false;
+    },
+    refetchIntervalInBackground: false,
   });
 }
 
-export function useElectionPositions(electionId?: string) {
+export function useElectionPositions(electionId?: string, options?: { pollWhileMounted?: boolean }) {
+  const poll = options?.pollWhileMounted ?? false;
+
   return useQuery({
     queryKey: ['election-positions', electionId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('election_positions')
-        .select('*')
+        .select('id, election_id, position_name, sort_order, is_active, created_at')
         .eq('election_id', electionId!)
         .order('sort_order');
       if (error) throw error;
       return data as ElectionPosition[];
     },
     enabled: !!electionId,
+    refetchInterval: poll && electionId ? ELECTION_META_POLL_MS : false,
+    refetchIntervalInBackground: false,
   });
 }
 
@@ -195,7 +116,7 @@ export function useElectionCandidates(positionIds?: string[]) {
       if (!positionIds || positionIds.length === 0) return [];
       const { data, error } = await supabase
         .from('election_candidates')
-        .select('*')
+        .select('id, position_id, candidate_name, candidate_user_id, created_at')
         .in('position_id', positionIds);
       if (error) throw error;
       return data as ElectionCandidate[];
@@ -204,32 +125,40 @@ export function useElectionCandidates(positionIds?: string[]) {
   });
 }
 
-export function useElectionVotes(positionIds?: string[]) {
-  const queryClient = useQueryClient();
+/** Aggregated tallies via RPC (no full vote row download). */
+export function useElectionVoteTallies(positionIds?: string[], options?: { pollMs?: number }) {
+  const pollMs = options?.pollMs ?? ELECTION_RESULTS_POLL_MS;
 
-  useEffect(() => {
-    if (!positionIds || positionIds.length === 0) return;
-    const allowed = new Set(positionIds);
-    const channelId = `election-votes-${[...positionIds].sort().join('-')}`.slice(0, 180);
-    const channel = supabase
-      .channel(channelId)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'election_votes' },
-        (payload: PgPayload) => {
-          const keyVotes = ['election-votes', positionIds] as const;
-          queryClient.setQueryData<ElectionVote[]>(keyVotes, (past) => {
-            if (past === undefined) {
-              void queryClient.invalidateQueries({ queryKey: keyVotes });
-              return past;
-            }
-            return applyElectionVotesRealtime(past, payload, allowed) ?? past;
-          });
-        }
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [queryClient, positionIds]);
+  return useQuery({
+    queryKey: ['election-vote-tallies', positionIds],
+    queryFn: async () => {
+      if (!positionIds || positionIds.length === 0) {
+        return { tallies: [] as ElectionVoteTally[], uniqueVoters: 0 };
+      }
+      const [countsRes, votersRes] = await Promise.all([
+        supabase.rpc('get_election_vote_counts', { p_position_ids: positionIds }),
+        supabase.rpc('get_election_unique_voters', { p_position_ids: positionIds }),
+      ]);
+      if (countsRes.error) throw countsRes.error;
+      if (votersRes.error) throw votersRes.error;
+      return {
+        tallies: (countsRes.data ?? []).map((r) => ({
+          position_id: r.position_id,
+          candidate_id: r.candidate_id,
+          vote_count: Number(r.vote_count) || 0,
+        })),
+        uniqueVoters: Number(votersRes.data) || 0,
+      };
+    },
+    enabled: !!positionIds && positionIds.length > 0,
+    refetchInterval: positionIds && positionIds.length > 0 ? pollMs : false,
+    refetchIntervalInBackground: false,
+  });
+}
+
+/** @deprecated Prefer useElectionVoteTallies for admin results. */
+export function useElectionVotes(positionIds?: string[], options?: { pollMs?: number }) {
+  const pollMs = options?.pollMs ?? ELECTION_RESULTS_POLL_MS;
 
   return useQuery({
     queryKey: ['election-votes', positionIds],
@@ -237,53 +166,21 @@ export function useElectionVotes(positionIds?: string[]) {
       if (!positionIds || positionIds.length === 0) return [];
       const { data, error } = await supabase
         .from('election_votes')
-        .select('*')
+        .select('id, position_id, candidate_id, voter_id, created_at')
         .in('position_id', positionIds);
       if (error) throw error;
       return data as ElectionVote[];
     },
     enabled: !!positionIds && positionIds.length > 0,
+    refetchInterval: positionIds && positionIds.length > 0 ? pollMs : false,
+    refetchIntervalInBackground: false,
   });
 }
 
 export function useMyElectionVotes(positionIds?: string[]) {
-  const queryClient = useQueryClient();
   const { user } = useAuth();
   const uid = user?.id ?? null;
   const keyMine = ['my-election-votes', uid, positionIds] as const;
-
-  // Members use this hook without useElectionVotes; they still need Realtime to merge peers' visible state is N/A,
-  // but their own row must update from upsert + from events for multi-tab consistency.
-  useEffect(() => {
-    if (!positionIds || positionIds.length === 0 || !uid) return;
-    const allowed = new Set(positionIds);
-    const channelId = `election-my-votes-${uid}-${[...positionIds].sort().join('-')}`.slice(0, 180);
-    const channel = supabase
-      .channel(channelId)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'election_votes',
-          // Scope realtime to this voter only to reduce event fanout.
-          filter: `voter_id=eq.${uid}`,
-        },
-        (payload: PgPayload) => {
-          queryClient.setQueryData<ElectionVote[]>(keyMine, (past) => {
-            if (past === undefined) {
-              void queryClient.invalidateQueries({ queryKey: keyMine });
-              return past;
-            }
-            return applyMyElectionVotesRealtime(past, payload, allowed, uid) ?? past;
-          });
-        }
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [keyMine, queryClient, positionIds, uid]);
 
   return useQuery({
     queryKey: keyMine,
@@ -291,7 +188,7 @@ export function useMyElectionVotes(positionIds?: string[]) {
       if (!positionIds || positionIds.length === 0 || !uid) return [];
       const { data, error } = await supabase
         .from('election_votes')
-        .select('*')
+        .select('id, position_id, candidate_id, voter_id, created_at')
         .in('position_id', positionIds)
         .eq('voter_id', uid);
       if (error) throw error;
@@ -299,6 +196,15 @@ export function useMyElectionVotes(positionIds?: string[]) {
     },
     enabled: !!uid && !!positionIds && positionIds.length > 0,
   });
+}
+
+/** Hold meeting mode while any election is open (home ballot / admin). */
+export function useElectionMeetingMode(active: boolean) {
+  useEffect(() => {
+    if (!active) return;
+    enterMeetingMode();
+    return () => exitMeetingMode();
+  }, [active]);
 }
 
 export function useCreateElection() {
@@ -321,7 +227,6 @@ export function useUpdateElectionStatus() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: 'draft' | 'open' | 'closed' }) => {
-      // When publishing, deactivate all positions so VP must open each manually
       if (status === 'open') {
         const { error: posError } = await supabase
           .from('election_positions')
@@ -434,6 +339,23 @@ export function useTogglePositionActive() {
       is_active: boolean;
       election_id: string;
     }) => {
+      if (is_active) {
+        const health = await pingSupabaseHealth();
+        if (isHealthSlow(health)) {
+          throw new Error(
+            `Connection looks slow (${health.latencyMs}ms). Wait a moment before opening the next position.`
+          );
+        }
+        // One position at a time
+        const { error: closeError } = await supabase
+          .from('election_positions')
+          .update({ is_active: false })
+          .eq('election_id', election_id)
+          .eq('is_active', true)
+          .neq('id', id);
+        if (closeError) throw closeError;
+      }
+
       const { error } = await supabase.from('election_positions').update({ is_active }).eq('id', id);
       if (error) throw error;
       return election_id;
@@ -441,7 +363,7 @@ export function useTogglePositionActive() {
     onSuccess: (electionId) => {
       qc.invalidateQueries({ queryKey: ['election-positions', electionId] });
     },
-    onError: () => toast.error('Failed to toggle position'),
+    onError: (error: Error) => toast.error(error.message || 'Failed to toggle position'),
   });
 }
 
@@ -454,38 +376,22 @@ export function useCastVote() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (values: { position_id: string; candidate_id: string; voter_id: string }) => {
-      const { data, error } = await supabase
-        .from('election_votes')
-        .upsert(values, { onConflict: 'position_id,voter_id' })
-        .select()
-        .single();
+      const { data, error } = await supabase.rpc('cast_election_vote', {
+        p_position_id: values.position_id,
+        p_candidate_id: values.candidate_id,
+      });
       if (error) throw error;
       return data as ElectionVote;
     },
     onSuccess: (data) => {
-      (qc.setQueriesData as any)({ queryKey: ['my-election-votes'] }, (prev: ElectionVote[] | undefined, query: { queryKey: unknown[] }) => {
-        const ids = query.queryKey[2];
-        if (!Array.isArray(ids) || !ids.includes(data.position_id)) return prev;
-        return mergeMyElectionVotesCache(prev, data);
-      });
-      (qc.setQueriesData as any)({ queryKey: ['election-votes'] }, (prev: ElectionVote[] | undefined, query: { queryKey: unknown[] }) => {
-        const ids = query.queryKey[1];
-        if (!Array.isArray(ids) || !ids.includes(data.position_id)) return prev;
-        if (prev === undefined) {
-          void qc.invalidateQueries({ queryKey: query.queryKey });
-          return prev;
-        }
-        return mergeElectionVotesListFromUpsert(prev, data);
-      });
+      for (const [key, prev] of qc.getQueriesData<ElectionVote[]>({ queryKey: ['my-election-votes'] })) {
+        const ids = key[2];
+        if (!Array.isArray(ids) || !ids.includes(data.position_id)) continue;
+        qc.setQueryData(key, mergeMyElectionVotesCache(prev, data));
+      }
+      void qc.invalidateQueries({ queryKey: ['election-vote-tallies'] });
       toast.success('Vote cast');
     },
     onError: () => toast.error('Failed to cast vote'),
   });
-}
-
-function mergeElectionVotesListFromUpsert(prev: ElectionVote[], row: ElectionVote): ElectionVote[] {
-  const without = prev.filter(
-    (v) => !(v.position_id === row.position_id && v.voter_id === row.voter_id)
-  );
-  return [...without, row];
 }

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,12 +18,13 @@ import {
 import { useAuth } from '@/core/auth/AuthContext';
 import { useMembers } from '@/core/members/hooks/useMembers';
 import {
-  useElections, useElectionPositions, useElectionCandidates, useElectionVotes,
+  useElections, useElectionPositions, useElectionCandidates, useElectionVoteTallies,
   useCreateElection, useUpdateElectionStatus, useDeleteElection,
   useAddElectionPosition, useDeleteElectionPosition,
   useAddElectionCandidate, useDeleteElectionCandidate,
   useTogglePositionActive,
   useStableSortedPositionIds,
+  useElectionMeetingMode,
   Election,
 } from '@/features/elections/hooks/useElections';
 
@@ -32,9 +33,10 @@ function ResultsView({ election }: { election: Election }) {
   const { data: members = [] } = useMembers();
   const positionIds = useStableSortedPositionIds(positions);
   const { data: candidates = [] } = useElectionCandidates(positionIds);
-  const { data: allVotes = [] } = useElectionVotes(positionIds);
+  const { data: results } = useElectionVoteTallies(positionIds);
+  const tallies = results?.tallies ?? [];
+  const totalVoters = results?.uniqueVoters ?? 0;
 
-  const totalVoters = useMemo(() => new Set(allVotes.map(v => v.voter_id)).size, [allVotes]);
   const activeMembers = members.filter(m => m.status === 'active' || m.status === 'new_member').length;
   const turnout = activeMembers > 0 ? Math.round((totalVoters / activeMembers) * 100) : 0;
 
@@ -54,11 +56,14 @@ function ResultsView({ election }: { election: Election }) {
 
       {positions.map(position => {
         const posCandidates = candidates.filter(c => c.position_id === position.id);
-        const posVotes = allVotes.filter(v => v.position_id === position.id);
-        const totalPosVotes = posVotes.length;
+        const posTallies = tallies.filter(v => v.position_id === position.id);
+        const totalPosVotes = posTallies.reduce((s, t) => s + t.vote_count, 0);
 
         const ranked = posCandidates
-          .map(c => ({ ...c, voteCount: posVotes.filter(v => v.candidate_id === c.id).length }))
+          .map(c => ({
+            ...c,
+            voteCount: posTallies.find(t => t.candidate_id === c.id)?.vote_count ?? 0,
+          }))
           .sort((a, b) => b.voteCount - a.voteCount);
 
         return (
@@ -102,11 +107,9 @@ function ResultsView({ election }: { election: Election }) {
 }
 
 function ElectionDetail({ election }: { election: Election }) {
-  const { user } = useAuth();
   const { data: positions = [] } = useElectionPositions(election.id);
   const positionIds = useStableSortedPositionIds(positions);
   const { data: candidates = [] } = useElectionCandidates(positionIds);
-  const { data: allVotes = [] } = useElectionVotes(positionIds);
   const updateStatus = useUpdateElectionStatus();
   const deleteElection = useDeleteElection();
   const addPosition = useAddElectionPosition();
@@ -304,6 +307,7 @@ export function ElectionManager() {
   const { user } = useAuth();
   const { data: elections = [] } = useElections();
   const createElection = useCreateElection();
+  useElectionMeetingMode(elections.some((e) => e.status === 'open'));
 
   const [createOpen, setCreateOpen] = useState(false);
   const [title, setTitle] = useState('');

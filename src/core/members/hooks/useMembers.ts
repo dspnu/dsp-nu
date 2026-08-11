@@ -12,7 +12,9 @@ export function useMembers() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select(
+          'id, user_id, email, first_name, last_name, phone, graduation_year, major, status, positions, committees, avatar_url, linkedin_url, family, big, little'
+        )
         .order('last_name', { ascending: true });
       
       if (error) throw error;
