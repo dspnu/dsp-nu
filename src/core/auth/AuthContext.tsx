@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
+import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { org, hasPosition } from '@/config/org';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -48,33 +48,59 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+async function withRetry<T>(fn: () => Promise<T>, attempts = 3, delayMs = 400): Promise<T | null> {
+  let lastErr: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastErr = e;
+      if (i < attempts - 1) {
+        await new Promise((r) => setTimeout(r, delayMs * (i + 1)));
+      }
+    }
+  }
+  console.warn('Auth data fetch failed after retries', lastErr);
+  return null;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
+  const intentionalSignOut = useRef(false);
 
   const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .maybeSingle();
-    
-    if (data) {
-      setProfile(data as Profile);
+    const result = await withRetry(async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    });
+
+    if (result) {
+      setProfile(result as Profile);
     }
+    // On failure: keep previous profile instead of wiping UI
   };
 
   const fetchRoles = async (userId: string) => {
-    const { data } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId);
-    
-    if (data) {
-      setRoles(data.map(r => r.role as AppRole));
+    const result = await withRetry(async () => {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId);
+      if (error) throw error;
+      return data;
+    });
+
+    if (result) {
+      setRoles(result.map((r) => r.role as AppRole));
     }
   };
 
@@ -86,34 +112,75 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    const applySession = (next: Session | null, opts?: { clearProfile?: boolean }) => {
+      setSession(next);
+      setUser(next?.user ?? null);
+      if (next?.user) {
+        void fetchProfile(next.user.id);
+        void fetchRoles(next.user.id);
+      } else if (opts?.clearProfile) {
+        setProfile(null);
+        setRoles([]);
+      }
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          setTimeout(() => {
-            fetchProfile(session.user.id);
-            fetchRoles(session.user.id);
-          }, 0);
-        } else {
-          setProfile(null);
-          setRoles([]);
+      (event: AuthChangeEvent, nextSession) => {
+        if (event === 'TOKEN_REFRESHED') {
+          // Refresh blips must never wipe profile/roles
+          if (nextSession?.user) {
+            setSession(nextSession);
+            setUser(nextSession.user);
+          }
+          setLoading(false);
+          return;
         }
-        
+
+        if (event === 'SIGNED_OUT') {
+          if (intentionalSignOut.current) {
+            intentionalSignOut.current = false;
+            applySession(null, { clearProfile: true });
+            setLoading(false);
+            return;
+          }
+          // Transient SIGNED_OUT under load: verify before wiping the app
+          void supabase.auth.getSession().then(({ data }) => {
+            if (data.session?.user) {
+              applySession(data.session);
+            } else {
+              // One refresh attempt before accepting logout
+              void supabase.auth
+                .refreshSession()
+                .then(({ data: refreshed, error }) => {
+                  if (!error && refreshed.session?.user) {
+                    applySession(refreshed.session);
+                  } else {
+                    applySession(null, { clearProfile: true });
+                  }
+                })
+                .finally(() => setLoading(false));
+              return;
+            }
+            setLoading(false);
+          });
+          return;
+        }
+
+        if (nextSession?.user) {
+          applySession(nextSession);
+        } else if (event === 'USER_DELETED') {
+          applySession(null, { clearProfile: true });
+        }
+        // Ignore other null-session events without clearing cached profile
+
         setLoading(false);
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchProfile(session.user.id);
-        fetchRoles(session.user.id);
+    supabase.auth.getSession().then(({ data: { session: initial } }) => {
+      if (initial?.user) {
+        applySession(initial);
       }
-      
       setLoading(false);
     });
 
@@ -127,7 +194,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
     const redirectUrl = `${window.location.origin}/`;
-    
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -139,7 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
       },
     });
-    
+
     return { error };
   };
 
@@ -154,6 +221,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    intentionalSignOut.current = true;
     await supabase.auth.signOut();
     setProfile(null);
     setRoles([]);

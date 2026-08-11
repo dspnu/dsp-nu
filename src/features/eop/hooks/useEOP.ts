@@ -190,38 +190,20 @@ export function useVoteCounts() {
 }
 
 export function useCastVote() {
+  // Legacy path retained only so old imports fail loudly.
+  // Live ballots must use useCastVoteRealtime (RPC) from useEOPRealtime.
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ candidate_id, vote }: { candidate_id: string; vote: VoteType }) => {
       if (!user) throw new Error('Not authenticated');
-      
-      // Check if already voted
-      const { data: existing } = await supabase
-        .from('eop_votes')
-        .select('id')
-        .eq('voter_id', user.id)
-        .eq('candidate_id', candidate_id)
-        .single();
-
-      if (existing) {
-        throw new Error('You have already voted for this candidate');
-      }
-      
-      const { data, error } = await supabase
-        .from('eop_votes')
-        .insert({ voter_id: user.id, candidate_id, vote })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['my-eop-votes'] });
-      queryClient.invalidateQueries({ queryKey: ['eop-vote-counts'] });
-      toast.success('Vote cast successfully!');
+      void candidate_id;
+      void vote;
+      void queryClient;
+      throw new Error(
+        'Legacy EOP cast is disabled. Use the live EOP ballot (useCastVoteRealtime).'
+      );
     },
     onError: (error) => {
       toast.error(error.message);

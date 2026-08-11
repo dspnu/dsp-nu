@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useMembers } from '@/core/members/hooks/useMembers';
 import { useAllDues } from '@/features/dues/hooks/useDues';
-import { useAllServiceHours } from '@/features/service-hours/hooks/useServiceHours';
-import { supabase } from '@/integrations/supabase/client';
+import {
+  sumPointsForUser,
+  useMemberPointsBreakdown,
+  useServiceHoursTotals,
+} from '@/features/admin/hooks/useMemberAggregates';
 import { org } from '@/config/org';
 import { DataExportCard } from '@/features/admin/components/DataExportCard';
 import { ExecGoalsSection } from '@/features/admin/components/ExecGoalsSection';
@@ -72,7 +74,8 @@ const normalizeAdminVisibility = (value: unknown): AdminTabVisibility => {
 export function PresidentDashboard() {
   const { data: members = [] } = useMembers();
   const { data: allDues = [] } = useAllDues();
-  const { data: allHours = [] } = useAllServiceHours();
+  const { data: allPoints = [] } = useMemberPointsBreakdown();
+  const { data: hoursTotals = [] } = useServiceHoursTotals();
   const updateSetting = useUpdateChapterSetting();
   const { data: eventTypesSetting } = useChapterSetting('custom_event_types', { whenMissing: DEFAULT_EVENT_TYPES });
   const { data: pointCategoriesSetting } = useChapterSetting('custom_point_categories', { whenMissing: DEFAULT_POINT_CATEGORIES });
@@ -91,15 +94,6 @@ export function PresidentDashboard() {
   const [serviceHoursInput, setServiceHoursInput] = useState(String(serviceHoursRequirementSetting ?? SERVICE_HOURS_REQUIREMENT));
 
   const [openSections, setOpenSections] = useState<string[]>(['at-a-glance', 'leadership']);
-
-  const { data: allPoints = [] } = useQuery({
-    queryKey: ['all-points'],
-    queryFn: async () => {
-      const { data, error } = await supabase.from('points_ledger').select('*');
-      if (error) throw error;
-      return data;
-    },
-  });
 
   const activeMembers = members.filter((m) => m.status === 'active' || m.status === 'new_member');
   const totalDuesCollected = allDues.reduce((s, d) => s + Number(d.amount), 0);
@@ -126,11 +120,12 @@ export function PresidentDashboard() {
 
   const goodStandingCount = useMemo(() => {
     return activeMembers.filter((m) => {
-      const pts = allPoints.filter((p) => p.user_id === m.user_id).reduce((s, p) => s + p.points, 0);
-      const hrs = allHours.filter((h) => h.user_id === m.user_id && h.verified).reduce((s, h) => s + Number(h.hours), 0);
+      const pts = sumPointsForUser(allPoints, m.user_id);
+      const hrs =
+        hoursTotals.find((h) => h.user_id === m.user_id)?.verified_hours ?? 0;
       return pts >= POINTS_REQUIREMENT && hrs >= serviceHoursRequirement;
     }).length;
-  }, [activeMembers, allPoints, allHours, serviceHoursRequirement]);
+  }, [activeMembers, allPoints, hoursTotals, serviceHoursRequirement]);
 
   const saveListSetting = (key: string, values: string[]) => {
     updateSetting.mutate({ key, value: values });

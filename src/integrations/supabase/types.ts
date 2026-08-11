@@ -2024,6 +2024,59 @@ export type Database = {
       delete_user_account: { Args: never; Returns: Json }
       get_career_credit_balance: { Args: { _user_id: string }; Returns: Json }
       get_career_hub_usage_stats: { Args: { p_days?: number }; Returns: Json }
+      cast_eop_vote: {
+        Args: { p_candidate_id: string; p_vote: Database["public"]["Enums"]["eop_vote"] }
+        Returns: Database["public"]["Tables"]["eop_votes"]["Row"]
+      }
+      cast_election_vote: {
+        Args: { p_position_id: string; p_candidate_id: string }
+        Returns: Database["public"]["Tables"]["election_votes"]["Row"]
+      }
+      get_eop_vote_counts: {
+        Args: { p_candidate_id?: string | null }
+        Returns: {
+          candidate_id: string
+          yes: number
+          no: number
+          abstain: number
+          total: number
+        }[]
+      }
+      get_election_vote_counts: {
+        Args: { p_position_ids: string[] }
+        Returns: {
+          position_id: string
+          candidate_id: string
+          vote_count: number
+        }[]
+      }
+      get_election_unique_voters: {
+        Args: { p_position_ids: string[] }
+        Returns: number
+      }
+      get_eop_ready_status: {
+        Args: { p_candidate_id: string }
+        Returns: {
+          ready_count: number
+          i_am_ready: boolean
+        }[]
+      }
+      get_member_points_breakdown: {
+        Args: never
+        Returns: {
+          user_id: string
+          category: string
+          points: number
+        }[]
+      }
+      get_service_hours_totals: {
+        Args: never
+        Returns: {
+          user_id: string
+          verified_hours: number
+          total_hours: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

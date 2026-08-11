@@ -117,7 +117,7 @@ export function StandingTab() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('points_ledger')
-        .select('*')
+        .select('user_id, points, category')
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data;

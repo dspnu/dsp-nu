@@ -4,7 +4,6 @@ import { createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching';
 import { NavigationRoute, registerRoute } from 'workbox-routing';
 import { NetworkFirst, NetworkOnly } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
-import { BackgroundSyncPlugin } from 'workbox-background-sync';
 import { PWA_BACKGROUND_SYNC_TAG, PWA_PERIODIC_SYNC_TAG } from './lib/pwaServiceWorkerTags';
 
 declare const self: ServiceWorkerGlobalScope & {
@@ -35,8 +34,18 @@ self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
-self.addEventListener('activate', () => {
-  void clientsClaim();
+self.addEventListener('activate', (event) => {
+  // Drop legacy supabase REST cache that could serve stale/empty profiles after overload
+  event.waitUntil(
+    (async () => {
+      await clientsClaim();
+      try {
+        await caches.delete('supabase-cache');
+      } catch {
+        /* ignore */
+      }
+    })()
+  );
 });
 
 precacheAndRoute(self.__WB_MANIFEST);
@@ -47,34 +56,34 @@ const navigationRoute = new NavigationRoute(createHandlerBoundToURL('/index.html
 });
 registerRoute(navigationRoute);
 
-registerRoute(
-  ({ url }) => url.hostname.endsWith('.supabase.co') && url.pathname.startsWith('/auth/v1/'),
-  new NetworkOnly()
-);
-
+// Never cache Auth or PostgREST — critical during live voting / auth refresh storms
 registerRoute(
   ({ url }) =>
     url.hostname.endsWith('.supabase.co') &&
-    /\/rest\/v1\/(election_votes|election_positions|election_candidates|elections)/.test(url.pathname),
+    (url.pathname.startsWith('/auth/v1/') ||
+      url.pathname.startsWith('/rest/v1/') ||
+      url.pathname.startsWith('/realtime/v1/')),
   new NetworkOnly()
 );
 
-const supabaseBgSync = new BackgroundSyncPlugin('supabase-failed-requests', {
-  maxRetentionTime: 24 * 60,
-});
-
+// Storage assets may still use a short NetworkFirst cache (no background sync of mutations)
 registerRoute(
-  ({ url }) => url.hostname.endsWith('.supabase.co'),
+  ({ url }) => url.hostname.endsWith('.supabase.co') && url.pathname.startsWith('/storage/v1/'),
   new NetworkFirst({
-    cacheName: 'supabase-cache',
+    cacheName: 'supabase-storage-cache',
     plugins: [
       new ExpirationPlugin({
-        maxEntries: 50,
+        maxEntries: 80,
         maxAgeSeconds: 60 * 60 * 24,
       }),
-      supabaseBgSync,
     ],
   })
+);
+
+// Any remaining supabase.co traffic: network only (no BackgroundSync replay mid-meeting)
+registerRoute(
+  ({ url }) => url.hostname.endsWith('.supabase.co'),
+  new NetworkOnly()
 );
 
 const PERIODIC_CACHE = 'dsp-periodic-precache';
@@ -242,7 +251,7 @@ self.addEventListener('widgetclick', (event: Event) => {
 
   const url = `${self.location.origin}${path}`;
   e.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async clients => {
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async (clients) => {
       for (const client of clients) {
         if (!client.url.startsWith(self.location.origin)) continue;
         const wc = client as WindowClient;

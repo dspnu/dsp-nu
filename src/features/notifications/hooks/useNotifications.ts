@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/core/auth/AuthContext';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
+import { useMeetingMode } from '@/lib/meetingMode';
 
 export interface Notification {
   id: string;
@@ -33,6 +34,9 @@ interface NotificationPreferences {
   data_usage_consent_updated_at: string | null;
 }
 
+const NOTIF_POLL_MS = 45_000;
+const NOTIF_MEETING_POLL_MS = 90_000;
+
 function invalidateNotificationQueries(queryClient: QueryClient, userId: string) {
   queryClient.invalidateQueries({ queryKey: ['notifications'] });
   queryClient.invalidateQueries({ queryKey: ['notifications-unread-count', userId] });
@@ -41,13 +45,16 @@ function invalidateNotificationQueries(queryClient: QueryClient, userId: string)
 export function useNotifications(limit = 100) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const meetingMode = useMeetingMode();
 
   const query = useQuery({
     queryKey: ['notifications', user?.id, limit],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('notifications')
-        .select('*')
+        .select(
+          'id, user_id, title, message, type, link, is_read, created_at, event_id, ticketed_event_id'
+        )
         .eq('user_id', user!.id)
         .order('created_at', { ascending: false })
         .limit(limit);
@@ -56,10 +63,13 @@ export function useNotifications(limit = 100) {
       return data as Notification[];
     },
     enabled: !!user,
+    // Prefer polling over always-on Realtime during meetings (and generally lighter)
+    refetchInterval: meetingMode ? NOTIF_MEETING_POLL_MS : NOTIF_POLL_MS,
+    refetchIntervalInBackground: false,
   });
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || meetingMode) return;
 
     const invalidate = () => {
       queryClient.invalidateQueries({ queryKey: ['notifications', user.id] });
@@ -103,20 +113,21 @@ export function useNotifications(limit = 100) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, queryClient]);
+  }, [user?.id, queryClient, meetingMode]);
 
   return query;
 }
 
 export function useUnreadCount() {
   const { user } = useAuth();
+  const meetingMode = useMeetingMode();
 
   const query = useQuery({
     queryKey: ['notifications-unread-count', user?.id],
     queryFn: async () => {
       const { count, error } = await supabase
         .from('notifications')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('user_id', user!.id)
         .eq('is_read', false);
 
@@ -124,6 +135,8 @@ export function useUnreadCount() {
       return count ?? 0;
     },
     enabled: !!user,
+    refetchInterval: meetingMode ? NOTIF_MEETING_POLL_MS : NOTIF_POLL_MS,
+    refetchIntervalInBackground: false,
   });
 
   return query.data ?? 0;

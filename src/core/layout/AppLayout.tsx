@@ -13,6 +13,7 @@ import { TicketPaymentReminderSync } from '@/features/notifications/components/T
 import { DuesReminderSync } from '@/features/dues/components/DuesReminderSync';
 import { AddToHomeScreenProvider } from '@/components/pwa/AddToHomeScreenPrompt';
 import { AppLogo } from '@/components/branding/AppLogo';
+import { useMeetingMode } from '@/lib/meetingMode';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -21,6 +22,7 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const { user, profile, loading } = useAuth();
   const ticketingEnabled = useCapability('ticketing');
+  const meetingMode = useMeetingMode();
 
   if (loading) {
     return (
@@ -44,9 +46,9 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <AddToHomeScreenProvider>
       <div className="min-h-screen bg-background">
-        <EventReminderSync />
-        {ticketingEnabled && <TicketPaymentReminderSync />}
-        <DuesReminderSync />
+        {!meetingMode && <EventReminderSync />}
+        {!meetingMode && ticketingEnabled && <TicketPaymentReminderSync />}
+        {!meetingMode && <DuesReminderSync />}
         <DesktopSidebar />
         <main className="md:ml-64 pb-[calc(7rem+env(safe-area-inset-bottom))] md:pb-0">
           <div className="px-4 sm:px-6 lg:px-8 py-5 md:py-8 max-w-7xl mx-auto">

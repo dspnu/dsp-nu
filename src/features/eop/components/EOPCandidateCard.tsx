@@ -5,7 +5,8 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThumbsUp, ThumbsDown, Minus, Trash2 } from 'lucide-react';
-import { useCastVote, useToggleVoting, useDeleteCandidate } from '@/features/eop/hooks/useEOP';
+import { useCastVoteRealtime, useToggleVotingRealtime } from '@/features/eop/hooks/useEOPRealtime';
+import { useDeleteCandidate } from '@/features/eop/hooks/useEOP';
 import { EditCandidateButton } from './EOPCandidateForm';
 import type { Tables, Enums } from '@/integrations/supabase/types';
 import {
@@ -38,12 +39,12 @@ interface EOPCandidateCardProps {
 }
 
 export function EOPCandidateCard({ candidate, myVote, voteCounts, isOfficer }: EOPCandidateCardProps) {
-  const castVote = useCastVote();
-  const toggleVoting = useToggleVoting();
+  const castVote = useCastVoteRealtime();
+  const toggleVoting = useToggleVotingRealtime();
   const deleteCandidate = useDeleteCandidate();
 
   const handleVote = (vote: VoteType) => {
-    castVote.mutate({ candidate_id: candidate.id, vote });
+    castVote.mutate({ candidateId: candidate.id, vote });
   };
 
   const voteButtons = [
@@ -56,9 +57,9 @@ export function EOPCandidateCard({ candidate, myVote, voteCounts, isOfficer }: E
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-start gap-4">
-          <Avatar className="h-16 w-16">
-            <AvatarImage src={candidate.picture_url || ''} />
-            <AvatarFallback className="bg-primary/10 text-primary text-lg">
+          <Avatar className="h-12 w-12">
+            <AvatarImage src={candidate.picture_url || ''} alt="" loading="lazy" decoding="async" />
+            <AvatarFallback className="bg-primary/10 text-primary text-sm">
               {candidate.first_name?.[0]}{candidate.last_name?.[0]}
             </AvatarFallback>
           </Avatar>
@@ -151,7 +152,7 @@ export function EOPCandidateCard({ candidate, myVote, voteCounts, isOfficer }: E
                 id={`voting-${candidate.id}`}
                 checked={candidate.voting_open}
                 onCheckedChange={(checked) =>
-                  toggleVoting.mutate({ id: candidate.id, voting_open: checked })
+                  toggleVoting.mutate({ id: candidate.id, votingOpen: checked })
                 }
               />
             </div>

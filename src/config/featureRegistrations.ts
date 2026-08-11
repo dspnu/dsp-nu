@@ -1,17 +1,19 @@
+import { lazy } from 'react';
 import { Vote, GraduationCap, Briefcase } from 'lucide-react';
 import { registerFeature } from './featureRegistry';
 import { org } from './org';
 
-import EOPPage from '@/features/eop/pages/EOPPage';
-import PDPPage from '@/features/pdp/pages/PDPPage';
-import CoffeeChatDirectoryPage from '@/features/pdp/pages/CoffeeChatDirectoryPage';
 import { PDPProgressCard } from '@/features/pdp/components/PDPProgressCard';
 import { PaddleSubmissionCard } from '@/features/paddle-submissions/components/PaddleSubmissionCard';
 import { ElectionVotingCards } from '@/features/elections/components/ElectionVotingCard';
 import { DuesDueStatusCard } from '@/components/home/DuesDueStatusCard';
-import TicketsPage from '@/features/ticketing/pages/TicketsPage';
 import { TicketsHomeCard } from '@/features/ticketing/components/TicketsHomeCard';
-import CareerHubPage from '@/features/career/pages/CareerHubPage';
+
+const CareerHubPage = lazy(() => import('@/features/career/pages/CareerHubPage'));
+const TicketsPage = lazy(() => import('@/features/ticketing/pages/TicketsPage'));
+const EOPPage = lazy(() => import('@/features/eop/pages/EOPPage'));
+const PDPPage = lazy(() => import('@/features/pdp/pages/PDPPage'));
+const CoffeeChatDirectoryPage = lazy(() => import('@/features/pdp/pages/CoffeeChatDirectoryPage'));
 
 registerFeature({
   key: 'careerHub',

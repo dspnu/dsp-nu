@@ -3,9 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useState } from 'react';
-import { ThumbsUp, ThumbsDown, Hand, CheckCircle2, Lock, Unlock, Users, RotateCcw, RefreshCw, CheckCircle, XCircle, AlertTriangle, Edit2, Check } from 'lucide-react';
-import { useMyVoteForCandidate, useCastVoteRealtime, useToggleReady, useToggleVotingRealtime, useClearVotes, useChangeVote } from '@/features/eop/hooks/useEOPRealtime';
-import { useAuth } from '@/core/auth/AuthContext';
+import { ThumbsUp, ThumbsDown, Hand, CheckCircle2, Lock, Unlock, Users, RotateCcw, RefreshCw, CheckCircle, AlertTriangle } from 'lucide-react';
+import { useMyVoteForCandidate, useCastVoteRealtime, useToggleReady, useToggleVotingRealtime, useClearVotes, useChangeVote, useReadyCooldown } from '@/features/eop/hooks/useEOPRealtime';
 import { useChapterSetting } from '@/hooks/useChapterSettings';
 import type { Tables } from '@/integrations/supabase/types';
 import {
@@ -25,7 +24,7 @@ type EOPCandidate = Tables<'eop_candidates'>;
 interface EOPVotingCardProps {
   candidate: EOPCandidate;
   voteCounts?: { yes: number; no: number; abstain: number; total: number };
-  readyCount?: { count: number; userIds: string[] };
+  readyCount?: { count: number; iAmReady: boolean };
   isVPChapterOps: boolean;
   isActive: boolean;
 }
@@ -37,7 +36,6 @@ export function EOPVotingCard({
   isVPChapterOps,
   isActive 
 }: EOPVotingCardProps) {
-  const { user } = useAuth();
   const { data: myVote, isLoading: voteLoading } = useMyVoteForCandidate(candidate.id);
   const castVote = useCastVoteRealtime();
   const changeVote = useChangeVote();
@@ -45,10 +43,11 @@ export function EOPVotingCard({
   const toggleVoting = useToggleVotingRealtime();
   const clearVotes = useClearVotes();
   const { data: baseVoters } = useChapterSetting('eop_base_voters');
+  const { isCoolingDown, remainingSec, startCooldown } = useReadyCooldown();
 
   const [isChangingVote, setIsChangingVote] = useState(false);
 
-  const isReady = readyCount?.userIds.includes(user?.id || '') || false;
+  const isReady = readyCount?.iAmReady || false;
   
   // Calculate base number: base - absent members
   const baseNumber = typeof baseVoters === 'number' ? baseVoters : (typeof baseVoters === 'string' ? parseInt(baseVoters as string) : 0);
@@ -76,6 +75,8 @@ export function EOPVotingCard({
   };
 
   const handleToggleReady = () => {
+    if (isCoolingDown || toggleReady.isPending) return;
+    startCooldown();
     toggleReady.mutate({ candidateId: candidate.id, isReady });
   };
 
@@ -88,9 +89,15 @@ export function EOPVotingCard({
       <CardContent className="p-6">
         {/* Header */}
         <div className="flex items-start gap-4 mb-4">
-          <Avatar className="h-16 w-16">
-            <AvatarImage src={candidate.picture_url || ''} />
-            <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
+          <Avatar className="h-12 w-12 sm:h-14 sm:w-14">
+            <AvatarImage
+              src={candidate.picture_url || ''}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="object-cover"
+            />
+            <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
               {candidate.first_name?.[0]}{candidate.last_name?.[0]}
             </AvatarFallback>
           </Avatar>
@@ -135,10 +142,14 @@ export function EOPVotingCard({
                   variant={isReady ? 'default' : 'outline'}
                   className="w-full"
                   onClick={handleToggleReady}
-                  disabled={toggleReady.isPending}
+                  disabled={toggleReady.isPending || isCoolingDown}
                 >
                   <Hand className="h-4 w-4 mr-2" />
-                  {isReady ? 'Ready to Vote' : 'Mark as Ready'}
+                  {isCoolingDown
+                    ? `Wait ${remainingSec}s`
+                    : isReady
+                      ? 'Ready to Vote'
+                      : 'Mark as Ready'}
                 </Button>
 
                 {/* Vote Buttons */}

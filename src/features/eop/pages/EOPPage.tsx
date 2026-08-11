@@ -1,25 +1,31 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { AppLayout } from '@/core/layout/AppLayout';
 import { PageHeader } from '@/components/ui/page-header';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Vote, Users, UserCheck } from 'lucide-react';
-import { useRealtimeCandidates, useRealtimeVoteCounts, useRealtimeReadyCounts, useIsVPChapterOps } from '@/features/eop/hooks/useEOPRealtime';
+import { useRealtimeCandidates, useRealtimeVoteCounts, usePolledReadyCounts, useIsVPChapterOps } from '@/features/eop/hooks/useEOPRealtime';
 import { EOPVotingCard } from '@/features/eop/components/EOPVotingCard';
 import { EOPOutOfRoomControl } from '@/features/eop/components/EOPOutOfRoomControl';
+import { enterMeetingMode, exitMeetingMode } from '@/lib/meetingMode';
 
 export default function EOPPage() {
   const { isVPChapterOps } = useIsVPChapterOps();
   const { data: candidates, isLoading } = useRealtimeCandidates();
-  const { data: voteCounts } = useRealtimeVoteCounts();
-  const { data: readyCounts } = useRealtimeReadyCounts();
 
-  // Find the active candidate (voting open)
   const activeCandidate = useMemo(() => 
     candidates?.find(c => c.voting_open), 
     [candidates]
   );
+
+  useEffect(() => {
+    enterMeetingMode();
+    return () => exitMeetingMode();
+  }, []);
+
+  const { data: voteCounts } = useRealtimeVoteCounts(isVPChapterOps);
+  const { data: readyCounts } = usePolledReadyCounts(activeCandidate?.id);
 
   // Stats
   const totalCandidates = candidates?.length || 0;
