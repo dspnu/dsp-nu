@@ -136,13 +136,13 @@ export function useElectionVoteTallies(positionIds?: string[], options?: { pollM
         return { tallies: [] as ElectionVoteTally[], uniqueVoters: 0 };
       }
       const [countsRes, votersRes] = await Promise.all([
-        supabase.rpc('get_election_vote_counts', { p_position_ids: positionIds }),
-        supabase.rpc('get_election_unique_voters', { p_position_ids: positionIds }),
+        (supabase.rpc as any)('get_election_vote_counts', { p_position_ids: positionIds }),
+        (supabase.rpc as any)('get_election_unique_voters', { p_position_ids: positionIds }),
       ]);
       if (countsRes.error) throw countsRes.error;
       if (votersRes.error) throw votersRes.error;
       return {
-        tallies: (countsRes.data ?? []).map((r) => ({
+        tallies: ((countsRes.data ?? []) as any[]).map((r: any) => ({
           position_id: r.position_id,
           candidate_id: r.candidate_id,
           vote_count: Number(r.vote_count) || 0,
@@ -376,12 +376,12 @@ export function useCastVote() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (values: { position_id: string; candidate_id: string; voter_id: string }) => {
-      const { data, error } = await supabase.rpc('cast_election_vote', {
+      const { data, error } = await (supabase.rpc as any)('cast_election_vote', {
         p_position_id: values.position_id,
         p_candidate_id: values.candidate_id,
       });
       if (error) throw error;
-      return data as ElectionVote;
+      return data as unknown as ElectionVote;
     },
     onSuccess: (data) => {
       for (const [key, prev] of qc.getQueriesData<ElectionVote[]>({ queryKey: ['my-election-votes'] })) {

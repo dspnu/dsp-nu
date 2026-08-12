@@ -170,14 +170,14 @@ export function useRealtimeVoteCounts(enabled = false) {
     queryKey: ['eop-vote-counts-realtime'],
     enabled,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_eop_vote_counts', {
+      const { data, error } = await (supabase.rpc as any)('get_eop_vote_counts', {
         p_candidate_id: null,
       });
 
       if (error) throw error;
 
       const counts: Record<string, VoteCounts> = {};
-      (data ?? []).forEach((row) => {
+      ((data ?? []) as any[]).forEach((row: any) => {
         counts[row.candidate_id] = {
           yes: Number(row.yes) || 0,
           no: Number(row.no) || 0,
@@ -251,7 +251,7 @@ export function usePolledReadyCounts(activeCandidateId?: string | null) {
     queryFn: async () => {
       if (!activeCandidateId) return {} as Record<string, ReadyAgg>;
 
-      const { data, error } = await supabase.rpc('get_eop_ready_status', {
+      const { data, error } = await (supabase.rpc as any)('get_eop_ready_status', {
         p_candidate_id: activeCandidateId,
       });
 
@@ -331,7 +331,7 @@ export function useCastVoteRealtime() {
     mutationFn: async ({ candidateId, vote }: { candidateId: string; vote: VoteType }) => {
       if (!user) throw new Error('Not authenticated');
 
-      const { data, error } = await supabase.rpc('cast_eop_vote', {
+      const { data, error } = await (supabase.rpc as any)('cast_eop_vote', {
         p_candidate_id: candidateId,
         p_vote: vote,
       });
@@ -372,7 +372,7 @@ export function useChangeVote() {
 
       if (deleteError) throw deleteError;
 
-      const { data, error } = await supabase.rpc('cast_eop_vote', {
+      const { data, error } = await (supabase.rpc as any)('cast_eop_vote', {
         p_candidate_id: candidateId,
         p_vote: vote,
       });
