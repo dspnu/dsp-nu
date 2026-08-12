@@ -16,6 +16,8 @@ dist
 dist-sku
 dist-ssr
 *.local
+.env
+.env.migration
 
 # Editor directories and files
 .vscode/*

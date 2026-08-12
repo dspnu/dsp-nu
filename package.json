@@ -15,7 +15,9 @@
     "preview": "vite preview",
     "cap:sync": "npm run build && npx cap sync",
     "cap:sync:ios": "npm run build && npx cap sync ios",
-    "ios:open": "npx cap open ios"
+    "ios:open": "npx cap open ios",
+    "migrate:storage": "node scripts/migrate-storage.mjs --from-backup",
+    "migrate:storage:dry-run": "node scripts/migrate-storage.mjs --from-backup --dry-run"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.0",
