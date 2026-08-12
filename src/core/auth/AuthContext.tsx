@@ -168,7 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (nextSession?.user) {
           applySession(nextSession);
-        } else if (event === 'USER_DELETED') {
+        } else if ((event as string) === 'USER_DELETED') {
           applySession(null, { clearProfile: true });
         }
         // Ignore other null-session events without clearing cached profile
