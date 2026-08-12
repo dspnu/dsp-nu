@@ -1,23 +1,23 @@
-
 -- Career Hub: AI credit tracking + run history
 
-CREATE TABLE public.career_credit_usage (
+CREATE TABLE IF NOT EXISTS public.career_credit_usage (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL,
   tool text NOT NULL,
   week_start date NOT NULL,
   created_at timestamptz NOT NULL DEFAULT now()
 );
-CREATE INDEX idx_career_credit_usage_user_week ON public.career_credit_usage(user_id, week_start);
+CREATE INDEX IF NOT EXISTS idx_career_credit_usage_user_week ON public.career_credit_usage(user_id, week_start);
 ALTER TABLE public.career_credit_usage ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users view own credit usage" ON public.career_credit_usage;
 CREATE POLICY "Users view own credit usage"
   ON public.career_credit_usage FOR SELECT TO authenticated
   USING (user_id = auth.uid() OR public.is_admin_or_officer(auth.uid()));
 
 -- inserts done server-side via service role
 
-CREATE TABLE public.career_credit_grants (
+CREATE TABLE IF NOT EXISTS public.career_credit_grants (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL,
   amount integer NOT NULL DEFAULT 1 CHECK (amount > 0),
@@ -27,19 +27,21 @@ CREATE TABLE public.career_credit_grants (
   expires_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now()
 );
-CREATE INDEX idx_career_credit_grants_user ON public.career_credit_grants(user_id);
+CREATE INDEX IF NOT EXISTS idx_career_credit_grants_user ON public.career_credit_grants(user_id);
 ALTER TABLE public.career_credit_grants ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users view own grants" ON public.career_credit_grants;
 CREATE POLICY "Users view own grants"
   ON public.career_credit_grants FOR SELECT TO authenticated
   USING (user_id = auth.uid() OR public.is_admin_or_officer(auth.uid()));
 
+DROP POLICY IF EXISTS "Officers manage grants" ON public.career_credit_grants;
 CREATE POLICY "Officers manage grants"
   ON public.career_credit_grants FOR ALL TO authenticated
   USING (public.is_admin_or_officer(auth.uid()))
   WITH CHECK (public.is_admin_or_officer(auth.uid()));
 
-CREATE TABLE public.career_ai_runs (
+CREATE TABLE IF NOT EXISTS public.career_ai_runs (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL,
   tool text NOT NULL,
@@ -49,21 +51,25 @@ CREATE TABLE public.career_ai_runs (
   model text,
   created_at timestamptz NOT NULL DEFAULT now()
 );
-CREATE INDEX idx_career_ai_runs_user_tool ON public.career_ai_runs(user_id, tool, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_career_ai_runs_user_tool ON public.career_ai_runs(user_id, tool, created_at DESC);
 ALTER TABLE public.career_ai_runs ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users view own runs" ON public.career_ai_runs;
 CREATE POLICY "Users view own runs"
   ON public.career_ai_runs FOR SELECT TO authenticated
   USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users insert own runs" ON public.career_ai_runs;
 CREATE POLICY "Users insert own runs"
   ON public.career_ai_runs FOR INSERT TO authenticated
   WITH CHECK (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users update own runs" ON public.career_ai_runs;
 CREATE POLICY "Users update own runs"
   ON public.career_ai_runs FOR UPDATE TO authenticated
   USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users delete own runs" ON public.career_ai_runs;
 CREATE POLICY "Users delete own runs"
   ON public.career_ai_runs FOR DELETE TO authenticated
   USING (user_id = auth.uid());

@@ -26,7 +26,7 @@ AS $$
   OR public.is_admin_or_officer(_user_id);
 $$;
 
-CREATE TABLE public.chapter_scholarships (
+CREATE TABLE IF NOT EXISTS public.chapter_scholarships (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,
   description text,
@@ -45,8 +45,9 @@ CREATE TABLE public.chapter_scholarships (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_chapter_scholarships_active_sort ON public.chapter_scholarships (is_active, sort_order, due_date);
+CREATE INDEX IF NOT EXISTS idx_chapter_scholarships_active_sort ON public.chapter_scholarships (is_active, sort_order, due_date);
 
+DROP TRIGGER IF EXISTS chapter_scholarships_updated_at ON public.chapter_scholarships;
 CREATE TRIGGER chapter_scholarships_updated_at
   BEFORE UPDATE ON public.chapter_scholarships
   FOR EACH ROW
@@ -54,6 +55,7 @@ CREATE TRIGGER chapter_scholarships_updated_at
 
 ALTER TABLE public.chapter_scholarships ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Authenticated can view active scholarships" ON public.chapter_scholarships;
 CREATE POLICY "Authenticated can view active scholarships"
   ON public.chapter_scholarships
   FOR SELECT
@@ -63,6 +65,7 @@ CREATE POLICY "Authenticated can view active scholarships"
     OR public.can_manage_chapter_scholarships(auth.uid())
   );
 
+DROP POLICY IF EXISTS "VP scholarship or officers can insert scholarships" ON public.chapter_scholarships;
 CREATE POLICY "VP scholarship or officers can insert scholarships"
   ON public.chapter_scholarships
   FOR INSERT
@@ -72,6 +75,7 @@ CREATE POLICY "VP scholarship or officers can insert scholarships"
     AND created_by = auth.uid()
   );
 
+DROP POLICY IF EXISTS "VP scholarship or officers can update scholarships" ON public.chapter_scholarships;
 CREATE POLICY "VP scholarship or officers can update scholarships"
   ON public.chapter_scholarships
   FOR UPDATE
@@ -79,6 +83,7 @@ CREATE POLICY "VP scholarship or officers can update scholarships"
   USING (public.can_manage_chapter_scholarships(auth.uid()))
   WITH CHECK (public.can_manage_chapter_scholarships(auth.uid()));
 
+DROP POLICY IF EXISTS "VP scholarship or officers can delete scholarships" ON public.chapter_scholarships;
 CREATE POLICY "VP scholarship or officers can delete scholarships"
   ON public.chapter_scholarships
   FOR DELETE

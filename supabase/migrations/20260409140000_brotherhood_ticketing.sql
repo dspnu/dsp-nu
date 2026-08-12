@@ -1,6 +1,7 @@
 -- Brotherhood ticketed events: schema, RLS, and RPCs for claims, check-in, and notifications
+-- Idempotent: may already exist from 20260409061825_* combined migration.
 
-CREATE TABLE public.ticketed_events (
+CREATE TABLE IF NOT EXISTS public.ticketed_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   description TEXT,
@@ -20,7 +21,7 @@ CREATE TABLE public.ticketed_events (
   CONSTRAINT ticketed_events_price_nonneg CHECK (price_cents >= 0)
 );
 
-CREATE TABLE public.event_tickets (
+CREATE TABLE IF NOT EXISTS public.event_tickets (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   ticketed_event_id UUID NOT NULL REFERENCES public.ticketed_events (id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES public.profiles (user_id) ON DELETE CASCADE,
@@ -37,12 +38,12 @@ CREATE TABLE public.event_tickets (
   )
 );
 
-CREATE UNIQUE INDEX event_tickets_one_active_per_user_event
+CREATE UNIQUE INDEX IF NOT EXISTS event_tickets_one_active_per_user_event
   ON public.event_tickets (ticketed_event_id, user_id)
   WHERE cancelled_at IS NULL;
 
-CREATE INDEX event_tickets_event_idx ON public.event_tickets (ticketed_event_id);
-CREATE INDEX event_tickets_user_idx ON public.event_tickets (user_id);
+CREATE INDEX IF NOT EXISTS event_tickets_event_idx ON public.event_tickets (ticketed_event_id);
+CREATE INDEX IF NOT EXISTS event_tickets_user_idx ON public.event_tickets (user_id);
 
 ALTER TABLE public.notifications
   ADD COLUMN IF NOT EXISTS ticketed_event_id UUID REFERENCES public.ticketed_events (id) ON DELETE SET NULL;
@@ -51,11 +52,13 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_notifications_ticket_payment_reminder_dedu
   ON public.notifications (user_id, ticketed_event_id)
   WHERE type = 'ticket_payment_reminder' AND ticketed_event_id IS NOT NULL;
 
+DROP TRIGGER IF EXISTS update_ticketed_events_updated_at ON public.ticketed_events;
 CREATE TRIGGER update_ticketed_events_updated_at
   BEFORE UPDATE ON public.ticketed_events
   FOR EACH ROW
   EXECUTE FUNCTION public.update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_event_tickets_updated_at ON public.event_tickets;
 CREATE TRIGGER update_event_tickets_updated_at
   BEFORE UPDATE ON public.event_tickets
   FOR EACH ROW
@@ -64,6 +67,7 @@ CREATE TRIGGER update_event_tickets_updated_at
 ALTER TABLE public.ticketed_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.event_tickets ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "ticketed_events_select_members" ON public.ticketed_events;
 CREATE POLICY "ticketed_events_select_members"
 ON public.ticketed_events
 FOR SELECT
@@ -73,6 +77,7 @@ USING (
   OR public.is_admin_or_officer(auth.uid())
 );
 
+DROP POLICY IF EXISTS "ticketed_events_officer_all" ON public.ticketed_events;
 CREATE POLICY "ticketed_events_officer_all"
 ON public.ticketed_events
 FOR ALL
@@ -80,6 +85,7 @@ TO authenticated
 USING (public.is_admin_or_officer(auth.uid()))
 WITH CHECK (public.is_admin_or_officer(auth.uid()));
 
+DROP POLICY IF EXISTS "event_tickets_select_own_or_officer" ON public.event_tickets;
 CREATE POLICY "event_tickets_select_own_or_officer"
 ON public.event_tickets
 FOR SELECT
@@ -89,6 +95,7 @@ USING (
   OR public.is_admin_or_officer(auth.uid())
 );
 
+DROP POLICY IF EXISTS "event_tickets_officer_update" ON public.event_tickets;
 CREATE POLICY "event_tickets_officer_update"
 ON public.event_tickets
 FOR UPDATE

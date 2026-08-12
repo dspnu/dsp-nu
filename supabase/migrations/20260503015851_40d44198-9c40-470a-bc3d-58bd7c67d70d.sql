@@ -3,6 +3,7 @@ DROP POLICY IF EXISTS "System can insert audit logs" ON public.audit_logs;
 
 -- 2. Restrict notifications INSERT to admins/officers only
 DROP POLICY IF EXISTS "Users and officers can create notifications" ON public.notifications;
+DROP POLICY IF EXISTS "Officers can create notifications" ON public.notifications;
 CREATE POLICY "Officers can create notifications"
   ON public.notifications FOR INSERT TO authenticated
   WITH CHECK (public.is_admin_or_officer(auth.uid()));
@@ -18,14 +19,17 @@ DROP POLICY IF EXISTS "Anyone can view PNM pictures" ON storage.objects;
 DROP POLICY IF EXISTS "Anyone can view service hour photos" ON storage.objects;
 DROP POLICY IF EXISTS "Anyone can view paddle media" ON storage.objects;
 
+DROP POLICY IF EXISTS "Authenticated users can view PNM pictures" ON storage.objects;
 CREATE POLICY "Authenticated users can view PNM pictures"
   ON storage.objects FOR SELECT TO authenticated
   USING (bucket_id = 'pnm-pictures');
 
+DROP POLICY IF EXISTS "Authenticated users can view service hour photos" ON storage.objects;
 CREATE POLICY "Authenticated users can view service hour photos"
   ON storage.objects FOR SELECT TO authenticated
   USING (bucket_id = 'service-hours-photos');
 
+DROP POLICY IF EXISTS "Authenticated users can view paddle media" ON storage.objects;
 CREATE POLICY "Authenticated users can view paddle media"
   ON storage.objects FOR SELECT TO authenticated
   USING (bucket_id = 'paddle-media');

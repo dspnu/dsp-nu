@@ -1,5 +1,5 @@
 
-CREATE TABLE public.career_help_requests (
+CREATE TABLE IF NOT EXISTS public.career_help_requests (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL,
   tool text,
@@ -36,23 +36,28 @@ AS $$
     );
 $$;
 
+DROP POLICY IF EXISTS "own_or_helper_select" ON public.career_help_requests;
 CREATE POLICY "own_or_helper_select" ON public.career_help_requests
   FOR SELECT TO authenticated
   USING (user_id = auth.uid() OR public.is_professionalism_helper(auth.uid()));
 
+DROP POLICY IF EXISTS "own_insert" ON public.career_help_requests;
 CREATE POLICY "own_insert" ON public.career_help_requests
   FOR INSERT TO authenticated
   WITH CHECK (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "helper_update" ON public.career_help_requests;
 CREATE POLICY "helper_update" ON public.career_help_requests
   FOR UPDATE TO authenticated
   USING (public.is_professionalism_helper(auth.uid()))
   WITH CHECK (public.is_professionalism_helper(auth.uid()));
 
+DROP POLICY IF EXISTS "own_or_helper_delete" ON public.career_help_requests;
 CREATE POLICY "own_or_helper_delete" ON public.career_help_requests
   FOR DELETE TO authenticated
   USING (user_id = auth.uid() OR public.is_professionalism_helper(auth.uid()));
 
+DROP TRIGGER IF EXISTS trg_career_help_updated_at ON public.career_help_requests;
 CREATE TRIGGER trg_career_help_updated_at
   BEFORE UPDATE ON public.career_help_requests
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();

@@ -23,18 +23,21 @@ $$;
 -- Storage policy fixes
 DROP POLICY IF EXISTS "Anyone can view service photos" ON storage.objects;
 
+DROP POLICY IF EXISTS "Users can update own paddle media" ON storage.objects;
 CREATE POLICY "Users can update own paddle media"
 ON storage.objects FOR UPDATE
 TO authenticated
 USING (bucket_id = 'paddle-media' AND (auth.uid())::text = (storage.foldername(name))[1])
 WITH CHECK (bucket_id = 'paddle-media' AND (auth.uid())::text = (storage.foldername(name))[1]);
 
+DROP POLICY IF EXISTS "Officers can update pdp files" ON storage.objects;
 CREATE POLICY "Officers can update pdp files"
 ON storage.objects FOR UPDATE
 TO authenticated
 USING (bucket_id = 'pdp-submissions' AND public.is_admin_or_officer(auth.uid()))
 WITH CHECK (bucket_id = 'pdp-submissions' AND public.is_admin_or_officer(auth.uid()));
 
+DROP POLICY IF EXISTS "Owners or officers can delete pdp files" ON storage.objects;
 CREATE POLICY "Owners or officers can delete pdp files"
 ON storage.objects FOR DELETE
 TO authenticated

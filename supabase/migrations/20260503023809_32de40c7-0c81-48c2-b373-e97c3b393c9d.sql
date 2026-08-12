@@ -1,5 +1,6 @@
+-- Idempotent: table/policies may already exist from 20260502140000_chapter_scholarships.sql
 
-CREATE TABLE public.chapter_scholarships (
+CREATE TABLE IF NOT EXISTS public.chapter_scholarships (
   id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   name text NOT NULL,
   description text,
@@ -20,16 +21,19 @@ CREATE TABLE public.chapter_scholarships (
 
 ALTER TABLE public.chapter_scholarships ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Admin/Officers can manage scholarships" ON public.chapter_scholarships;
 CREATE POLICY "Admin/Officers can manage scholarships"
   ON public.chapter_scholarships FOR ALL
   TO authenticated
   USING (public.is_admin_or_officer(auth.uid()));
 
+DROP POLICY IF EXISTS "All authenticated can view scholarships" ON public.chapter_scholarships;
 CREATE POLICY "All authenticated can view scholarships"
   ON public.chapter_scholarships FOR SELECT
   TO authenticated
   USING (true);
 
+DROP TRIGGER IF EXISTS update_chapter_scholarships_updated_at ON public.chapter_scholarships;
 CREATE TRIGGER update_chapter_scholarships_updated_at
   BEFORE UPDATE ON public.chapter_scholarships
   FOR EACH ROW
