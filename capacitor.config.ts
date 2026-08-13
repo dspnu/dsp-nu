@@ -21,8 +21,11 @@ const config: CapacitorConfig = {
       showSpinner: false,
     },
     StatusBar: {
+      // Capacitor: LIGHT = dark icons (for light splash/bg); DARK = light icons.
+      // NativeChromeBridge overrides this once the app theme resolves.
       style: 'LIGHT',
       backgroundColor: '#faf9f7',
+      overlaysWebView: true,
     },
     Keyboard: {
       // Native resize avoids shifting the fixed bottom nav with the page.
