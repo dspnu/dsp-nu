@@ -6,7 +6,9 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   bundledWebRuntime: false,
   ios: {
-    contentInset: 'automatic',
+    // 'never' keeps position:fixed (bottom nav / headers) stable.
+    // Safe areas are handled in CSS via env(safe-area-inset-*).
+    contentInset: 'never',
   },
   server: {
     androidScheme: 'https',
@@ -14,14 +16,17 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       launchAutoHide: true,
+      launchShowDuration: 1200,
       backgroundColor: '#faf9f7',
+      showSpinner: false,
     },
     StatusBar: {
       style: 'LIGHT',
       backgroundColor: '#faf9f7',
     },
     Keyboard: {
-      resize: 'body',
+      // Native resize avoids shifting the fixed bottom nav with the page.
+      resize: 'native',
     },
   },
 };

@@ -150,9 +150,23 @@
     @apply border-border;
   }
 
+  html {
+    height: 100%;
+    /* Keep rubber-band scroll from dragging fixed chrome on iOS WKWebView */
+    overscroll-behavior: none;
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    min-height: 100%;
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
+  }
+
+  #root {
+    min-height: 100%;
+    min-height: 100dvh;
   }
 
   h1, h2, h3, h4, h5, h6 {

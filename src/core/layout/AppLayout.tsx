@@ -26,7 +26,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-dvh flex items-center justify-center bg-background pt-[env(safe-area-inset-top)]">
         <div className="flex flex-col items-center gap-4">
           <AppLogo className="h-12 w-12 animate-pulse rounded-xl" alt={`${org.shortName} logo`} />
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -45,7 +45,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <AddToHomeScreenProvider>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-dvh bg-background pt-[env(safe-area-inset-top)]">
         {!meetingMode && <EventReminderSync />}
         {!meetingMode && ticketingEnabled && <TicketPaymentReminderSync />}
         {!meetingMode && <DuesReminderSync />}
