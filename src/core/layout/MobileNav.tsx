@@ -84,8 +84,11 @@ export function MobileNav() {
         </div>
       )}
 
-      {/* Floating pill nav bar */}
-      <nav className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-4 right-4 z-[100] md:hidden">
+      {/* Floating pill nav bar — fixed to viewport (not document flow) */}
+      <nav
+        className="fixed inset-x-4 z-[100] md:hidden"
+        style={{ bottom: 'max(1rem, env(safe-area-inset-bottom, 0px))' }}
+      >
         <div className="flex items-center justify-around rounded-2xl bg-card/80 backdrop-blur-2xl border border-border/30 shadow-lg px-2 py-1.5"
           style={{ boxShadow: '0 8px 32px hsl(270 50% 40% / 0.08), 0 2px 8px hsl(0 0% 0% / 0.06)' }}
         >

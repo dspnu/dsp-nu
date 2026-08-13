@@ -197,7 +197,7 @@ export default function OnboardingPage() {
   const initials = `${firstName?.[0] || ''}${lastName?.[0] || ''}`;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-dvh bg-background flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       {/* Top bar */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b px-6 py-4">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
