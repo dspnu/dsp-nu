@@ -207,7 +207,7 @@ Because Google OAuth is offered, Apple Sign In must also be available:
 
 1. Enable the **Apple** provider in Supabase Auth.
 2. Configure the Apple Services ID / key per [Supabase Apple docs](https://supabase.com/docs/guides/auth/social-login/auth-apple).
-3. In Apple Developer, enable **Sign In with Apple** on App ID `com.tartabinienterprises.dspnu`.
+3. In Apple Developer, enable **Sign In with Apple** on App ID `com.jacobtartabini.dspapp`.
 
 ### Push notifications (APNs)
 
@@ -216,7 +216,7 @@ Edge function `supabase/functions/push-webhook` sends via APNs. Set secrets:
 - `APNS_TEAM_ID`
 - `APNS_KEY_ID`
 - `APNS_P8_PRIVATE_KEY`
-- `APNS_BUNDLE_ID=com.tartabinienterprises.dspnu`
+- `APNS_BUNDLE_ID=com.jacobtartabini.dspapp`
 
 Members enable push from **Settings** in the native app (`device_push_tokens` table).
 

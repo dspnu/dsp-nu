@@ -7,7 +7,7 @@
  *   node scripts/generate-apple-client-secret.mjs \
  *     --team-id ABCD123456 \
  *     --key-id XYZ9876543 \
- *     --services-id com.tartabinienterprises.dspnu.web \
+ *     --services-id com.jacobtartabini.dsp \
  *     --p8 ~/Downloads/AuthKey_XYZ9876543.p8
  *
  * Then paste the printed JWT into Supabase → Authentication → Providers → Apple → Secret Key.
@@ -39,7 +39,7 @@ Usage:
   node scripts/generate-apple-client-secret.mjs \\
     --team-id <10-char Team ID> \\
     --key-id <10-char Key ID from Keys list> \\
-    --services-id <Services ID, e.g. com.tartabinienterprises.dspnu.web> \\
+    --services-id <Services ID, e.g. com.jacobtartabini.dsp> \\
     --p8 /path/to/AuthKey_XXXXXXXXXX.p8
 `);
 }
