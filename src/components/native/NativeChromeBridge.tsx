@@ -8,12 +8,18 @@ import { useTheme } from 'next-themes';
  * Syncs iOS status bar / keyboard with the web UI.
  * Status bar overlays the WebView; safe areas are applied in CSS so
  * position:fixed chrome (bottom nav) does not scroll with the page.
+ *
+ * Capacitor Style naming is inverted from CSS:
+ * - Style.Dark  → light/white status-bar content (for dark backgrounds)
+ * - Style.Light → dark status-bar content (for light backgrounds)
  */
 export function NativeChromeBridge() {
   const { resolvedTheme } = useTheme();
+  const isNative = Capacitor.isNativePlatform();
 
   useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
+    if (!isNative) return;
+    if (resolvedTheme !== 'dark' && resolvedTheme !== 'light') return;
 
     let cancelled = false;
 
@@ -21,8 +27,8 @@ export function NativeChromeBridge() {
       try {
         await StatusBar.setOverlaysWebView({ overlay: true });
         const dark = resolvedTheme === 'dark';
-        // Light content on dark bg, dark content on light bg
-        await StatusBar.setStyle({ style: dark ? Style.Light : Style.Dark });
+        await StatusBar.setStyle({ style: dark ? Style.Dark : Style.Light });
+        // Only applies when overlay is false; kept for Android / future toggles.
         await StatusBar.setBackgroundColor({ color: dark ? '#0c0a09' : '#faf9f7' });
       } catch (e) {
         if (!cancelled) console.warn('StatusBar setup failed:', e);
@@ -38,7 +44,15 @@ export function NativeChromeBridge() {
     return () => {
       cancelled = true;
     };
-  }, [resolvedTheme]);
+  }, [resolvedTheme, isNative]);
 
-  return null;
+  if (!isNative) return null;
+
+  // Opaque strip so page content cannot scroll under the status bar icons.
+  return (
+    <div
+      aria-hidden
+      className="fixed inset-x-0 top-0 z-[45] h-[env(safe-area-inset-top,0px)] bg-background pointer-events-none"
+    />
+  );
 }

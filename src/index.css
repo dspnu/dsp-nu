@@ -152,8 +152,13 @@
 
   html {
     height: 100%;
+    color-scheme: light;
     /* Keep rubber-band scroll from dragging fixed chrome on iOS WKWebView */
     overscroll-behavior: none;
+  }
+
+  html.dark {
+    color-scheme: dark;
   }
 
   body {
