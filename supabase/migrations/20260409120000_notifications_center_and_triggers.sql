@@ -13,6 +13,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_notifications_reminder_dedupe
 
 -- Tighten inserts: self, or chapter officers/admins (bulk PDP/event notifications)
 DROP POLICY IF EXISTS "Authenticated users can create notifications" ON public.notifications;
+DROP POLICY IF EXISTS "Users and officers can create notifications" ON public.notifications;
 CREATE POLICY "Users and officers can create notifications"
 ON public.notifications FOR INSERT TO authenticated
 WITH CHECK (

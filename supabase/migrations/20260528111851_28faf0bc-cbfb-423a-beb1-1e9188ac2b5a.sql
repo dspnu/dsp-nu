@@ -15,6 +15,7 @@ BEGIN
   END LOOP;
 END $$;
 
+DROP POLICY IF EXISTS "service_hours_photos_insert_own_folder" ON storage.objects;
 CREATE POLICY "service_hours_photos_insert_own_folder"
 ON storage.objects FOR INSERT TO authenticated
 WITH CHECK (
@@ -36,6 +37,7 @@ BEGIN
   END LOOP;
 END $$;
 
+DROP POLICY IF EXISTS "paddle_media_insert_own_folder" ON storage.objects;
 CREATE POLICY "paddle_media_insert_own_folder"
 ON storage.objects FOR INSERT TO authenticated
 WITH CHECK (

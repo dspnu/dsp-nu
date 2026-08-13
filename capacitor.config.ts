@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.tartabinienterprises.dspnu',
+  appId: 'com.jacobtartabini.dspapp',
   appName: 'DSP Nu',
   webDir: 'dist',
   bundledWebRuntime: false,

@@ -1,6 +1,6 @@
 # iOS App Store listing checklist
 
-Use this when preparing TestFlight / App Store Connect for **DSP Nu** (`com.tartabinienterprises.dspnu`).
+Use this when preparing TestFlight / App Store Connect for **DSP Nu** (`com.jacobtartabini.dspapp`).
 
 ## Build
 

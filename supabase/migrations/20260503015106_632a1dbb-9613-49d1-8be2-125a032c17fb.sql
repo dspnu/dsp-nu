@@ -2,6 +2,30 @@
 -- ============================================================
 -- 1. FIX PRIVILEGE ESCALATION: restrict profile self-update
 -- ============================================================
+-- chair_positions + profiles.chair exist in production/types but were missing from early migrations
+CREATE TABLE IF NOT EXISTS public.chair_positions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  title text NOT NULL UNIQUE,
+  description text,
+  sort_order integer NOT NULL DEFAULT 0,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.chair_positions ENABLE ROW LEVEL SECURITY;
+
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS chair text;
+
+DO $$
+BEGIN
+  ALTER TABLE public.profiles
+    ADD CONSTRAINT profiles_chair_fkey
+    FOREIGN KEY (chair) REFERENCES public.chair_positions (title);
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
 -- Drop the existing permissive self-update policy
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 

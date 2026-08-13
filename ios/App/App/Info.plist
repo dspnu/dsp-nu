@@ -10,7 +10,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.tartabinienterprises.dspnu</string>
+			<string>com.jacobtartabini.dspapp</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>dspnu</string>

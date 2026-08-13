@@ -1,1 +1,3 @@
-ALTER TABLE public.approved_coffee_chat_members RENAME COLUMN dsp_position TO org_position;
+-- No-op: dsp_position → org_position already applied in
+-- 20260408160000_rename_dsp_position_to_position.sql
+SELECT 1;

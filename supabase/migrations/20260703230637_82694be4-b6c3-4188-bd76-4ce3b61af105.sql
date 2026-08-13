@@ -5,6 +5,7 @@ ALTER TABLE public.career_help_requests
 
 -- Storage policies for career-help-attachments bucket
 -- Path convention: {user_id}/{request_id_or_draft}/{filename}
+DROP POLICY IF EXISTS "career_help_owner_read" ON storage.objects;
 CREATE POLICY "career_help_owner_read"
   ON storage.objects FOR SELECT
   TO authenticated
@@ -16,6 +17,7 @@ CREATE POLICY "career_help_owner_read"
     )
   );
 
+DROP POLICY IF EXISTS "career_help_owner_insert" ON storage.objects;
 CREATE POLICY "career_help_owner_insert"
   ON storage.objects FOR INSERT
   TO authenticated
@@ -24,6 +26,7 @@ CREATE POLICY "career_help_owner_insert"
     AND (storage.foldername(name))[1] = auth.uid()::text
   );
 
+DROP POLICY IF EXISTS "career_help_owner_delete" ON storage.objects;
 CREATE POLICY "career_help_owner_delete"
   ON storage.objects FOR DELETE
   TO authenticated
