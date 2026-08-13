@@ -3,6 +3,7 @@ import { App } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
+import { resolveInviteUnlockAfterAuth } from '@/core/auth/inviteUnlock';
 
 function parseTokensFromUrl(rawUrl: string): { access_token: string; refresh_token: string } | null {
   const url = new URL(rawUrl);
@@ -75,6 +76,11 @@ export function NativeAuthBridge() {
 
         if (callbackType === 'recovery') {
           window.location.href = '/auth/reset-password';
+        } else {
+          const unlock = await resolveInviteUnlockAfterAuth();
+          if (unlock === 'locked') {
+            window.location.href = '/auth/invite';
+          }
         }
       } catch (e) {
         console.error('Native auth callback failed:', e);

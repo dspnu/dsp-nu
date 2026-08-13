@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { MemberStandingDetail } from './MemberStandingDetail';
 import { AttendanceEarnersManager } from './AttendanceEarnersManager';
 import { FamilyGamesManager } from './FamilyGamesManager';
+import { SignupInviteCodeManager } from './SignupInviteCodeManager';
 import { ChairPositionsManager } from './ChairPositionsManager';
 import { ElectionManager } from './ElectionManager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -535,7 +536,8 @@ export function VPChapterOpsDashboard() {
         </TabsContent>
 
         {/* Settings Tab (Chair Positions + Attendance Earners config) */}
-        <TabsContent value="settings" className="mt-4">
+        <TabsContent value="settings" className="mt-4 space-y-4">
+          <SignupInviteCodeManager />
           <ChairPositionsManager />
         </TabsContent>
       </Tabs>

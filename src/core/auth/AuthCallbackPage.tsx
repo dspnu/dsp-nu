@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { AppCopyrightFooter } from '@/components/layout/AppCopyrightFooter';
+import { resolveInviteUnlockAfterAuth } from '@/core/auth/inviteUnlock';
 
 export default function AuthCallbackPage() {
   const navigate = useNavigate();
@@ -47,7 +48,8 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        navigate('/', { replace: true });
+        const unlock = await resolveInviteUnlockAfterAuth();
+        navigate(unlock === 'locked' ? '/auth/invite' : '/', { replace: true });
         return;
       }
 
@@ -69,7 +71,8 @@ export default function AuthCallbackPage() {
         return;
       }
 
-      navigate('/', { replace: true });
+      const unlock = await resolveInviteUnlockAfterAuth();
+      navigate(unlock === 'locked' ? '/auth/invite' : '/', { replace: true });
     };
 
     handleAuthCallback();

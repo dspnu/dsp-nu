@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/core/auth/AuthContext';
+import { profileNeedsInviteUnlock } from '@/core/auth/profileNeedsInviteUnlock';
 import { profileNeedsOnboarding } from '@/core/auth/profileNeedsOnboarding';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +20,7 @@ import { AppCopyrightFooter } from '@/components/layout/AppCopyrightFooter';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { AppLogo } from '@/components/branding/AppLogo';
+import { PENDING_INVITE_KEY } from '@/core/auth/inviteUnlock';
 
 type LastUsedLoginMethod = 'google' | 'apple' | 'email';
 
@@ -31,6 +33,7 @@ export default function AuthPage() {
   const [isResetSubmitting, setIsResetSubmitting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [lastUsedLoginMethod, setLastUsedLoginMethod] = useState<LastUsedLoginMethod | null>(null);
+  const [signupInviteCode, setSignupInviteCode] = useState('');
 
   useEffect(() => {
     const savedMethod = window.localStorage.getItem(LAST_USED_LOGIN_METHOD_KEY);
@@ -54,7 +57,27 @@ export default function AuthPage() {
   /** Same deep link as OAuth so recovery emails open the native app. */
   const getPasswordResetRedirectUrl = () => getRedirectUrl();
 
-  const signInWithProvider = async (provider: 'google' | 'apple') => {
+  const signInWithProvider = async (provider: 'google' | 'apple', opts?: { requireInvite?: boolean }) => {
+    if (opts?.requireInvite) {
+      const trimmed = signupInviteCode.trim();
+      if (!trimmed) {
+        toast.error('Enter your chapter invite code before continuing.');
+        return;
+      }
+      const { data: codeOk, error: codeError } = await supabase.rpc('validate_signup_invite', {
+        p_code: trimmed,
+      });
+      if (codeError) {
+        toast.error(codeError.message);
+        return;
+      }
+      if (!codeOk) {
+        toast.error('Invalid invite code. Ask a chapter officer for the current code.');
+        return;
+      }
+      window.sessionStorage.setItem(PENDING_INVITE_KEY, trimmed);
+    }
+
     setOauthProviderLoading(provider);
     try {
       const redirectTo = getRedirectUrl();
@@ -101,6 +124,9 @@ export default function AuthPage() {
   }
 
   if (user) {
+    if (profileNeedsInviteUnlock(profile)) {
+      return <Navigate to="/auth/invite" replace />;
+    }
     return <Navigate to={profileNeedsOnboarding(profile) ? '/onboarding' : '/'} replace />;
   }
 
@@ -130,8 +156,9 @@ export default function AuthPage() {
     const password = formData.get('password') as string;
     const firstName = formData.get('firstName') as string;
     const lastName = formData.get('lastName') as string;
+    const inviteCode = String(formData.get('inviteCode') ?? signupInviteCode).trim();
 
-    const { error } = await signUp(email, password, firstName, lastName);
+    const { error } = await signUp(email, password, firstName, lastName, inviteCode);
     if (error) {
       toast.error(error.message);
     } else {
@@ -313,11 +340,27 @@ export default function AuthPage() {
               </TabsContent>
               <TabsContent value="signup" className="mt-0">
                 <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-invite-code">Chapter invite code</Label>
+                    <Input
+                      id="signup-invite-code"
+                      name="inviteCode"
+                      value={signupInviteCode}
+                      onChange={(e) => setSignupInviteCode(e.target.value)}
+                      required
+                      autoComplete="off"
+                      autoCapitalize="characters"
+                      placeholder="Ask a chapter officer"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Required for new accounts. Existing members can use Sign In without a code.
+                    </p>
+                  </div>
                   <Button
                     type="button"
                     variant="outline"
                     className="w-full"
-                    onClick={() => signInWithProvider('google')}
+                    onClick={() => signInWithProvider('google', { requireInvite: true })}
                     disabled={oauthBusy}
                   >
                     {oauthProviderLoading === 'google' ? (
@@ -336,7 +379,7 @@ export default function AuthPage() {
                     type="button"
                     variant="outline"
                     className="w-full"
-                    onClick={() => signInWithProvider('apple')}
+                    onClick={() => signInWithProvider('apple', { requireInvite: true })}
                     disabled={oauthBusy}
                   >
                     {oauthProviderLoading === 'apple' ? (

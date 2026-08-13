@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/core/auth/AuthContext';
+import { profileNeedsInviteUnlock } from '@/core/auth/profileNeedsInviteUnlock';
 import { profileNeedsOnboarding } from '@/core/auth/profileNeedsOnboarding';
 import { MobileNav } from './MobileNav';
 import { DesktopSidebar } from './DesktopSidebar';
@@ -37,6 +38,10 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  if (profileNeedsInviteUnlock(profile)) {
+    return <Navigate to="/auth/invite" replace />;
   }
 
   if (profileNeedsOnboarding(profile)) {
