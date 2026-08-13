@@ -1762,6 +1762,7 @@ export type Database = {
           phone: string | null
           pledge_class: string | null
           positions: string[] | null
+          signup_unlocked: boolean
           status: Database["public"]["Enums"]["member_status"]
           updated_at: string
           user_id: string
@@ -1785,6 +1786,7 @@ export type Database = {
           phone?: string | null
           pledge_class?: string | null
           positions?: string[] | null
+          signup_unlocked?: boolean
           status?: Database["public"]["Enums"]["member_status"]
           updated_at?: string
           user_id: string
@@ -1808,6 +1810,7 @@ export type Database = {
           phone?: string | null
           pledge_class?: string | null
           positions?: string[] | null
+          signup_unlocked?: boolean
           status?: Database["public"]["Enums"]["member_status"]
           updated_at?: string
           user_id?: string
@@ -2022,6 +2025,10 @@ export type Database = {
         Returns: Json
       }
       delete_user_account: { Args: never; Returns: Json }
+      invite_code_matches: { Args: { p_code: string }; Returns: boolean }
+      normalize_invite_code: { Args: { p_code: string }; Returns: string }
+      unlock_signup_with_invite: { Args: { p_code: string }; Returns: boolean }
+      validate_signup_invite: { Args: { p_code: string }; Returns: boolean }
       get_career_credit_balance: { Args: { _user_id: string }; Returns: Json }
       get_career_hub_usage_stats: { Args: { p_days?: number }; Returns: Json }
       has_role: {

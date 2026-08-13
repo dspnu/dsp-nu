@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/core/auth/AuthContext';
+import { profileNeedsInviteUnlock } from '@/core/auth/profileNeedsInviteUnlock';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -195,6 +196,14 @@ export default function OnboardingPage() {
   };
 
   const initials = `${firstName?.[0] || ''}${lastName?.[0] || ''}`;
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  if (profileNeedsInviteUnlock(profile)) {
+    return <Navigate to="/auth/invite" replace />;
+  }
 
   return (
     <div className="min-h-dvh bg-background flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">

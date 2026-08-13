@@ -22,6 +22,8 @@ interface Profile {
   family: string | null;
   big: string | null;
   little: string | null;
+  /** False until a new account is unlocked with the chapter invite code. */
+  signup_unlocked: boolean;
 }
 
 interface AuthContextType {
@@ -39,7 +41,13 @@ interface AuthContextType {
   /** `exec` app role or at least one title in org.positions (chapter Resources add, etc.) */
   isExecBoard: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, firstName: string, lastName: string) => Promise<{ error: Error | null }>;
+  signUp: (
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+    inviteCode: string,
+  ) => Promise<{ error: Error | null }>;
   requestPasswordReset: (email: string, redirectTo: string) => Promise<{ error: Error | null }>;
   updatePassword: (password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -84,7 +92,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (result) {
-      setProfile(result as Profile);
+      setProfile({
+        ...(result as Profile),
+        // Before migration / older rows: treat missing as unlocked so members aren't locked out.
+        signup_unlocked: (result as Profile).signup_unlocked !== false,
+      });
     }
     // On failure: keep previous profile instead of wiping UI
   };
@@ -192,8 +204,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+    inviteCode: string,
+  ) => {
     const redirectUrl = `${window.location.origin}/`;
+    const trimmedCode = inviteCode.trim();
+
+    const { data: codeOk, error: codeError } = await supabase.rpc('validate_signup_invite', {
+      p_code: trimmedCode,
+    });
+    if (codeError) return { error: codeError };
+    if (!codeOk) {
+      return { error: new Error('Invalid invite code. Ask a chapter officer for the current code.') };
+    }
 
     const { error } = await supabase.auth.signUp({
       email,
@@ -203,6 +230,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data: {
           first_name: firstName,
           last_name: lastName,
+          invite_code: trimmedCode,
         },
       },
     });

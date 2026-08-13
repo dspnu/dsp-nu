@@ -15,6 +15,7 @@ import { ConnectivityBanner } from "@/components/ConnectivityBanner";
 import AuthPage from "@/core/auth/AuthPage";
 import AuthCallbackPage from "@/core/auth/AuthCallbackPage";
 import ResetPasswordPage from "@/core/auth/ResetPasswordPage";
+import InviteGatePage from "@/core/auth/InviteGatePage";
 import { NativeAuthBridge } from "@/core/auth/NativeAuthBridge";
 import HomePage from "./pages/HomePage";
 import { NativePushBridge } from "@/components/native/NativePushBridge";
@@ -79,6 +80,7 @@ const App = () => (
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/auth/callback" element={<AuthCallbackPage />} />
                 <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+                <Route path="/auth/invite" element={<InviteGatePage />} />
                 <Route path="/onboarding" element={<OnboardingPage />} />
                 <Route path="/" element={<HomePage />} />
                 <Route path="/people" element={<PeoplePage />} />
