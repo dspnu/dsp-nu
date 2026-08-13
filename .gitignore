@@ -18,6 +18,7 @@ dist-ssr
 *.local
 .env
 .env.migration
+AuthKey_*.p8
 
 # Editor directories and files
 .vscode/*
