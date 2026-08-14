@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { WifiOff } from 'lucide-react';
 import { pingSupabaseHealth } from '@/lib/supabaseHealth';
 import { useMeetingMode } from '@/lib/meetingMode';
+import { isDemoMode } from '@/demo';
 
 /**
  * Soft connectivity banner — does not wipe app state; just warns during blips.
@@ -12,6 +13,7 @@ export function ConnectivityBanner() {
   const [degraded, setDegraded] = useState(false);
 
   useEffect(() => {
+    if (isDemoMode()) return;
     const onOnline = () => setOffline(false);
     const onOffline = () => setOffline(true);
     window.addEventListener('online', onOnline);
@@ -23,7 +25,7 @@ export function ConnectivityBanner() {
   }, []);
 
   useEffect(() => {
-    if (offline) return;
+    if (isDemoMode() || offline) return;
     let cancelled = false;
 
     const check = async () => {
@@ -42,7 +44,7 @@ export function ConnectivityBanner() {
     };
   }, [offline, meetingMode]);
 
-  if (!offline && !degraded) return null;
+  if (isDemoMode() || (!offline && !degraded)) return null;
 
   return (
     <div

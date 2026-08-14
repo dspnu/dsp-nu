@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesUpdate } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
+import { isDemoMode, demoMembers, getDemoMember, getDemoMemberByUserId, getDemoMemberPoints } from '@/demo';
 
 type Profile = Tables<'profiles'>;
 type ProfileUpdate = TablesUpdate<'profiles'>;
@@ -10,6 +11,7 @@ export function useMembers() {
   return useQuery({
     queryKey: ['members'],
     queryFn: async () => {
+      if (isDemoMode()) return demoMembers;
       const { data, error } = await supabase
         .from('profiles')
         .select(
@@ -27,6 +29,7 @@ export function useMember(id: string) {
   return useQuery({
     queryKey: ['members', id],
     queryFn: async () => {
+      if (isDemoMode()) return getDemoMember(id);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -44,6 +47,7 @@ export function useMemberByUserId(userId: string) {
   return useQuery({
     queryKey: ['members', 'user', userId],
     queryFn: async () => {
+      if (isDemoMode()) return getDemoMemberByUserId(userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -88,6 +92,7 @@ export function useMemberPoints(userId: string) {
   return useQuery({
     queryKey: ['member-points', userId],
     queryFn: async () => {
+      if (isDemoMode()) return getDemoMemberPoints(userId);
       const { data, error } = await supabase
         .from('points_ledger')
         .select('*')
@@ -105,6 +110,7 @@ export function useMemberAttendance(userId: string) {
   return useQuery({
     queryKey: ['member-attendance', userId],
     queryFn: async () => {
+      if (isDemoMode()) return [];
       const { data, error } = await supabase
         .from('attendance')
         .select('*, events(*)')
@@ -122,6 +128,7 @@ export function useMemberDues(userId: string) {
   return useQuery({
     queryKey: ['member-dues', userId],
     queryFn: async () => {
+      if (isDemoMode()) return [];
       const { data, error } = await supabase
         .from('dues_payments')
         .select('*')

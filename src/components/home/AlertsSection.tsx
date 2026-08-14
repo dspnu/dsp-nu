@@ -3,6 +3,7 @@ import { Vote, Coffee, ChevronRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useMyCoffeeChats } from '@/features/coffee-chats/hooks/useCoffeeChats';
+import { isDemoMode, demoEopVotingOpen } from '@/demo';
 
 export function AlertsSection() {
   const { data: myCoffeeChats } = useMyCoffeeChats();
@@ -11,6 +12,7 @@ export function AlertsSection() {
   const { data: eopCandidates } = useQuery({
     queryKey: ['eop-voting-open'],
     queryFn: async () => {
+      if (isDemoMode()) return demoEopVotingOpen.map((c) => ({ id: c.id }));
       const { data, error } = await supabase
         .from('eop_candidates')
         .select('id')

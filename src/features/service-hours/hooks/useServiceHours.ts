@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { isDemoMode, getDemoServiceHours, demoServiceHours } from '@/demo';
 
 interface ServiceHour {
   id: string;
@@ -19,6 +20,7 @@ export function useServiceHours(userId?: string) {
   return useQuery({
     queryKey: ['service-hours', userId],
     queryFn: async () => {
+      if (isDemoMode()) return getDemoServiceHours(userId);
       let query = supabase
         .from('service_hours')
         .select('*')
@@ -40,6 +42,7 @@ export function useAllServiceHours() {
   return useQuery({
     queryKey: ['all-service-hours'],
     queryFn: async () => {
+      if (isDemoMode()) return demoServiceHours;
       const { data, error } = await supabase
         .from('service_hours')
         .select('*')

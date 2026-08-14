@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/core/auth/AuthContext';
 import { toast } from 'sonner';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import { isDemoMode, demoCoffeeChats, getDemoMyCoffeeChats } from '@/demo';
 
 type CoffeeChat = Tables<'coffee_chats'>;
 type CoffeeChatInsert = TablesInsert<'coffee_chats'>;
@@ -13,10 +14,8 @@ export function useCoffeeChats() {
   return useQuery({
     queryKey: ['coffee-chats', user?.id],
     queryFn: async () => {
+      if (isDemoMode()) return demoCoffeeChats;
       const { data, error } = await supabase
-        .from('coffee_chats')
-        .select('*')
-        .order('chat_date', { ascending: false });
 
       if (error) throw error;
       return data as CoffeeChat[];
@@ -32,7 +31,7 @@ export function useMyCoffeeChats() {
     queryKey: ['my-coffee-chats', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      
+      if (isDemoMode()) return getDemoMyCoffeeChats(user.id);
       const { data, error } = await supabase
         .from('coffee_chats')
         .select('*')

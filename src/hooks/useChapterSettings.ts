@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Json } from '@/integrations/supabase/types';
+import { isDemoMode, getDemoChapterSetting } from '@/demo';
 
 export function useChapterSetting<T = Json>(
   key: string,
@@ -12,6 +13,7 @@ export function useChapterSetting<T = Json>(
   return useQuery<T | Json | null>({
     queryKey: ['chapter-settings', key],
     queryFn: async () => {
+      if (isDemoMode()) return getDemoChapterSetting(key, whenMissing) as T | Json | null;
       const { data, error } = await supabase
         .from('chapter_settings')
         .select('value')

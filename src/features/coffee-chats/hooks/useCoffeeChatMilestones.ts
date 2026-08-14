@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/core/auth/AuthContext';
 import { toast } from 'sonner';
+import { isDemoMode, demoCoffeeChatMilestones } from '@/demo';
 
 interface Milestone {
   id: string;
@@ -16,10 +17,8 @@ export function useCoffeeChatMilestones() {
   return useQuery({
     queryKey: ['coffee-chat-milestones'],
     queryFn: async () => {
+      if (isDemoMode()) return demoCoffeeChatMilestones;
       const { data, error } = await supabase
-        .from('coffee_chat_milestones')
-        .select('*')
-        .order('target_count', { ascending: true });
 
       if (error) throw error;
       return data as Milestone[];

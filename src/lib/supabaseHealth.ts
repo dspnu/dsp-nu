@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { isDemoMode } from '@/demo';
 
 const HEALTH_WARN_MS = 2500;
 
@@ -10,6 +11,7 @@ export type HealthPingResult = {
 
 /** Lightweight REST ping before opening a voting period. */
 export async function pingSupabaseHealth(): Promise<HealthPingResult> {
+  if (isDemoMode()) return { ok: true, latencyMs: 0 };
   const start = performance.now();
   try {
     const { error } = await supabase.from('chapter_settings').select('key').limit(1);

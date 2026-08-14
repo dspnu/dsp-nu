@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/core/auth/AuthContext';
+import { isDemoMode, demoCareerCredits } from '@/demo';
 
 function mondayUtc(): string {
   const d = new Date();
@@ -22,6 +23,7 @@ export function useCareerCredits() {
     queryKey: ['career-credits', user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
+      if (isDemoMode()) return demoCareerCredits;
       const week = mondayUtc();
       const [usageRes, grantsRes] = await Promise.all([
         supabase

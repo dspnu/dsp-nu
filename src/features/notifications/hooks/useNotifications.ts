@@ -4,6 +4,12 @@ import { useAuth } from '@/core/auth/AuthContext';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { useMeetingMode } from '@/lib/meetingMode';
+import {
+  isDemoMode,
+  getDemoNotifications,
+  getDemoUnreadCount,
+  demoNotificationPreferences,
+} from '@/demo';
 
 export interface Notification {
   id: string;
@@ -50,14 +56,8 @@ export function useNotifications(limit = 100) {
   const query = useQuery({
     queryKey: ['notifications', user?.id, limit],
     queryFn: async () => {
+      if (isDemoMode()) return getDemoNotifications(user!.id).slice(0, limit);
       const { data, error } = await supabase
-        .from('notifications')
-        .select(
-          'id, user_id, title, message, type, link, is_read, created_at, event_id, ticketed_event_id'
-        )
-        .eq('user_id', user!.id)
-        .order('created_at', { ascending: false })
-        .limit(limit);
 
       if (error) throw error;
       return data as Notification[];
@@ -69,7 +69,7 @@ export function useNotifications(limit = 100) {
   });
 
   useEffect(() => {
-    if (!user || meetingMode) return;
+    if (!user || meetingMode || isDemoMode()) return;
 
     const invalidate = () => {
       queryClient.invalidateQueries({ queryKey: ['notifications', user.id] });
@@ -125,6 +125,7 @@ export function useUnreadCount() {
   const query = useQuery({
     queryKey: ['notifications-unread-count', user?.id],
     queryFn: async () => {
+      if (isDemoMode()) return getDemoUnreadCount(user!.id);
       const { count, error } = await supabase
         .from('notifications')
         .select('id', { count: 'exact', head: true })
@@ -241,6 +242,7 @@ export function useNotificationPreferences() {
     queryKey: ['notification-preferences', user?.id],
     queryFn: async () => {
       if (!user) return null;
+      if (isDemoMode()) return demoNotificationPreferences;
 
       const { data, error } = await supabase
         .from('notification_preferences')
