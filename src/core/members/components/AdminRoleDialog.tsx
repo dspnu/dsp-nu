@@ -9,10 +9,21 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 
 interface AdminRoleDialogProps {
   member: Tables<'profiles'>;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** When false, no trigger button is rendered (controlled usage). Default true. */
+  showTrigger?: boolean;
 }
 
-export function AdminRoleDialog({ member }: AdminRoleDialogProps) {
-  const [open, setOpen] = useState(false);
+export function AdminRoleDialog({
+  member,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+  showTrigger = true,
+}: AdminRoleDialogProps) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = controlledOnOpenChange ?? setUncontrolledOpen;
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -70,12 +81,14 @@ export function AdminRoleDialog({ member }: AdminRoleDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 px-2 gap-1.5 bg-background/90">
-          <ShieldCheck className="h-3.5 w-3.5" />
-          Admin
-        </Button>
-      </DialogTrigger>
+      {showTrigger && controlledOpen === undefined && (
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm" className="h-8 px-2 gap-1.5 bg-background/90">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            Admin
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>Admin role access</DialogTitle>
