@@ -10,8 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Users, Search, Download, GraduationCap } from 'lucide-react';
 import { MemberCard } from '@/core/members/components/MemberCard';
 import { ProfileEditDialog } from '@/core/members/components/ProfileEditDialog';
-import { AdminPositionsDialog } from '@/core/members/components/AdminPositionsDialog';
-import { AdminRoleDialog } from '@/core/members/components/AdminRoleDialog';
+import { MemberAdminActions } from '@/core/members/components/MemberAdminActions';
 import { AlumniForm } from '@/features/alumni/components/AlumniForm';
 import { AlumniCard } from '@/features/alumni/components/AlumniCard';
 import { AlumniImportDialog } from '@/features/alumni/components/AlumniImportDialog';
@@ -157,19 +156,21 @@ export default function PeoplePage() {
           ) : filteredMembers.length > 0 ? (
             <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {filteredMembers.map((member) => (
-                <div key={member.id} className="relative group">
+                <div key={member.id} className="relative">
                   <Link
                     to={`/people/${member.id}`}
                     className="block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.99] transition-transform"
                   >
-                    <MemberCard member={member} />
+                    <MemberCard
+                      member={member}
+                      reserveActionSpace={isDeveloper || canManageAdminRoles}
+                    />
                   </Link>
-                  {(isDeveloper || canManageAdminRoles) && (
-                    <div className="absolute top-1.5 right-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity flex flex-col gap-1.5 items-end">
-                      {canManageAdminRoles && <AdminRoleDialog member={member} />}
-                      {isDeveloper && <AdminPositionsDialog member={member} />}
-                    </div>
-                  )}
+                  <MemberAdminActions
+                    member={member}
+                    canManageAdminRoles={canManageAdminRoles}
+                    canManagePositions={isDeveloper}
+                  />
                 </div>
               ))}
             </div>

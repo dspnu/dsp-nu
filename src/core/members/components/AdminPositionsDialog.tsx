@@ -17,12 +17,23 @@ type MemberStatus = Enums<'member_status'>;
 
 interface AdminPositionsDialogProps {
   member: Profile;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** When false, no trigger button is rendered (controlled usage). Default true. */
+  showTrigger?: boolean;
 }
 
 const COMMON_POSITIONS = org.positions;
 
-export function AdminPositionsDialog({ member }: AdminPositionsDialogProps) {
-  const [open, setOpen] = useState(false);
+export function AdminPositionsDialog({
+  member,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+  showTrigger = true,
+}: AdminPositionsDialogProps) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = controlledOpen ?? uncontrolledOpen;
+  const setOpen = controlledOnOpenChange ?? setUncontrolledOpen;
   const [positions, setPositions] = useState<string[]>(member.positions || []);
   const [newPosition, setNewPosition] = useState('');
   const [status, setStatus] = useState<MemberStatus>(member.status);
@@ -60,13 +71,25 @@ export function AdminPositionsDialog({ member }: AdminPositionsDialogProps) {
       .join(' ');
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
-          <Shield className="h-4 w-4" />
-          Manage Positions
-        </Button>
-      </DialogTrigger>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (next) {
+          setPositions(member.positions || []);
+          setStatus(member.status);
+          setNewPosition('');
+        }
+        setOpen(next);
+      }}
+    >
+      {showTrigger && controlledOpen === undefined && (
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm" className="gap-2">
+            <Shield className="h-4 w-4" />
+            Manage Positions
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Manage {member.first_name}'s Profile</DialogTitle>

@@ -8,11 +8,17 @@ type Profile = Tables<'profiles'>;
 
 interface MemberCardProps {
   member: Profile;
+  /** Extra right padding so absolute admin actions don't cover name/status. */
+  reserveActionSpace?: boolean;
 }
 
-export function MemberCard({ member }: MemberCardProps) {
+export function MemberCard({ member, reserveActionSpace = false }: MemberCardProps) {
   return (
-    <div className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/40 transition-colors">
+    <div
+      className={`flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/40 transition-colors ${
+        reserveActionSpace ? 'pr-11' : ''
+      }`}
+    >
       <Avatar className="h-10 w-10 shrink-0">
         <AvatarImage src={member.avatar_url || ''} />
         <AvatarFallback className="text-sm bg-primary/10 text-primary font-medium">
