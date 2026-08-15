@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/core/auth/AuthContext';
 import { toast } from 'sonner';
 import type { Tables, TablesInsert, Enums } from '@/integrations/supabase/types';
+import { isDemoMode, demoEopCandidates } from '@/demo';
 
 type EOPCandidate = Tables<'eop_candidates'>;
 type EOPVote = Tables<'eop_votes'>;
@@ -13,10 +14,8 @@ export function useEOPCandidates() {
   return useQuery({
     queryKey: ['eop-candidates'],
     queryFn: async () => {
+      if (isDemoMode()) return demoEopCandidates;
       const { data, error } = await supabase
-        .from('eop_candidates')
-        .select('*')
-        .order('last_name', { ascending: true });
 
       if (error) throw error;
       return data as EOPCandidate[];
@@ -150,7 +149,7 @@ export function useMyVotes() {
     queryKey: ['my-eop-votes', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      
+      if (isDemoMode()) return [];
       const { data, error } = await supabase
         .from('eop_votes')
         .select('*')
@@ -167,6 +166,7 @@ export function useVoteCounts() {
   return useQuery({
     queryKey: ['eop-vote-counts'],
     queryFn: async () => {
+      if (isDemoMode()) return {};
       const { data, error } = await supabase
         .from('eop_votes')
         .select('candidate_id, vote');

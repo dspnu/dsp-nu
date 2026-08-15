@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
+import { isDemoMode, demoEvents } from '@/demo';
 
 type Event = Tables<'events'>;
 type EventInsert = TablesInsert<'events'>;
@@ -11,12 +12,8 @@ export function useEvents() {
   return useQuery({
     queryKey: ['events'],
     queryFn: async () => {
+      if (isDemoMode()) return demoEvents;
       const { data, error } = await supabase
-        .from('events')
-        .select(
-          'id, title, description, location, start_time, end_time, category, points_value, organizer_id, created_at, updated_at, is_required, attendance_open, payment_required, qr_code'
-        )
-        .order('start_time', { ascending: true });
       
       if (error) throw error;
       return data as Event[];
@@ -28,6 +25,7 @@ export function useEvent(id: string) {
   return useQuery({
     queryKey: ['events', id],
     queryFn: async () => {
+      if (isDemoMode()) return demoEvents.find((e) => e.id === id) ?? null;
       const { data, error } = await supabase
         .from('events')
         .select('*')
