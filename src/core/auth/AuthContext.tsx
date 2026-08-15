@@ -2,7 +2,6 @@ import { createContext, useContext, useEffect, useRef, useState, ReactNode } fro
 import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { org, hasPosition } from '@/config/org';
 import { supabase } from '@/integrations/supabase/client';
-import { isDemoMode, demoUser, demoSession, demoProfile, demoRoles } from '@/demo';
 
 type AppRole = 'admin' | 'officer' | 'member' | 'developer' | 'exec';
 
@@ -125,15 +124,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    if (isDemoMode()) {
-      setUser(demoUser);
-      setSession(demoSession);
-      setProfile(demoProfile as Profile);
-      setRoles([...demoRoles]);
-      setLoading(false);
-      return;
-    }
-
     const applySession = (next: Session | null, opts?: { clearProfile?: boolean }) => {
       setSession(next);
       setUser(next?.user ?? null);
@@ -210,7 +200,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    if (isDemoMode()) return { error: null };
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error };
   };
@@ -222,7 +211,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     lastName: string,
     inviteCode: string,
   ) => {
-    if (isDemoMode()) return { error: null };
     const redirectUrl = `${window.location.origin}/`;
     const trimmedCode = inviteCode.trim();
 
@@ -251,19 +239,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const requestPasswordReset = async (email: string, redirectTo: string) => {
-    if (isDemoMode()) return { error: null };
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
     return { error };
   };
 
   const updatePassword = async (password: string) => {
-    if (isDemoMode()) return { error: null };
     const { error } = await supabase.auth.updateUser({ password });
     return { error };
   };
 
   const signOut = async () => {
-    if (isDemoMode()) return;
     intentionalSignOut.current = true;
     await supabase.auth.signOut();
     setProfile(null);

@@ -1,13 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import {
-  isDemoMode,
-  demoDuesConfig,
-  demoDuesLateFees,
-  demoDuesLineItems,
-  demoDuesInstallments,
-} from '@/demo';
 
 export interface DuesConfigRow {
   id: string;
@@ -57,11 +50,6 @@ export function useDuesConfig(semester?: string) {
   return useQuery({
     queryKey: ['dues-config', semester],
     queryFn: async () => {
-      if (isDemoMode()) {
-        return semester
-          ? demoDuesConfig.filter((c) => c.semester === semester)
-          : demoDuesConfig;
-      }
       let q = supabase.from('dues_config').select('*').eq('is_active', true);
       if (semester) q = q.eq('semester', semester);
       const { data, error } = await q.order('amount', { ascending: true });
@@ -112,7 +100,6 @@ export function useDuesLateFees(semester?: string) {
   return useQuery({
     queryKey: ['dues-late-fees', semester],
     queryFn: async () => {
-      if (isDemoMode()) return demoDuesLateFees;
       let q = supabase.from('dues_late_fees').select('*').eq('is_active', true);
       if (semester) q = q.eq('semester', semester);
       const { data, error } = await q.order('deadline', { ascending: true });
@@ -151,11 +138,6 @@ export function useDuesLineItems(semester?: string) {
   return useQuery({
     queryKey: ['dues-line-items', semester],
     queryFn: async () => {
-      if (isDemoMode()) {
-        return semester
-          ? demoDuesLineItems.filter((i) => i.semester === semester)
-          : demoDuesLineItems;
-      }
       let q = supabase.from('dues_line_items').select('*');
       if (semester) q = q.eq('semester', semester);
       const { data, error } = await q.order('created_at', { ascending: false });
@@ -194,11 +176,6 @@ export function useDuesInstallments(semester?: string) {
   return useQuery({
     queryKey: ['dues-installments', semester],
     queryFn: async () => {
-      if (isDemoMode()) {
-        return semester
-          ? demoDuesInstallments.filter((i) => i.semester === semester)
-          : demoDuesInstallments;
-      }
       let q = supabase.from('dues_installments').select('*');
       if (semester) q = q.eq('semester', semester);
       const { data, error } = await q.order('due_date', { ascending: true });

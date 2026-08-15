@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/core/auth/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { isDemoMode, getDemoCareerHistory } from '@/demo';
 
 export type CareerTool =
   | 'resume_review'
@@ -18,7 +17,6 @@ export function useCareerHistory(tool?: CareerTool, limit = 20) {
     queryKey: ['career-history', user?.id, tool ?? 'all'],
     enabled: !!user?.id,
     queryFn: async () => {
-      if (isDemoMode()) return getDemoCareerHistory(user!.id, tool);
       let q = supabase
         .from('career_ai_runs')
         .select('id, tool, title, created_at, model, output, input')

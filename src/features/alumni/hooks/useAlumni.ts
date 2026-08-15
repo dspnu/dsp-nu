@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
-import { isDemoMode, demoAlumni } from '@/demo';
 
 type Alumni = Tables<'alumni'>;
 type AlumniInsert = TablesInsert<'alumni'>;
@@ -12,7 +11,6 @@ export function useAlumni() {
   return useQuery({
     queryKey: ['alumni'],
     queryFn: async () => {
-      if (isDemoMode()) return demoAlumni;
       const { data, error } = await supabase
         .from('alumni')
         .select('*')
@@ -28,7 +26,6 @@ export function useAlumnus(id: string) {
   return useQuery({
     queryKey: ['alumni', id],
     queryFn: async () => {
-      if (isDemoMode()) return demoAlumni.find((a) => a.id === id) ?? null;
       const { data, error } = await supabase
         .from('alumni')
         .select('*')

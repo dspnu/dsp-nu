@@ -22,7 +22,6 @@ import { useChapterSetting } from '@/hooks/useChapterSettings';
 import { ScholarshipsStandingSection } from '@/features/chapter/components/ScholarshipsStandingSection';
 import { CloverDuesStandingCard } from '@/features/dues/components/CloverDuesStandingCard';
 import { capturePhotoFile, ensureCameraPermission, isNativeCameraAvailable } from '@/lib/nativeCamera';
-import { isDemoMode, demoPointsLedger, demoFamilyWeights, demoFamilyBonusPoints } from '@/demo';
 
 const POINTS_REQUIREMENT = org.standing.minPoints;
 const SERVICE_HOURS_REQUIREMENT = org.standing.minServiceHours;
@@ -116,9 +115,6 @@ export function StandingTab() {
   const { data: allPoints } = useQuery({
     queryKey: ['all-points'],
     queryFn: async () => {
-      if (isDemoMode()) {
-        return demoPointsLedger.map(({ user_id, points, category }) => ({ user_id, points, category }));
-      }
       const { data, error } = await supabase
         .from('points_ledger')
         .select('user_id, points, category')
@@ -131,7 +127,6 @@ export function StandingTab() {
   const { data: familyWeights = [] } = useQuery({
     queryKey: ['family-game-weights'],
     queryFn: async () => {
-      if (isDemoMode()) return demoFamilyWeights;
       const { data, error } = await supabase.from('family_game_weights').select('*');
       if (error) throw error;
       return data;
@@ -141,7 +136,6 @@ export function StandingTab() {
   const { data: familyBonusPoints = [] } = useQuery({
     queryKey: ['family-bonus-points'],
     queryFn: async () => {
-      if (isDemoMode()) return demoFamilyBonusPoints;
       const { data, error } = await supabase.from('family_bonus_points').select('*');
       if (error) throw error;
       return data;

@@ -4,7 +4,6 @@ import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
 import { resolveInviteUnlockAfterAuth } from '@/core/auth/inviteUnlock';
-import { isDemoMode } from '@/demo';
 
 function parseTokensFromUrl(rawUrl: string): { access_token: string; refresh_token: string } | null {
   const url = new URL(rawUrl);
@@ -45,7 +44,7 @@ function parseErrorFromUrl(rawUrl: string): string | null {
  */
 export function NativeAuthBridge() {
   useEffect(() => {
-    if (isDemoMode() || !Capacitor.isNativePlatform()) return;
+    if (!Capacitor.isNativePlatform()) return;
 
     const subPromise = App.addListener('appUrlOpen', async ({ url }) => {
       if (!url?.startsWith('dspnu://')) return;

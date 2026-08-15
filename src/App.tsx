@@ -35,16 +35,14 @@ const OnboardingPage = lazy(() => import("@/core/auth/OnboardingPage"));
 const PwaOpenPage = lazy(() => import("./pages/PwaOpenPage"));
 const PwaProtocolPage = lazy(() => import("./pages/PwaProtocolPage"));
 
-const isDemo = import.meta.env.VITE_DEMO_MODE === 'true';
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: isDemo ? Infinity : 30_000,
+      staleTime: 30_000,
       gcTime: 5 * 60_000,
-      retry: isDemo ? 0 : 2,
+      retry: 2,
       refetchOnWindowFocus: false,
-      refetchOnReconnect: !isDemo,
+      refetchOnReconnect: true,
     },
     mutations: {
       retry: 0,
