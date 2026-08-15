@@ -4,7 +4,6 @@ import { useAuth } from '@/core/auth/AuthContext';
 import { hasPosition } from '@/config/org';
 import type { Enums, Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
-import { isDemoMode, demoExecTasks, getDemoMyExecTasks } from '@/demo';
 
 export type ExecTask = Tables<'exec_tasks'>;
 export type ExecTaskStatus = Enums<'exec_task_status'>;
@@ -42,8 +41,11 @@ export function useExecTasksList() {
   return useQuery({
     queryKey: ['exec-tasks-all'],
     queryFn: async () => {
-      if (isDemoMode()) return demoExecTasks;
       const { data, error } = await supabase
+        .from('exec_tasks')
+        .select('*')
+        .order('due_at', { ascending: true, nullsFirst: false })
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return data as ExecTask[];
     },
@@ -55,8 +57,13 @@ export function useMyExecTasks() {
   return useQuery({
     queryKey: ['exec-tasks-mine', user?.id],
     queryFn: async () => {
-      if (isDemoMode()) return getDemoMyExecTasks(user!.id);
       const { data, error } = await supabase
+        .from('exec_tasks')
+        .select('*')
+        .eq('assigned_to_user_id', user!.id)
+        .eq('status', 'open')
+        .order('due_at', { ascending: true, nullsFirst: false })
+        .limit(20);
       if (error) throw error;
       return data as ExecTask[];
     },

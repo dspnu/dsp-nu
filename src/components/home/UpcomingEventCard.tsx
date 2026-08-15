@@ -8,7 +8,6 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/core/auth/AuthContext';
 import { isAfter } from 'date-fns';
-import { isDemoMode, demoEventRsvp } from '@/demo';
 
 export function UpcomingEventCard() {
   const { user } = useAuth();
@@ -20,7 +19,6 @@ export function UpcomingEventCard() {
     queryKey: ['my-rsvp', nextEvent?.id, user?.id],
     queryFn: async () => {
       if (!nextEvent?.id || !user?.id) return null;
-      if (isDemoMode()) return demoEventRsvp;
       const { data, error } = await supabase
         .from('event_rsvps')
         .select('response')

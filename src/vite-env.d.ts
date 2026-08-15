@@ -12,8 +12,6 @@ interface ImportMetaEnv {
   readonly VITE_WALLET_PASS_URL?: string;
   /** Comma-separated org.features keys to force off at build time (see src/config/capabilities.ts). */
   readonly VITE_DISABLED_FEATURES?: string;
-  /** When true, app runs fully offline with static screenshot data (no auth/backend). */
-  readonly VITE_DEMO_MODE?: string;
 }
 
 interface ImportMeta {

@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/core/auth/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import { isDemoMode, demoPdpAssignments, getDemoMySubmissions } from '@/demo';
 
 export interface PDPAssignment {
   id: string;
@@ -39,8 +38,10 @@ export function usePDPAssignments() {
   return useQuery({
     queryKey: ['pdp-assignments'],
     queryFn: async () => {
-      if (isDemoMode()) return demoPdpAssignments;
       const { data, error } = await supabase
+        .from('pdp_assignments')
+        .select('*')
+        .order('due_date', { ascending: true });
       if (error) throw error;
       return data as PDPAssignment[];
     },
@@ -136,8 +137,10 @@ export function useMySubmissions() {
   return useQuery({
     queryKey: ['pdp-submissions', 'mine'],
     queryFn: async () => {
-      if (isDemoMode()) return getDemoMySubmissions(user!.id);
       const { data, error } = await supabase
+        .from('pdp_submissions')
+        .select('*')
+        .eq('user_id', user!.id);
       if (error) throw error;
       return data as PDPSubmission[];
     },
