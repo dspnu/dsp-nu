@@ -107,7 +107,7 @@ export function TicketCheckInTools({ onCode, initialCode, onClose }: TicketCheck
       <Sheet open={scannerOpen} onOpenChange={setScannerOpen}>
         <SheetContent
           side="bottom"
-          className="h-[100dvh] max-h-[100dvh] w-full p-0 border-0 bg-black text-white sm:max-w-none"
+          className="z-[110] h-[100dvh] max-h-[100dvh] w-full overflow-hidden border-0 bg-black p-0 text-white sm:max-w-none [&>button]:hidden"
         >
           <SheetHeader className="sr-only">
             <SheetTitle>Scan ticket QR code</SheetTitle>
@@ -180,12 +180,6 @@ function ScannerView({ onScan, onClose }: ScannerViewProps) {
 
     const config = {
       fps: 12,
-      qrbox: (vw: number, vh: number) => {
-        const min = Math.min(vw, vh);
-        const size = Math.floor(min * 0.7);
-        return { width: size, height: size };
-      },
-      aspectRatio: window.innerWidth / window.innerHeight,
       disableFlip: false,
     };
 
@@ -272,40 +266,45 @@ function ScannerView({ onScan, onClose }: ScannerViewProps) {
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-black">
-      {/* Camera surface */}
-      <div id={elementId} className="absolute inset-0 [&_video]:h-full [&_video]:w-full [&_video]:object-cover" />
+      {/* Camera surface — library overlay is hidden; we draw our own frame */}
+      <div id={elementId} className="ticket-scanner-camera absolute inset-0" />
 
-      {/* Dim overlay with cut-out scanning frame */}
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-        <div className="absolute inset-0 bg-black/55" />
-        <div className="relative aspect-square w-[70vmin] max-w-[420px]">
-          <div className="absolute inset-0 rounded-3xl shadow-[0_0_0_9999px_rgba(0,0,0,0.55)]" />
-          {/* Corner brackets */}
-          {(
-            [
-              'top-0 left-0 border-l-2 border-t-2 rounded-tl-3xl',
-              'top-0 right-0 border-r-2 border-t-2 rounded-tr-3xl',
-              'bottom-0 left-0 border-l-2 border-b-2 rounded-bl-3xl',
-              'bottom-0 right-0 border-r-2 border-b-2 rounded-br-3xl',
-            ] as const
-          ).map((cls, i) => (
-            <span key={i} className={`absolute h-10 w-10 border-white/90 ${cls}`} />
-          ))}
-          {/* Animated scan line */}
-          {status === 'scanning' && (
-            <div className="absolute inset-x-4 top-0 h-[2px] animate-[ticket-scan_2.2s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-white to-transparent" />
-          )}
+      {/* Dim overlay with a single cut-out scanning frame, centered between chrome */}
+      <div className="pointer-events-none absolute inset-0 flex flex-col">
+        <div className="h-[calc(env(safe-area-inset-top,0px)+4.5rem)] shrink-0" />
+        <div className="relative flex min-h-0 flex-1 items-center justify-center px-6">
+          <div className="relative aspect-square w-[min(70vmin,100%)] max-w-[420px]">
+            <div className="absolute inset-0 rounded-3xl shadow-[0_0_0_9999px_rgba(0,0,0,0.55)]" />
+            {(
+              [
+                'top-0 left-0 border-l-[3px] border-t-[3px] rounded-tl-3xl',
+                'top-0 right-0 border-r-[3px] border-t-[3px] rounded-tr-3xl',
+                'bottom-0 left-0 border-l-[3px] border-b-[3px] rounded-bl-3xl',
+                'bottom-0 right-0 border-r-[3px] border-b-[3px] rounded-br-3xl',
+              ] as const
+            ).map((cls, i) => (
+              <span key={i} className={`absolute h-11 w-11 border-white ${cls}`} />
+            ))}
+            {status === 'scanning' && (
+              <div className="absolute inset-4 overflow-hidden rounded-2xl">
+                <div className="ticket-scan-line absolute inset-x-0 top-0 h-full">
+                  <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-white to-transparent" />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
+        <div className="h-[calc(env(safe-area-inset-bottom,0px)+8.5rem)] shrink-0" />
       </div>
 
       {/* Top bar */}
-      <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top)+12px)] pb-3">
+      <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top)+12px)] pb-3">
         <Button
           type="button"
           variant="ghost"
           size="icon"
           onClick={onClose}
-          className="h-11 w-11 rounded-full bg-white/10 text-white backdrop-blur-md hover:bg-white/20"
+          className="h-11 w-11 rounded-full bg-white/10 text-white backdrop-blur-md hover:bg-white/20 hover:text-white"
         >
           <X className="h-5 w-5" />
         </Button>
@@ -314,7 +313,7 @@ function ScannerView({ onScan, onClose }: ScannerViewProps) {
       </div>
 
       {/* Bottom controls */}
-      <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-4 px-6 pb-[calc(env(safe-area-inset-bottom)+24px)]">
+      <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col items-center gap-4 px-6 pb-[calc(env(safe-area-inset-bottom)+24px)]">
         <p className="rounded-full bg-black/40 px-3 py-1 text-xs text-white/80 backdrop-blur-md">
           {status === 'scanning'
             ? 'Align the QR code inside the frame'
@@ -329,7 +328,7 @@ function ScannerView({ onScan, onClose }: ScannerViewProps) {
               variant="ghost"
               size="icon"
               onClick={toggleTorch}
-              className="h-12 w-12 rounded-full bg-white/10 text-white backdrop-blur-md hover:bg-white/20"
+              className="h-12 w-12 rounded-full bg-white/10 text-white backdrop-blur-md hover:bg-white/20 hover:text-white"
             >
               {torchOn ? <ZapOff className="h-5 w-5" /> : <Zap className="h-5 w-5" />}
             </Button>
@@ -340,7 +339,7 @@ function ScannerView({ onScan, onClose }: ScannerViewProps) {
               variant="ghost"
               size="icon"
               onClick={switchCamera}
-              className="h-12 w-12 rounded-full bg-white/10 text-white backdrop-blur-md hover:bg-white/20"
+              className="h-12 w-12 rounded-full bg-white/10 text-white backdrop-blur-md hover:bg-white/20 hover:text-white"
             >
               <SwitchCamera className="h-5 w-5" />
             </Button>
@@ -349,16 +348,40 @@ function ScannerView({ onScan, onClose }: ScannerViewProps) {
       </div>
 
       {status === 'starting' && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-white/80" />
         </div>
       )}
 
       <style>{`
+        .ticket-scanner-camera {
+          padding: 0 !important;
+        }
+        .ticket-scanner-camera,
+        .ticket-scanner-camera > *,
+        .ticket-scanner-camera video {
+          width: 100% !important;
+          height: 100% !important;
+          border: 0 !important;
+        }
+        .ticket-scanner-camera video {
+          position: absolute !important;
+          inset: 0;
+          object-fit: cover !important;
+        }
+        .ticket-scanner-camera canvas {
+          opacity: 0 !important;
+          pointer-events: none !important;
+        }
+        .ticket-scanner-camera #qr-shaded-region {
+          display: none !important;
+        }
         @keyframes ticket-scan {
-          0% { transform: translateY(0); opacity: 0.2; }
-          50% { transform: translateY(calc(70vmin - 4px)); opacity: 1; }
-          100% { transform: translateY(0); opacity: 0.2; }
+          0%, 100% { transform: translateY(0); opacity: 0.25; }
+          50% { transform: translateY(calc(100% - 2px)); opacity: 1; }
+        }
+        .ticket-scan-line {
+          animation: ticket-scan 2.2s ease-in-out infinite;
         }
       `}</style>
     </div>
