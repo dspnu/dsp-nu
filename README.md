@@ -201,13 +201,15 @@ Add this redirect URL in **Supabase → Authentication → URL Configuration →
 
 That scheme is registered in `ios/App/App/Info.plist` and used for Google OAuth, Sign in with Apple, and password-reset emails when running inside the native app.
 
-### Sign in with Apple (App Store Guideline 4.8)
+### Sign in with Apple (App Store Guidelines 4 / 4.8)
 
-Because Google OAuth is offered, Apple Sign In must also be available:
+Because Google OAuth is offered, Apple Sign In must also be available. On **iOS** the app uses native Authentication Services (`@capacitor-community/apple-sign-in` → Supabase `signInWithIdToken`) so name and email from Apple are stored on the profile and **not** re-collected during onboarding.
 
 1. Enable the **Apple** provider in Supabase Auth.
 2. Configure the Apple Services ID / key per [Supabase Apple docs](https://supabase.com/docs/guides/auth/social-login/auth-apple).
 3. In Apple Developer, enable **Sign In with Apple** on App ID `com.jacobtartabini.dspapp`.
+4. List both the **App ID** (for native) and **Services ID** (for web OAuth) in Supabase Apple Client IDs.
+5. Confirm `com.apple.developer.applesignin` is present in the iOS entitlements.
 
 ### Push notifications (APNs)
 

@@ -2,6 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/core/auth/AuthContext';
 import { profileNeedsInviteUnlock } from '@/core/auth/profileNeedsInviteUnlock';
+import {
+  isAppleAuthUser,
+  resolveIdentityNames,
+  syncProfileIdentityFromUser,
+} from '@/core/auth/authIdentity';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -86,8 +91,15 @@ export default function OnboardingPage() {
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [firstName, setFirstName] = useState(profile?.first_name || '');
-  const [lastName, setLastName] = useState(profile?.last_name || '');
+  const identity = resolveIdentityNames(user, profile);
+  const appleUser = isAppleAuthUser(user);
+  // App Store Guideline 4: do not require name after Sign in with Apple when
+  // Authentication Services already provided it (or when we already stored it).
+  const nameFromAuth = identity.fromProvider && Boolean(identity.firstName || identity.lastName);
+  const requireNameFields = !appleUser && !nameFromAuth;
+
+  const [firstName, setFirstName] = useState(identity.firstName || profile?.first_name || '');
+  const [lastName, setLastName] = useState(identity.lastName || profile?.last_name || '');
   const [phone, setPhone] = useState(profile?.phone || '');
   const [major, setMajor] = useState(profile?.major || '');
   const [gradYear, setGradYear] = useState(profile?.graduation_year?.toString() || '');
@@ -101,6 +113,18 @@ export default function OnboardingPage() {
 
   const { data: members, isPending: membersLoading } = useMembers();
   const otherMembers = members?.filter((m) => m.id !== profile?.id) ?? [];
+
+  useEffect(() => {
+    if (!user) return;
+    void syncProfileIdentityFromUser(user).then(() => refreshProfile());
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps -- sync once per signed-in user
+
+  useEffect(() => {
+    if (!profile && !user) return;
+    const next = resolveIdentityNames(user, profile);
+    if (next.firstName) setFirstName(next.firstName);
+    if (next.lastName) setLastName(next.lastName);
+  }, [profile?.first_name, profile?.last_name, user?.id]);
 
   useEffect(() => {
     if (!profile) return;
@@ -136,9 +160,12 @@ export default function OnboardingPage() {
     const trimmedBig = big.trim();
     const trimmedLittle = little.trim();
 
+    if (requireNameFields && (!trimmedFirst || !trimmedLast)) {
+      toast.error('Please enter your first and last name.');
+      return;
+    }
+
     if (
-      !trimmedFirst ||
-      !trimmedLast ||
       !trimmedPhone ||
       !trimmedMajor ||
       !gradYear ||
@@ -167,8 +194,9 @@ export default function OnboardingPage() {
       const { error } = await supabase
         .from('profiles')
         .update({
-          first_name: trimmedFirst,
-          last_name: trimmedLast,
+          // Keep Apple-provided name when fields are empty rather than wiping them.
+          first_name: trimmedFirst || profile.first_name || identity.firstName,
+          last_name: trimmedLast || profile.last_name || identity.lastName,
           phone: trimmedPhone,
           major: trimmedMajor,
           graduation_year: parseInt(gradYear, 10),
@@ -275,14 +303,35 @@ export default function OnboardingPage() {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>First Name</Label>
-                          <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="John" />
+                          <Label>First Name{requireNameFields ? ' *' : ''}</Label>
+                          <Input
+                            value={firstName}
+                            onChange={(e) => setFirstName(e.target.value)}
+                            placeholder={appleUser ? 'From Apple ID' : 'John'}
+                            readOnly={nameFromAuth}
+                            aria-readonly={nameFromAuth || undefined}
+                            className={nameFromAuth ? 'bg-muted/50' : undefined}
+                          />
                         </div>
                         <div className="space-y-2">
-                          <Label>Last Name</Label>
-                          <Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Doe" />
+                          <Label>Last Name{requireNameFields ? ' *' : ''}</Label>
+                          <Input
+                            value={lastName}
+                            onChange={(e) => setLastName(e.target.value)}
+                            placeholder={appleUser ? 'From Apple ID' : 'Doe'}
+                            readOnly={nameFromAuth}
+                            aria-readonly={nameFromAuth || undefined}
+                            className={nameFromAuth ? 'bg-muted/50' : undefined}
+                          />
                         </div>
                       </div>
+                      {appleUser && (
+                        <p className="text-xs text-muted-foreground -mt-2">
+                          {nameFromAuth
+                            ? `Using your Apple ID name${user?.email ? ` · ${user.email}` : ''}. You can change this later in Settings.`
+                            : `Email from Apple${user?.email ? ` (${user.email})` : ''} is used for your account. Name is optional here.`}
+                        </p>
+                      )}
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label>
@@ -392,8 +441,7 @@ export default function OnboardingPage() {
                       disabled={
                         saving ||
                         membersLoading ||
-                        !firstName.trim() ||
-                        !lastName.trim() ||
+                        (requireNameFields && (!firstName.trim() || !lastName.trim())) ||
                         !phone.trim() ||
                         !major.trim() ||
                         !gradYear ||

@@ -19,7 +19,8 @@ Use this when preparing TestFlight / App Store Connect for **DSP Nu** (`com.jaco
 
 - [ ] Supabase redirect allowlist includes `dspnu://auth/callback`
 - [ ] Google OAuth works via system browser
-- [ ] Sign in with Apple enabled (Guideline 4.8) and tested
+- [ ] Sign in with Apple: native iOS flow captures name/email; onboarding does not re-ask (Guideline 4)
+- [ ] Sign in with Apple entitlement enabled on App ID + in Xcode/signing
 - [ ] Password reset email opens the app and lands on reset screen
 
 ## Features smoke test (device)

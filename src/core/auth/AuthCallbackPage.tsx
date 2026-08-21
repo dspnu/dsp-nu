@@ -5,6 +5,25 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { AppCopyrightFooter } from '@/components/layout/AppCopyrightFooter';
 import { resolveInviteUnlockAfterAuth } from '@/core/auth/inviteUnlock';
+import { syncProfileIdentityFromUser } from '@/core/auth/authIdentity';
+
+async function finishAuthRedirect(
+  navigate: ReturnType<typeof useNavigate>,
+  callbackType: string | null,
+) {
+  if (callbackType === 'recovery') {
+    navigate('/auth/reset-password', { replace: true });
+    return;
+  }
+
+  const { data } = await supabase.auth.getUser();
+  if (data.user) {
+    await syncProfileIdentityFromUser(data.user);
+  }
+
+  const unlock = await resolveInviteUnlockAfterAuth();
+  navigate(unlock === 'locked' ? '/auth/invite' : '/', { replace: true });
+}
 
 export default function AuthCallbackPage() {
   const navigate = useNavigate();
@@ -43,18 +62,12 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        if (callbackType === 'recovery') {
-          navigate('/auth/reset-password', { replace: true });
-          return;
-        }
-
-        const unlock = await resolveInviteUnlockAfterAuth();
-        navigate(unlock === 'locked' ? '/auth/invite' : '/', { replace: true });
+        await finishAuthRedirect(navigate, callbackType);
         return;
       }
 
       if (!code) {
-        toast.error('Google sign in failed: missing authorization response.');
+        toast.error('Sign in failed: missing authorization response.');
         navigate('/auth', { replace: true });
         return;
       }
@@ -66,13 +79,7 @@ export default function AuthCallbackPage() {
         return;
       }
 
-      if (callbackType === 'recovery') {
-        navigate('/auth/reset-password', { replace: true });
-        return;
-      }
-
-      const unlock = await resolveInviteUnlockAfterAuth();
-      navigate(unlock === 'locked' ? '/auth/invite' : '/', { replace: true });
+      await finishAuthRedirect(navigate, callbackType);
     };
 
     handleAuthCallback();

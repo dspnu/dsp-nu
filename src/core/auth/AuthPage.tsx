@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { AppLogo } from '@/components/branding/AppLogo';
 import { PENDING_INVITE_KEY } from '@/core/auth/inviteUnlock';
+import { canUseNativeAppleSignIn, signInWithNativeApple } from '@/core/auth/appleSignIn';
 
 type LastUsedLoginMethod = 'google' | 'apple' | 'email';
 
@@ -57,29 +58,46 @@ export default function AuthPage() {
   /** Same deep link as OAuth so recovery emails open the native app. */
   const getPasswordResetRedirectUrl = () => getRedirectUrl();
 
-  const signInWithProvider = async (provider: 'google' | 'apple', opts?: { requireInvite?: boolean }) => {
-    if (opts?.requireInvite) {
-      const trimmed = signupInviteCode.trim();
-      if (!trimmed) {
-        toast.error('Enter your chapter invite code before continuing.');
-        return;
-      }
-      const { data: codeOk, error: codeError } = await supabase.rpc('validate_signup_invite', {
-        p_code: trimmed,
-      });
-      if (codeError) {
-        toast.error(codeError.message);
-        return;
-      }
-      if (!codeOk) {
-        toast.error('Invalid invite code. Ask a chapter officer for the current code.');
-        return;
-      }
-      window.sessionStorage.setItem(PENDING_INVITE_KEY, trimmed);
+  const prepareInviteForOAuth = async (requireInvite?: boolean): Promise<boolean> => {
+    if (!requireInvite) return true;
+    const trimmed = signupInviteCode.trim();
+    if (!trimmed) {
+      toast.error('Enter your chapter invite code before continuing.');
+      return false;
     }
+    const { data: codeOk, error: codeError } = await supabase.rpc('validate_signup_invite', {
+      p_code: trimmed,
+    });
+    if (codeError) {
+      toast.error(codeError.message);
+      return false;
+    }
+    if (!codeOk) {
+      toast.error('Invalid invite code. Ask a chapter officer for the current code.');
+      return false;
+    }
+    window.sessionStorage.setItem(PENDING_INVITE_KEY, trimmed);
+    return true;
+  };
+
+  const signInWithProvider = async (provider: 'google' | 'apple', opts?: { requireInvite?: boolean }) => {
+    if (!(await prepareInviteForOAuth(opts?.requireInvite))) return;
 
     setOauthProviderLoading(provider);
     try {
+      // iOS: use Authentication Services so Apple name/email are captured and
+      // not re-requested during onboarding (App Store Guideline 4).
+      if (provider === 'apple' && canUseNativeAppleSignIn()) {
+        const { unlock } = await signInWithNativeApple();
+        persistLastUsedLoginMethod('apple');
+        toast.success('Welcome!');
+        setOauthProviderLoading(null);
+        if (unlock === 'locked') {
+          window.location.href = '/auth/invite';
+        }
+        return;
+      }
+
       const redirectTo = getRedirectUrl();
 
       const { data, error } = await supabase.auth.signInWithOAuth({
@@ -107,8 +125,14 @@ export default function AuthPage() {
         setOauthProviderLoading(null);
       }
     } catch (e: unknown) {
+      // User dismissed the Apple sheet — not an error worth toasting.
       const message = e instanceof Error ? e.message : 'Sign in failed';
-      toast.error(message);
+      const cancelled =
+        /1001|canceled|cancelled|error 1000/i.test(message) ||
+        (typeof e === 'object' && e !== null && 'code' in e && String((e as { code: unknown }).code) === '1001');
+      if (!cancelled) {
+        toast.error(message);
+      }
       setOauthProviderLoading(null);
     }
   };
