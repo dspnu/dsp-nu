@@ -203,7 +203,7 @@ That scheme is registered in `ios/App/App/Info.plist` and used for Google OAuth,
 
 ### Sign in with Apple (App Store Guidelines 4 / 4.8)
 
-Because Google OAuth is offered, Apple Sign In must also be available. On **iOS** the app uses native Authentication Services (`@capacitor-community/apple-sign-in` → Supabase `signInWithIdToken`) so name and email from Apple are stored on the profile and **not** re-collected during onboarding.
+Because Google OAuth is offered, Apple Sign In must also be available. On **iOS** the app uses native Authentication Services (`@capawesome/capacitor-apple-sign-in` → Supabase `signInWithIdToken`) so name and email from Apple are stored on the profile and **not** re-collected during onboarding.
 
 1. Enable the **Apple** provider in Supabase Auth.
 2. Configure the Apple Services ID / key per [Supabase Apple docs](https://supabase.com/docs/guides/auth/social-login/auth-apple).
