@@ -43,7 +43,7 @@ export function JobCard({ job, isBookmarked, onToggleBookmark }: JobCardProps) {
           </div>
           <div className="flex gap-1">
             {onToggleBookmark && (
-              <Button variant="ghost" size="icon" onClick={onToggleBookmark}>
+              <Button variant="ghost" size="icon" onClick={onToggleBookmark} aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark job'}>
                 {isBookmarked ? (
                   <BookmarkCheck className="h-4 w-4 text-primary" />
                 ) : (
@@ -58,6 +58,7 @@ export function JobCard({ job, isBookmarked, onToggleBookmark }: JobCardProps) {
                   variant="ghost" 
                   size="icon"
                   onClick={() => deleteJob.mutate(job.id)}
+                  aria-label={`Delete ${job.title}`}
                 >
                   <Trash2 className="h-4 w-4 text-destructive" />
                 </Button>

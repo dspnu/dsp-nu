@@ -11,7 +11,7 @@ const NotFound = () => {
 
   return (
     <div className="flex min-h-screen flex-col bg-muted">
-      <div className="flex flex-1 items-center justify-center px-4">
+      <main id="main-content" tabIndex={-1} className="flex flex-1 items-center justify-center px-4 outline-none">
         <div className="text-center">
           <h1 className="mb-4 text-4xl font-bold">404</h1>
           <p className="mb-4 text-xl text-muted-foreground">Oops! Page not found</p>
@@ -19,7 +19,7 @@ const NotFound = () => {
             Return to Home
           </a>
         </div>
-      </div>
+      </main>
       <div className="shrink-0 border-t border-border/50 bg-background/80 py-5">
         <AppCopyrightFooter />
       </div>

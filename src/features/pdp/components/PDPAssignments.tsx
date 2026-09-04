@@ -254,13 +254,14 @@ function AssignmentCard({ assignment, isVP, isNewMember, mySubmission, allSubmis
           </div>
           {isVP && (
             <div className="flex items-center gap-1 shrink-0">
-              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onEdit(assignment)}>
+              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onEdit(assignment)} aria-label={`Edit ${assignment.title}`}>
                 <Pencil className="h-3.5 w-3.5" />
               </Button>
               <Button
                 size="icon"
                 variant="ghost"
                 className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                aria-label={`Delete ${assignment.title}`}
                 onClick={() => {
                   if (confirm(`Delete "${assignment.title}"?`)) {
                     deleteAssignment.mutate(assignment.id);

@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { org } from '@/config/org';
 import { AppLogo } from '@/components/branding/AppLogo';
 import { AppCopyrightFooter } from '@/components/layout/AppCopyrightFooter';
+import { LoadingStatus } from '@/components/a11y/LoadingStatus';
 
 export default function InviteGatePage() {
   const { user, profile, loading, refreshProfile, signOut } = useAuth();
@@ -36,7 +37,7 @@ export default function InviteGatePage() {
   if (loading || refreshing) {
     return (
       <div className="min-h-dvh flex items-center justify-center bg-background pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <LoadingStatus label="Loading" iconClassName="h-8 w-8" />
       </div>
     );
   }
@@ -79,7 +80,7 @@ export default function InviteGatePage() {
 
   return (
     <div className="min-h-dvh flex flex-col bg-background pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
-      <div className="flex-1 flex items-center justify-center p-4">
+      <main id="main-content" tabIndex={-1} className="flex-1 flex items-center justify-center p-4 outline-none">
         <div className="w-full max-w-md space-y-6">
           <div className="text-center">
             <AppLogo className="mx-auto mb-4 h-16 w-16 rounded-2xl shadow-purple" alt={`${org.shortName} logo`} />
@@ -121,7 +122,7 @@ export default function InviteGatePage() {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </main>
       <div className="shrink-0 px-4 pb-8 pt-2">
         <AppCopyrightFooter />
       </div>

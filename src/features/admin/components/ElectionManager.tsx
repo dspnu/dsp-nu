@@ -174,7 +174,7 @@ function ElectionDetail({ election }: { election: Election }) {
             {election.status === 'draft' && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive">
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" aria-label="Delete election">
                     <X className="h-3.5 w-3.5" />
                   </Button>
                 </AlertDialogTrigger>
@@ -228,6 +228,7 @@ function ElectionDetail({ election }: { election: Election }) {
                                 election_id: election.id,
                               })}
                             className="scale-75"
+                            aria-label={`${position.is_active ? 'Hide' : 'Show'} ${position.position_name}`}
                           />
                         </div>
                       )}
@@ -235,6 +236,7 @@ function ElectionDetail({ election }: { election: Election }) {
                         <Button
                           size="icon" variant="ghost" className="h-6 w-6 text-destructive"
                           onClick={() => deletePosition.mutate({ id: position.id, electionId: election.id })}
+                          aria-label={`Delete ${position.position_name} position`}
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
@@ -251,7 +253,7 @@ function ElectionDetail({ election }: { election: Election }) {
                           <span>{c.candidate_name}</span>
                           {election.status === 'draft' && (
                             <Button size="icon" variant="ghost" className="h-5 w-5 text-muted-foreground hover:text-destructive"
-                              onClick={() => deleteCandidate.mutate(c.id)}>
+                              onClick={() => deleteCandidate.mutate(c.id)} aria-label={`Remove ${c.candidate_name}`}>
                               <X className="h-3 w-3" />
                             </Button>
                           )}

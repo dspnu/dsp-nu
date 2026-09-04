@@ -36,10 +36,15 @@ export function NotificationBell() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative shrink-0" aria-label="Notifications">
-          <Bell className="h-5 w-5" />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative shrink-0"
+          aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
+        >
+          <Bell className="h-5 w-5" aria-hidden />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 h-5 min-w-5 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+            <span className="absolute -top-0.5 -right-0.5 h-5 min-w-5 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center" aria-hidden>
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}

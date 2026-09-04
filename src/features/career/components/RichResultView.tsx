@@ -735,10 +735,10 @@ function QuestionDeck({ items, kind }: { items: any[]; kind: 'behavioral' | 'tec
           <span className="text-[11px] text-muted-foreground tabular-nums">{idx + 1} / {total}</span>
         </div>
         <div className="flex items-center gap-1">
-          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={prev}>
+          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={prev} aria-label="Previous item">
             <ChevronDown className="h-3.5 w-3.5 rotate-90" />
           </Button>
-          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={next}>
+          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={next} aria-label="Next item">
             <ChevronDown className="h-3.5 w-3.5 -rotate-90" />
           </Button>
         </div>

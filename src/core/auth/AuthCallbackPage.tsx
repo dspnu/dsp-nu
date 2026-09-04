@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { AppCopyrightFooter } from '@/components/layout/AppCopyrightFooter';
+import { LoadingStatus } from '@/components/a11y/LoadingStatus';
 import { resolveInviteUnlockAfterAuth } from '@/core/auth/inviteUnlock';
 import { syncProfileIdentityFromUser } from '@/core/auth/authIdentity';
 
@@ -87,9 +87,9 @@ export default function AuthCallbackPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <div className="flex flex-1 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <main id="main-content" className="flex flex-1 items-center justify-center">
+        <LoadingStatus label="Signing you in" iconClassName="h-8 w-8" />
+      </main>
       <div className="shrink-0 border-t border-border/50 py-4">
         <AppCopyrightFooter />
       </div>

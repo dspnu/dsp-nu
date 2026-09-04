@@ -17,6 +17,7 @@ import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { AccountLegalNotice } from '@/components/legal/AccountLegalNotice';
 import { AppCopyrightFooter } from '@/components/layout/AppCopyrightFooter';
+import { LoadingStatus } from '@/components/a11y/LoadingStatus';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { AppLogo } from '@/components/branding/AppLogo';
@@ -142,7 +143,7 @@ export default function AuthPage() {
   if (loading) {
     return (
       <div className="min-h-dvh flex items-center justify-center bg-background pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <LoadingStatus label="Loading" iconClassName="h-8 w-8" />
       </div>
     );
   }
@@ -212,7 +213,7 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-dvh flex flex-col bg-background pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
-      <div className="flex-1 flex items-center justify-center p-4">
+      <main id="main-content" tabIndex={-1} className="flex-1 flex items-center justify-center p-4 outline-none">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <AppLogo className="mx-auto mb-4 h-16 w-16 rounded-2xl shadow-purple" alt={`${org.shortName} logo`} />
@@ -315,7 +316,7 @@ export default function AuthPage() {
                             </Badge>
                           )}
                         </div>
-                        <Input id="signin-email" name="email" type="email" required placeholder={org.auth.emailPlaceholder} />
+                        <Input id="signin-email" name="email" type="email" required autoComplete="email" placeholder={org.auth.emailPlaceholder} />
                       </div>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
@@ -328,7 +329,7 @@ export default function AuthPage() {
                             {showForgotPassword ? 'Cancel password reset' : 'Forgot password?'}
                           </button>
                         </div>
-                        <Input id="signin-password" name="password" type="password" required placeholder="••••••••" />
+                        <Input id="signin-password" name="password" type="password" required autoComplete="current-password" placeholder="••••••••" />
                       </div>
                     </div>
                     <Button
@@ -427,20 +428,20 @@ export default function AuthPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="firstName">First Name</Label>
-                        <Input id="firstName" name="firstName" required placeholder="John" />
+                        <Input id="firstName" name="firstName" required autoComplete="given-name" placeholder="John" />
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="lastName">Last Name</Label>
-                        <Input id="lastName" name="lastName" required placeholder="Doe" />
+                        <Input id="lastName" name="lastName" required autoComplete="family-name" placeholder="Doe" />
                       </div>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-email">Email</Label>
-                      <Input id="signup-email" name="email" type="email" required placeholder={org.auth.emailPlaceholder} />
+                      <Input id="signup-email" name="email" type="email" required autoComplete="email" placeholder={org.auth.emailPlaceholder} />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-password">Password</Label>
-                      <Input id="signup-password" name="password" type="password" required minLength={6} placeholder="••••••••" />
+                      <Input id="signup-password" name="password" type="password" required minLength={6} autoComplete="new-password" placeholder="••••••••" />
                     </div>
                     <Button type="submit" className="w-full" disabled={isSubmitting}>
                       {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -453,7 +454,7 @@ export default function AuthPage() {
           </Tabs>
           </Card>
         </div>
-      </div>
+      </main>
       <div className="shrink-0 px-4 pb-8 pt-2 border-t border-border/50 bg-background/95">
         <div className="max-w-md mx-auto w-full space-y-4">
           <AccountLegalNotice />

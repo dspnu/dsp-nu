@@ -9,8 +9,10 @@ import { ThemeProvider } from "next-themes";
 import { DocumentHead } from "@/components/DocumentHead";
 import { getEnabledRoutes } from "@/config/featureRegistry";
 import "@/config/featureRegistrations";
-import { Loader2 } from "lucide-react";
 import { ConnectivityBanner } from "@/components/ConnectivityBanner";
+import { SkipToContent } from "@/components/a11y/SkipToContent";
+import { RouteAnnouncer } from "@/components/a11y/RouteAnnouncer";
+import { LoadingStatus } from "@/components/a11y/LoadingStatus";
 
 import AuthPage from "@/core/auth/AuthPage";
 import AuthCallbackPage from "@/core/auth/AuthCallbackPage";
@@ -55,7 +57,7 @@ const featureRoutes = getEnabledRoutes();
 function RouteFallback() {
   return (
     <div className="min-h-[40vh] flex items-center justify-center">
-      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      <LoadingStatus label="Loading page" />
     </div>
   );
 }
@@ -65,6 +67,7 @@ const App = () => (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <TooltipProvider>
         <DocumentHead />
+        <SkipToContent />
         <Toaster />
         <Sonner />
         <BrowserRouter>
@@ -74,6 +77,7 @@ const App = () => (
             <PwaLaunchBridge />
             <PwaBackgroundSyncBridge />
             <NativePushBridge />
+            <RouteAnnouncer />
             <ConnectivityBanner />
             <Suspense fallback={<RouteFallback />}>
               <Routes>

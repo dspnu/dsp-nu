@@ -153,7 +153,7 @@ export function PDPResources({ isVP }: Props) {
                   <div className="flex items-center gap-1 shrink-0">
                     {resource.url && (
                       <Button size="icon" variant="ghost" className="h-8 w-8" asChild>
-                        <ExternalAnchor href={resource.url}>
+                        <ExternalAnchor href={resource.url} aria-label={`Open ${resource.title}`}>
                           <ExternalLink className="h-4 w-4" />
                         </ExternalAnchor>
                       </Button>
@@ -165,6 +165,7 @@ export function PDPResources({ isVP }: Props) {
                           variant="ghost"
                           className="h-8 w-8"
                           onClick={() => openEdit(resource)}
+                          aria-label={`Edit ${resource.title}`}
                         >
                           <Edit2 className="h-4 w-4" />
                         </Button>
@@ -173,6 +174,7 @@ export function PDPResources({ isVP }: Props) {
                           variant="ghost"
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
                           onClick={() => deleteResource.mutate(resource.id)}
+                          aria-label={`Delete ${resource.title}`}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

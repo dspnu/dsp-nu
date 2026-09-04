@@ -47,10 +47,11 @@ export function ConnectivityBanner() {
   return (
     <div
       role="status"
+      aria-live="polite"
       className="sticky top-0 z-50 border-b border-amber-500/30 bg-amber-500/15 px-3 py-2 text-center text-sm text-amber-950 dark:text-amber-100"
     >
       <span className="inline-flex items-center gap-2">
-        <WifiOff className="h-4 w-4 shrink-0" />
+        <WifiOff className="h-4 w-4 shrink-0" aria-hidden />
         {offline
           ? 'You appear offline. Votes may fail until connection returns.'
           : 'Connection is slow or unstable. Live updates may lag — try again in a moment before opening the next vote.'}

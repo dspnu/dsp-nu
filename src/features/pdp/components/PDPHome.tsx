@@ -223,27 +223,28 @@ export function PDPHome({ isVP, isNewMember, onNavigateToAssignments }: Props) {
                     </div>
                     {isVP && (
                       <div className="flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
-                        <Button size="icon" variant="ghost" className="h-7 w-7" disabled={modIndex === 0}
-                          onClick={() => handleMoveModule(modIndex, 'up')}>
-                          <ArrowUp className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7" disabled={modIndex === (modules?.length ?? 0) - 1}
-                          onClick={() => handleMoveModule(modIndex, 'down')}>
-                          <ArrowDown className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEditModule(mod)}>
-                          <Edit2 className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openAddItem(mod.id, 'assignment')}>
-                          <ClipboardList className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openAddItem(mod.id, 'resource')}>
-                          <LinkIcon className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+        <Button size="icon" variant="ghost" className="h-7 w-7" disabled={modIndex === 0}
+          onClick={() => handleMoveModule(modIndex, 'up')} aria-label="Move module up">
+          <ArrowUp className="h-3.5 w-3.5" />
+        </Button>
+        <Button size="icon" variant="ghost" className="h-7 w-7" disabled={modIndex === (modules?.length ?? 0) - 1}
+          onClick={() => handleMoveModule(modIndex, 'down')} aria-label="Move module down">
+          <ArrowDown className="h-3.5 w-3.5" />
+        </Button>
+        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEditModule(mod)} aria-label="Edit module">
+          <Edit2 className="h-3.5 w-3.5" />
+        </Button>
+        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openAddItem(mod.id, 'assignment')} aria-label="Add assignment">
+          <ClipboardList className="h-3.5 w-3.5" />
+        </Button>
+        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openAddItem(mod.id, 'resource')} aria-label="Add resource">
+          <LinkIcon className="h-3.5 w-3.5" />
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+          aria-label="Delete module"
                           onClick={() => {
                             if (confirm('Delete this module? Items will be unassigned, not deleted.')) {
                               deleteModule.mutate(mod.id);
@@ -293,7 +294,7 @@ export function PDPHome({ isVP, isNewMember, onNavigateToAssignments }: Props) {
                             <Badge variant="outline" className="text-[10px]">Assignment</Badge>
                             {isVP && (
                               <Button size="icon" variant="ghost" className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                                onClick={() => deleteAssignment.mutate(a.id)}>
+                                onClick={() => deleteAssignment.mutate(a.id)} aria-label={`Delete ${a.title}`}>
                                 <Trash2 className="h-3 w-3" />
                               </Button>
                             )}
@@ -315,14 +316,14 @@ export function PDPHome({ isVP, isNewMember, onNavigateToAssignments }: Props) {
                           <Badge variant="outline" className="text-[10px]">Resource</Badge>
                           {r.url && (
                             <Button size="icon" variant="ghost" className="h-6 w-6" asChild>
-                              <ExternalAnchor href={r.url}>
+                              <ExternalAnchor href={r.url} aria-label={`Open ${r.title}`}>
                                 <ExternalLink className="h-3 w-3" />
                               </ExternalAnchor>
                             </Button>
                           )}
                           {isVP && (
                             <Button size="icon" variant="ghost" className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                              onClick={() => deleteResource.mutate(r.id)}>
+                              onClick={() => deleteResource.mutate(r.id)} aria-label={`Delete ${r.title}`}>
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           )}

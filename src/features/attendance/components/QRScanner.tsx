@@ -68,7 +68,7 @@ export function QRScanner({ onScan, onClose }: QRScannerProps) {
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg">Scan QR Code</CardTitle>
-        <Button variant="ghost" size="icon" onClick={onClose}>
+        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close scanner">
           <X className="h-4 w-4" />
         </Button>
       </CardHeader>

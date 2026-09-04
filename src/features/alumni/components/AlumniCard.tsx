@@ -44,6 +44,7 @@ export function AlumniCard({ alumni }: AlumniCardProps) {
                 size="icon"
                 className="h-7 w-7"
                 onClick={() => deleteAlumni.mutate(alumni.id)}
+                aria-label={`Delete ${alumni.first_name} ${alumni.last_name}`}
               >
                 <Trash2 className="h-3.5 w-3.5 text-destructive" />
               </Button>

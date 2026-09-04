@@ -21,7 +21,7 @@ export function ListSetting({ title, items, inputValue, onInputChange, onAdd, on
         {items.map((item) => (
           <Badge key={item} variant="secondary" className="gap-1">
             {item}
-            <button type="button" onClick={() => onRemove(item)} className="hover:text-destructive">
+            <button type="button" onClick={() => onRemove(item)} className="hover:text-destructive" aria-label={`Remove ${item}`}>
               <X className="h-3 w-3" />
             </button>
           </Badge>
@@ -32,6 +32,7 @@ export function ListSetting({ title, items, inputValue, onInputChange, onAdd, on
           value={inputValue}
           onChange={(e) => onInputChange(e.target.value)}
           placeholder={`Add ${title.toLowerCase()}...`}
+          aria-label={`Add ${title.toLowerCase()}`}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault();
@@ -39,7 +40,7 @@ export function ListSetting({ title, items, inputValue, onInputChange, onAdd, on
             }
           }}
         />
-        <Button type="button" size="icon" variant="outline" onClick={onAdd}>
+        <Button type="button" size="icon" variant="outline" onClick={onAdd} aria-label={`Add ${title.toLowerCase()}`}>
           <Plus className="h-4 w-4" />
         </Button>
       </div>

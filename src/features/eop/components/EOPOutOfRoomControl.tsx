@@ -81,6 +81,7 @@ export function EOPOutOfRoomControl({
               placeholder="Name..."
               className="h-8 text-sm"
               autoFocus
+              aria-label="Name of member out of the room"
             />
             <Button
               type="submit"
@@ -105,6 +106,7 @@ export function EOPOutOfRoomControl({
                     className="h-6 w-6 shrink-0 text-muted-foreground hover:text-destructive"
                     onClick={() => handleRemoveAbsent(i)}
                     disabled={updateCandidate.isPending}
+                    aria-label={`Remove ${name} from out of room`}
                   >
                     <X className="h-3 w-3" />
                   </Button>

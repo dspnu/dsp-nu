@@ -62,7 +62,7 @@ export function ResourceCard({ resource, isOfficer }: ResourceCardProps) {
           <div className="flex items-center gap-1">
             {resource.file_url && (
               <Button variant="ghost" size="icon" asChild>
-                <ExternalAnchor href={resource.file_url}>
+                <ExternalAnchor href={resource.file_url} aria-label={`Open ${resource.title}`}>
                   <ExternalLink className="h-4 w-4" />
                 </ExternalAnchor>
               </Button>
@@ -72,7 +72,7 @@ export function ResourceCard({ resource, isOfficer }: ResourceCardProps) {
                 <EditResourceButton resource={resource} />
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="icon" className="text-destructive">
+                    <Button variant="ghost" size="icon" className="text-destructive" aria-label={`Delete ${resource.title}`}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </AlertDialogTrigger>

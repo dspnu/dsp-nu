@@ -102,10 +102,10 @@ export function ChairPositionsManager() {
                   {p.description && <p className="text-xs text-muted-foreground mt-0.5">{p.description}</p>}
                 </div>
                 <div className="flex gap-1 shrink-0">
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(p)}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(p)} aria-label={`Edit ${p.title}`}>
                     <Pencil className="h-3.5 w-3.5" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deletePosition.mutate(p.id)}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deletePosition.mutate(p.id)} aria-label={`Delete ${p.title}`}>
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>

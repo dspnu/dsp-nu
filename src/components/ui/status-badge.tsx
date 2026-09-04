@@ -10,11 +10,11 @@ interface StatusBadgeProps {
 const statusConfig: Record<MemberStatus, { label: string; className: string }> = {
   active: {
     label: 'Active',
-    className: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+    className: 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/20',
   },
   inactive: {
     label: 'Inactive',
-    className: 'bg-gray-500/10 text-gray-600 border-gray-500/20',
+    className: 'bg-gray-500/10 text-gray-800 dark:text-gray-300 border-gray-500/20',
   },
   alumni: {
     label: 'Alumni',
@@ -22,11 +22,11 @@ const statusConfig: Record<MemberStatus, { label: string; className: string }> =
   },
   new_member: {
     label: 'New Member',
-    className: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+    className: 'bg-amber-500/10 text-amber-800 dark:text-amber-200 border-amber-500/20',
   },
   pnm: {
     label: 'PNM',
-    className: 'bg-sky-500/10 text-sky-600 border-sky-500/20',
+    className: 'bg-sky-500/10 text-sky-800 dark:text-sky-200 border-sky-500/20',
   },
 };
 

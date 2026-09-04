@@ -185,7 +185,7 @@ export function EditJobButton({ job }: { job: JobPost }) {
     <JobForm
       job={job}
       trigger={
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" aria-label="Edit job">
           <Pencil className="h-4 w-4" />
         </Button>
       }

@@ -47,31 +47,31 @@ export function DesktopSidebar() {
     : '';
 
   const NavItem = ({ icon: Icon, label, path }: { icon: any; label: string; path: string }) => {
-    const isActive = location.pathname === path;
+    const isActive = location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
     return (
       <Link
         to={path}
+        aria-current={isActive ? 'page' : undefined}
         className={cn(
-          'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
+          'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
           isActive
             ? 'bg-primary text-primary-foreground shadow-purple'
             : 'text-muted-foreground hover:text-foreground hover:bg-accent'
         )}
       >
-        <Icon className="h-5 w-5" />
+        <Icon className="h-5 w-5" aria-hidden />
         {label}
       </Link>
     );
   };
 
   return (
-    <aside className="hidden md:flex flex-col w-64 h-screen bg-card border-r border-border fixed left-0 top-0">
-      {/* Logo & Notifications */}
+    <aside className="hidden md:flex flex-col w-64 h-screen bg-card border-r border-border fixed left-0 top-0" aria-label="Sidebar">
       <div className="p-6 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3">
-          <AppLogo className="h-10 w-10 rounded-lg" alt={`${org.shortName} logo`} />
+        <Link to="/" className="flex items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label={`${org.name} home`}>
+          <AppLogo className="h-10 w-10 rounded-lg" alt="" />
           <div>
-            <h1 className="font-display font-semibold text-foreground">{org.name}</h1>
+            <p className="font-display font-semibold text-foreground">{org.name}</p>
             <p className="text-xs text-muted-foreground">{org.chapterName}</p>
           </div>
         </Link>
@@ -81,7 +81,7 @@ export function DesktopSidebar() {
       <Separator />
 
       {/* Main Navigation */}
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto" aria-label="Main">
         {navItems.map((item) => (
           <NavItem key={item.path} {...item} />
         ))}
@@ -90,19 +90,23 @@ export function DesktopSidebar() {
       <Separator />
 
       {/* Bottom Navigation */}
-      <div className="p-4 space-y-1">
+      <nav className="p-4 space-y-1" aria-label="Account">
         {bottomItems.map((item) => (
           <NavItem key={item.path} {...item} />
         ))}
-      </div>
+      </nav>
 
       <Separator />
 
       {/* User Profile */}
       <div className="p-4">
-        <Link to="/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent transition-colors">
+        <Link
+          to="/settings"
+          aria-label="Account settings"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
           <Avatar className="h-10 w-10">
-            <AvatarImage src={profile?.avatar_url || undefined} />
+            <AvatarImage src={profile?.avatar_url || undefined} alt="" />
             <AvatarFallback className="bg-primary/10 text-primary font-medium">
               {initials || '?'}
             </AvatarFallback>

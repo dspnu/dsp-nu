@@ -267,7 +267,7 @@ export function EditEventButton({ event }: { event: Event }) {
     <EventForm
       event={event}
       trigger={
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" aria-label="Edit event">
           <Pencil className="h-4 w-4" />
         </Button>
       }
