@@ -96,6 +96,7 @@ export default function EventsPage() {
             onChange={(e) => setSearch(e.target.value)}
             className="h-9 pl-9"
             aria-label="Search events"
+            type="search"
           />
         </div>
         <div className="flex shrink-0 items-center gap-2">

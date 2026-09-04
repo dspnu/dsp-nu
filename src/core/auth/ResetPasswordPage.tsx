@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { AppLogo } from '@/components/branding/AppLogo';
 import { AppCopyrightFooter } from '@/components/layout/AppCopyrightFooter';
 import { org } from '@/config/org';
+import { LoadingStatus } from '@/components/a11y/LoadingStatus';
 
 export default function ResetPasswordPage() {
   const { loading, session, updatePassword, signOut } = useAuth();
@@ -18,7 +19,7 @@ export default function ResetPasswordPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <LoadingStatus label="Loading" iconClassName="h-8 w-8" />
       </div>
     );
   }
@@ -60,7 +61,7 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="min-h-dvh flex flex-col bg-background pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
-      <div className="flex-1 flex items-center justify-center p-4">
+      <main id="main-content" tabIndex={-1} className="flex-1 flex items-center justify-center p-4 outline-none">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <AppLogo className="mx-auto mb-4 h-16 w-16 rounded-2xl shadow-purple" alt={`${org.shortName} logo`} />
@@ -77,11 +78,11 @@ export default function ResetPasswordPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="new-password">New password</Label>
-                  <Input id="new-password" name="password" type="password" minLength={6} required placeholder="••••••••" />
+                  <Input id="new-password" name="password" type="password" minLength={6} required autoComplete="new-password" placeholder="••••••••" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="confirm-password">Confirm password</Label>
-                  <Input id="confirm-password" name="confirmPassword" type="password" minLength={6} required placeholder="••••••••" />
+                  <Input id="confirm-password" name="confirmPassword" type="password" minLength={6} required autoComplete="new-password" placeholder="••••••••" />
                 </div>
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
                   {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -94,7 +95,7 @@ export default function ResetPasswordPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </main>
       <div className="shrink-0 border-t border-border/50 py-4">
         <AppCopyrightFooter />
       </div>

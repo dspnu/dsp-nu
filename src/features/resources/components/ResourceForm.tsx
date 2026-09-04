@@ -194,7 +194,7 @@ export function EditResourceButton({ resource }: { resource: Resource }) {
     <ResourceForm
       resource={resource}
       trigger={
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" aria-label="Edit resource">
           <Pencil className="h-4 w-4" />
         </Button>
       }

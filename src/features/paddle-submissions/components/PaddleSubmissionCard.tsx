@@ -203,6 +203,7 @@ export function PaddleSubmissionCard() {
                           size="icon"
                           className="h-6 w-6 shrink-0"
                           onClick={() => { setFile(null); if (fileRef.current) fileRef.current.value = ''; }}
+                          aria-label="Remove file"
                         >
                           <X className="h-3.5 w-3.5" />
                         </Button>

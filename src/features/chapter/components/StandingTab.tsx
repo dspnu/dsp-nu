@@ -365,7 +365,7 @@ export function StandingTab() {
                       {servicePhotoPreview ? (
                         <div className="relative">
                           <img src={servicePhotoPreview} alt="Service proof" className="w-full h-40 object-cover rounded-md border" />
-                          <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-6 w-6" onClick={clearPhoto}>
+                          <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-6 w-6" onClick={clearPhoto} aria-label="Remove photo">
                             <X className="h-3 w-3" />
                           </Button>
                         </div>

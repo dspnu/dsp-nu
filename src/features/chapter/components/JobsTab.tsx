@@ -58,11 +58,13 @@ export function JobsTab() {
             value={jobSearch}
             onChange={(e) => setJobSearch(e.target.value)}
             className="pl-9"
+            aria-label="Search jobs"
+            type="search"
           />
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-full sm:w-[11rem]">
+            <SelectTrigger className="w-full sm:w-[11rem]" aria-label="Filter by job type">
               <SelectValue placeholder="Job type" />
             </SelectTrigger>
             <SelectContent>

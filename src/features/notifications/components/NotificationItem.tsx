@@ -61,7 +61,10 @@ export function NotificationItem({
             {notification.title}
           </p>
           {!notification.is_read && (
-            <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" aria-hidden />
+            <>
+              <span className="sr-only">Unread. </span>
+              <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" aria-hidden />
+            </>
           )}
         </div>
         <p

@@ -182,6 +182,7 @@ export function AvatarCropDialog({ file, open, onOpenChange, onCropComplete }: A
               max={3}
               step={0.01}
               className="flex-1"
+              aria-label="Zoom"
             />
             <ZoomIn className="h-4 w-4 text-muted-foreground shrink-0" />
             <button
@@ -189,6 +190,7 @@ export function AvatarCropDialog({ file, open, onOpenChange, onCropComplete }: A
               onClick={handleReset}
               className="ml-1 p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
               title="Reset"
+              aria-label="Reset crop"
             >
               <RotateCcw className="h-4 w-4" />
             </button>

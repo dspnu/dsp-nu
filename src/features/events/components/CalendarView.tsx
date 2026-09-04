@@ -17,19 +17,19 @@ interface CalendarViewProps {
 function categoryEventChipClass(category: string): string {
   const styles: Record<string, string> = {
     chapter:
-      'border-category-chapter/35 bg-category-chapter/12 text-category-chapter hover:bg-category-chapter/20',
-    rush: 'border-category-rush/35 bg-category-rush/12 text-category-rush hover:bg-category-rush/20',
+      'border-category-chapter/35 bg-category-chapter/12 text-primary hover:bg-category-chapter/20',
+    rush: 'border-category-rush/35 bg-category-rush/12 text-amber-800 hover:bg-category-rush/20 dark:text-amber-200',
     fundraising:
-      'border-category-fundraising/35 bg-category-fundraising/12 text-category-fundraising hover:bg-category-fundraising/20',
+      'border-category-fundraising/35 bg-category-fundraising/12 text-emerald-800 hover:bg-category-fundraising/20 dark:text-emerald-200',
     service:
-      'border-category-service/35 bg-category-service/12 text-category-service hover:bg-category-service/20',
+      'border-category-service/35 bg-category-service/12 text-sky-800 hover:bg-category-service/20 dark:text-sky-200',
     brotherhood:
-      'border-category-brotherhood/35 bg-category-brotherhood/12 text-category-brotherhood hover:bg-category-brotherhood/20',
+      'border-category-brotherhood/35 bg-category-brotherhood/12 text-rose-800 hover:bg-category-brotherhood/20 dark:text-rose-200',
     professionalism:
-      'border-category-professionalism/35 bg-category-professionalism/12 text-category-professionalism hover:bg-category-professionalism/20',
-    dei: 'border-category-dei/35 bg-category-dei/12 text-category-dei hover:bg-category-dei/20',
+      'border-category-professionalism/35 bg-category-professionalism/12 text-orange-800 hover:bg-category-professionalism/20 dark:text-orange-200',
+    dei: 'border-category-dei/35 bg-category-dei/12 text-fuchsia-800 hover:bg-category-dei/20 dark:text-fuchsia-200',
     new_member: 'border-purple-500/30 bg-purple-500/12 text-purple-800 hover:bg-purple-500/18 dark:text-purple-200',
-    exec: 'border-slate-400/35 bg-slate-500/12 text-slate-700 hover:bg-slate-500/18 dark:text-slate-200',
+    exec: 'border-slate-400/35 bg-slate-500/12 text-slate-800 hover:bg-slate-500/18 dark:text-slate-200',
   };
   return (
     styles[category] ?? 'border-primary/25 bg-primary/10 text-primary hover:bg-primary/18'
@@ -98,15 +98,16 @@ export function CalendarView({ events, onEventClick }: CalendarViewProps) {
       </CardHeader>
 
       <div className="bg-muted/25 p-2.5 sm:p-4">
-        <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
-          {WEEKDAY_SHORT.map((label, i) => (
+        <div role="grid" aria-label={format(currentDate, 'MMMM yyyy')} className="grid grid-cols-7 gap-1.5 sm:gap-2">
+          {WEEKDAY_FULL.map((full, i) => (
             <div
-              key={label}
+              key={full}
+              role="columnheader"
               className="pb-1 text-center text-[10px] font-semibold uppercase tracking-wider text-muted-foreground sm:text-xs sm:normal-case sm:tracking-normal"
-              title={WEEKDAY_FULL[i]}
             >
-              <span className="sm:hidden">{WEEKDAY_LETTER[i]}</span>
-              <span className="hidden sm:inline">{label}</span>
+              <span aria-hidden className="sm:hidden">{WEEKDAY_LETTER[i]}</span>
+              <span aria-hidden className="hidden sm:inline">{WEEKDAY_SHORT[i]}</span>
+              <span className="sr-only">{full}</span>
             </div>
           ))}
 
@@ -118,6 +119,8 @@ export function CalendarView({ events, onEventClick }: CalendarViewProps) {
               return (
                 <div
                   key={`empty-${index}`}
+                  role="gridcell"
+                  aria-hidden
                   className={cn(
                     'min-h-[56px] rounded-lg border border-transparent bg-muted/20 sm:min-h-[68px] md:min-h-[76px]',
                     isWeekendCol && 'bg-muted/35'
@@ -132,6 +135,8 @@ export function CalendarView({ events, onEventClick }: CalendarViewProps) {
             return (
               <div
                 key={day.toISOString()}
+                role="gridcell"
+                aria-label={format(day, 'EEEE, MMMM d, yyyy')}
                 className={cn(
                   'flex min-h-[56px] flex-col rounded-lg border p-1.5 shadow-sm transition-colors sm:min-h-[68px] sm:p-2 md:min-h-[76px]',
                   'border-border/50 bg-card/90 backdrop-blur-[2px]',
@@ -148,6 +153,7 @@ export function CalendarView({ events, onEventClick }: CalendarViewProps) {
                       isToday &&
                         'bg-primary text-primary-foreground shadow-sm shadow-primary/25'
                     )}
+                    aria-hidden
                   >
                     {format(day, 'd')}
                   </span>
@@ -158,6 +164,7 @@ export function CalendarView({ events, onEventClick }: CalendarViewProps) {
                       key={event.id}
                       type="button"
                       onClick={() => onEventClick?.(event)}
+                      aria-label={`${event.title}, ${format(new Date(event.start_time), 'h:mm a')}`}
                       className={cn(
                         'w-full rounded-md border px-1 py-0.5 text-left text-[9px] font-medium leading-snug shadow-sm transition-colors sm:text-[10px]',
                         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background',

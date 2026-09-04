@@ -145,6 +145,7 @@ export function FamilyGamesManager() {
                         size="icon"
                         className="h-7 w-7 text-destructive"
                         onClick={() => deleteBonus.mutate(bp.id)}
+                        aria-label="Delete bonus points"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>

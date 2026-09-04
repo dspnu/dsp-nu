@@ -67,6 +67,8 @@ export function ResourcesTab() {
             value={resourceSearch}
             onChange={(e) => setResourceSearch(e.target.value)}
             className="pl-9"
+            aria-label="Search resources"
+            type="search"
           />
         </div>
         {isExecBoard && (

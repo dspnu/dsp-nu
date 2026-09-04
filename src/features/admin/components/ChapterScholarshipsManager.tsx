@@ -183,10 +183,10 @@ export function ChapterScholarshipsManager() {
                       )}
                     </TableCell>
                     <TableCell className="text-right space-x-1">
-                      <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(s)}>
+                      <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(s)} aria-label={`Edit ${s.name}`}>
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
-                      <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteId(s.id)}>
+                      <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteId(s.id)} aria-label={`Delete ${s.name}`}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </TableCell>

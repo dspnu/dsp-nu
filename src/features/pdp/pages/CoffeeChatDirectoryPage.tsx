@@ -77,7 +77,9 @@ export default function CoffeeChatDirectoryPage() {
     <AppLayout>
       <div className="flex items-center gap-3 mb-4">
         <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-          <Link to="/pdp"><ArrowLeft className="h-4 w-4" /></Link>
+          <Link to="/pdp" aria-label="Back to PDP">
+            <ArrowLeft className="h-4 w-4" aria-hidden />
+          </Link>
         </Button>
         <PageHeader
           title="Coffee Chat Directory"
@@ -92,6 +94,8 @@ export default function CoffeeChatDirectoryPage() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           className="pl-9"
+          aria-label="Search coffee chat directory"
+          type="search"
         />
       </div>
 

@@ -58,7 +58,7 @@ export function TicketCheckInTools({ onCode, initialCode, onClose }: TicketCheck
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-lg">Check-in</CardTitle>
         {onClose && (
-          <Button variant="ghost" size="icon" type="button" onClick={onClose}>
+          <Button variant="ghost" size="icon" type="button" onClick={onClose} aria-label="Close check-in">
             <X className="h-4 w-4" />
           </Button>
         )}
@@ -92,6 +92,7 @@ export function TicketCheckInTools({ onCode, initialCode, onClose }: TicketCheck
               value={manual}
               onChange={(e) => setManual(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && submitManual()}
+              aria-label="Ticket code"
             />
           </div>
           <Button type="button" onClick={submitManual}>
@@ -304,6 +305,7 @@ function ScannerView({ onScan, onClose }: ScannerViewProps) {
           variant="ghost"
           size="icon"
           onClick={onClose}
+          aria-label="Close scanner"
           className="h-11 w-11 rounded-full bg-white/10 text-white backdrop-blur-md hover:bg-white/20 hover:text-white"
         >
           <X className="h-5 w-5" />
@@ -328,6 +330,7 @@ function ScannerView({ onScan, onClose }: ScannerViewProps) {
               variant="ghost"
               size="icon"
               onClick={toggleTorch}
+              aria-label={torchOn ? 'Turn flashlight off' : 'Turn flashlight on'}
               className="h-12 w-12 rounded-full bg-white/10 text-white backdrop-blur-md hover:bg-white/20 hover:text-white"
             >
               {torchOn ? <ZapOff className="h-5 w-5" /> : <Zap className="h-5 w-5" />}
@@ -339,6 +342,7 @@ function ScannerView({ onScan, onClose }: ScannerViewProps) {
               variant="ghost"
               size="icon"
               onClick={switchCamera}
+              aria-label="Switch camera"
               className="h-12 w-12 rounded-full bg-white/10 text-white backdrop-blur-md hover:bg-white/20 hover:text-white"
             >
               <SwitchCamera className="h-5 w-5" />

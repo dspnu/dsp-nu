@@ -27,6 +27,7 @@ export function ExternalLink({ href, children, className, onClick, ...rest }: Ex
       {...rest}
     >
       {children}
+      <span className="sr-only"> (opens in a new tab)</span>
     </a>
   );
 }

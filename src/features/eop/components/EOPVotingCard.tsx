@@ -337,7 +337,7 @@ export function EOPVotingCard({
 
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="outline" size="icon">
+                  <Button variant="outline" size="icon" aria-label="Reset votes">
                     <RotateCcw className="h-4 w-4" />
                   </Button>
                 </AlertDialogTrigger>

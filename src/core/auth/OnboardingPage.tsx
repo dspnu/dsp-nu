@@ -60,7 +60,15 @@ const pageTransition = {
 
 function StepIndicator({ current, total }: { current: number; total: number }) {
   return (
-    <div className="flex items-center gap-2">
+    <div
+      className="flex items-center gap-2"
+      role="progressbar"
+      aria-label="Onboarding progress"
+      aria-valuemin={1}
+      aria-valuemax={total}
+      aria-valuenow={current + 1}
+      aria-valuetext={`Step ${current + 1} of ${total}`}
+    >
       {Array.from({ length: total }).map((_, i) => (
         <motion.div
           key={i}
@@ -77,6 +85,7 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
             height: 8,
           }}
           transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+          aria-hidden
         />
       ))}
     </div>
@@ -247,7 +256,7 @@ export default function OnboardingPage() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex items-center justify-center px-4 py-8 overflow-hidden">
+      <main id="main-content" tabIndex={-1} className="flex-1 flex items-center justify-center px-4 py-8 overflow-hidden outline-none">
         <div className="w-full max-w-2xl relative">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
@@ -292,35 +301,46 @@ export default function OnboardingPage() {
                   <Card>
                     <CardContent className="pt-6 space-y-6">
                       <div className="flex flex-col items-center gap-3">
-                        <Avatar className="h-24 w-24 cursor-pointer ring-2 ring-primary/20 hover:ring-primary/50 transition-all" onClick={() => fileInputRef.current?.click()}>
-                          <AvatarImage src={avatarUrl} />
-                          <AvatarFallback className="text-2xl bg-primary/10 text-primary">{initials || '?'}</AvatarFallback>
-                        </Avatar>
+                        <button
+                          type="button"
+                          className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          onClick={() => fileInputRef.current?.click()}
+                          aria-label={avatarUrl ? 'Change profile photo' : 'Add profile photo'}
+                        >
+                          <Avatar className="h-24 w-24 ring-2 ring-primary/20 hover:ring-primary/50 transition-all">
+                            <AvatarImage src={avatarUrl} alt="" />
+                            <AvatarFallback className="text-2xl bg-primary/10 text-primary">{initials || '?'}</AvatarFallback>
+                          </Avatar>
+                        </button>
                         <Button variant="ghost" size="sm" className="text-xs gap-1" onClick={() => fileInputRef.current?.click()}>
-                          <Camera className="h-3 w-3" />{avatarUrl ? 'Change Photo' : 'Add Photo'}
+                          <Camera className="h-3 w-3" aria-hidden />{avatarUrl ? 'Change Photo' : 'Add Photo'}
                         </Button>
                         <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarSelect} />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>First Name{requireNameFields ? ' *' : ''}</Label>
+                          <Label htmlFor="onboarding-first-name">First Name{requireNameFields ? ' *' : ''}</Label>
                           <Input
+                            id="onboarding-first-name"
                             value={firstName}
                             onChange={(e) => setFirstName(e.target.value)}
                             placeholder={appleUser ? 'From Apple ID' : 'John'}
                             readOnly={nameFromAuth}
                             aria-readonly={nameFromAuth || undefined}
+                            autoComplete="given-name"
                             className={nameFromAuth ? 'bg-muted/50' : undefined}
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label>Last Name{requireNameFields ? ' *' : ''}</Label>
+                          <Label htmlFor="onboarding-last-name">Last Name{requireNameFields ? ' *' : ''}</Label>
                           <Input
+                            id="onboarding-last-name"
                             value={lastName}
                             onChange={(e) => setLastName(e.target.value)}
                             placeholder={appleUser ? 'From Apple ID' : 'Doe'}
                             readOnly={nameFromAuth}
                             aria-readonly={nameFromAuth || undefined}
+                            autoComplete="family-name"
                             className={nameFromAuth ? 'bg-muted/50' : undefined}
                           />
                         </div>
@@ -334,17 +354,17 @@ export default function OnboardingPage() {
                       )}
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>
+                          <Label htmlFor="onboarding-major">
                             Major <span className="text-destructive">*</span>
                           </Label>
-                          <Input value={major} onChange={(e) => setMajor(e.target.value)} placeholder="Finance" required />
+                          <Input id="onboarding-major" value={major} onChange={(e) => setMajor(e.target.value)} placeholder="Finance" required />
                         </div>
                         <div className="space-y-2">
-                          <Label>
+                          <Label htmlFor="onboarding-grad-year">
                             Graduation Year <span className="text-destructive">*</span>
                           </Label>
                           <Select value={gradYear} onValueChange={setGradYear}>
-                            <SelectTrigger><SelectValue placeholder="Select year" /></SelectTrigger>
+                            <SelectTrigger id="onboarding-grad-year"><SelectValue placeholder="Select year" /></SelectTrigger>
                             <SelectContent>
                               {gradYears.map(y => (
                                 <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
@@ -355,27 +375,27 @@ export default function OnboardingPage() {
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>
+                          <Label htmlFor="onboarding-phone">
                             Phone Number <span className="text-destructive">*</span>
                           </Label>
-                          <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(555) 123-4567" required />
+                          <Input id="onboarding-phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(555) 123-4567" required autoComplete="tel" />
                         </div>
                         <div className="space-y-2">
-                          <Label>Hometown</Label>
-                          <Input value={hometown} onChange={(e) => setHometown(e.target.value)} placeholder="Columbus, OH" />
+                          <Label htmlFor="onboarding-hometown">Hometown</Label>
+                          <Input id="onboarding-hometown" value={hometown} onChange={(e) => setHometown(e.target.value)} placeholder="Columbus, OH" />
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label>LinkedIn URL</Label>
-                        <Input value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} placeholder="https://linkedin.com/in/yourname" />
+                        <Label htmlFor="onboarding-linkedin">LinkedIn URL</Label>
+                        <Input id="onboarding-linkedin" value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} placeholder="https://linkedin.com/in/yourname" />
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div className="space-y-2">
-                          <Label>
+                          <Label htmlFor="onboarding-family">
                             Family <span className="text-destructive">*</span>
                           </Label>
                           <Select value={family || undefined} onValueChange={setFamily}>
-                            <SelectTrigger>
+                            <SelectTrigger id="onboarding-family">
                               <SelectValue placeholder="Select family" />
                             </SelectTrigger>
                             <SelectContent>
@@ -388,7 +408,7 @@ export default function OnboardingPage() {
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <Label>
+                          <Label htmlFor="onboarding-big">
                             Big <span className="text-destructive">*</span>
                           </Label>
                           <Select
@@ -396,7 +416,7 @@ export default function OnboardingPage() {
                             onValueChange={setBig}
                             disabled={membersLoading}
                           >
-                            <SelectTrigger>
+                            <SelectTrigger id="onboarding-big">
                               <SelectValue placeholder={membersLoading ? 'Loading…' : 'Select your big'} />
                             </SelectTrigger>
                             <SelectContent>
@@ -409,7 +429,7 @@ export default function OnboardingPage() {
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <Label>
+                          <Label htmlFor="onboarding-little">
                             Little <span className="text-destructive">*</span>
                           </Label>
                           <Select
@@ -417,7 +437,7 @@ export default function OnboardingPage() {
                             onValueChange={setLittle}
                             disabled={membersLoading}
                           >
-                            <SelectTrigger>
+                            <SelectTrigger id="onboarding-little">
                               <SelectValue placeholder={membersLoading ? 'Loading…' : 'Select your little'} />
                             </SelectTrigger>
                             <SelectContent>
@@ -581,7 +601,7 @@ export default function OnboardingPage() {
             </motion.div>
           </AnimatePresence>
         </div>
-      </div>
+      </main>
 
       <div className="shrink-0 px-4 py-5 border-t border-border/50 bg-background/90">
         <div className="max-w-2xl mx-auto w-full space-y-3">

@@ -152,8 +152,9 @@ export function AdminPositionsDialog({
                 value={newPosition}
                 onChange={(e) => setNewPosition(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addPosition(newPosition))}
+                aria-label="Custom position"
               />
-              <Button type="button" variant="outline" size="icon" onClick={() => addPosition(newPosition)}>
+              <Button type="button" variant="outline" size="icon" onClick={() => addPosition(newPosition)} aria-label="Add position">
                 <Plus className="h-4 w-4" />
               </Button>
             </div>

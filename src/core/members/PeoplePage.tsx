@@ -118,11 +118,13 @@ export default function PeoplePage() {
                 value={memberSearch}
                 onChange={(e) => setMemberSearch(e.target.value)}
                 className="pl-8 h-9 text-sm"
+                aria-label="Search members"
+                type="search"
               />
             </div>
             <div className="flex gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-36 h-9 text-sm">
+                <SelectTrigger className="w-full sm:w-36 h-9 text-sm" aria-label="Filter by member status">
                   <SelectValue placeholder="All Statuses" />
                 </SelectTrigger>
                 <SelectContent>
@@ -134,8 +136,8 @@ export default function PeoplePage() {
                 </SelectContent>
               </Select>
               {isAdminOrOfficer && (
-                <Button variant="outline" size="sm" onClick={handleExportMembers} className="h-9 px-2.5">
-                  <Download className="h-3.5 w-3.5" />
+                <Button variant="outline" size="sm" onClick={handleExportMembers} className="h-9 px-2.5" aria-label="Export members as CSV">
+                  <Download className="h-3.5 w-3.5" aria-hidden />
                 </Button>
               )}
             </div>
@@ -191,11 +193,13 @@ export default function PeoplePage() {
                 value={alumniSearch}
                 onChange={(e) => setAlumniSearch(e.target.value)}
                 className="pl-8 h-9 text-sm"
+                aria-label="Search alumni"
+                type="search"
               />
             </div>
             <div className="flex gap-2">
               <Select value={industryFilter} onValueChange={setIndustryFilter}>
-                <SelectTrigger className="w-full sm:w-36 h-9 text-sm">
+                <SelectTrigger className="w-full sm:w-36 h-9 text-sm" aria-label="Filter alumni by industry">
                   <SelectValue placeholder="All Industries" />
                 </SelectTrigger>
                 <SelectContent>
@@ -212,8 +216,8 @@ export default function PeoplePage() {
                     <AlumniForm />
                   </>
                 )}
-                <Button variant="outline" size="sm" onClick={handleExportAlumni} className="h-9 px-2.5">
-                  <Download className="h-3.5 w-3.5" />
+                <Button variant="outline" size="sm" onClick={handleExportAlumni} className="h-9 px-2.5" aria-label="Export alumni as CSV">
+                  <Download className="h-3.5 w-3.5" aria-hidden />
                 </Button>
               </div>
             </div>

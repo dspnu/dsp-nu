@@ -135,6 +135,7 @@ export function AIToolShell({
                   size="icon"
                   className="h-7 w-7 text-muted-foreground hover:text-destructive"
                   onClick={() => deleteRun.mutate(r.id)}
+                  aria-label={`Delete ${r.title || 'untitled result'}`}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>

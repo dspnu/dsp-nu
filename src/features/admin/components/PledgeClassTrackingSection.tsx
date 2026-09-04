@@ -163,6 +163,7 @@ export function PledgeClassTrackingSection() {
                 type="button"
                 size="icon"
                 variant="outline"
+                aria-label="Add pledge class"
                 onClick={() => {
                   const t = newClass.trim();
                   if (!t || pledgeOrder.some((x) => x.toLowerCase() === t.toLowerCase())) {

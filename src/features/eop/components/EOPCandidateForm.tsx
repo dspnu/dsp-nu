@@ -353,7 +353,7 @@ export function EditCandidateButton({ candidate }: { candidate: EOPCandidate }) 
     <EOPCandidateForm
       candidate={candidate as any}
       trigger={
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" aria-label="Edit candidate">
           <Pencil className="h-4 w-4" />
         </Button>
       }

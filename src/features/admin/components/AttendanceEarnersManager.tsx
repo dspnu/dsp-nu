@@ -157,10 +157,11 @@ function EarnerCard({ earner }: { earner: AttendanceEarner }) {
               checked={earner.is_active}
               onCheckedChange={(checked) => update.mutate({ id: earner.id, is_active: checked })}
               disabled={update.isPending}
+              aria-label={`${earner.is_active ? 'Deactivate' : 'Activate'} ${earner.title}`}
             />
             <Dialog open={formOpen} onOpenChange={setFormOpen}>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
+                <Button variant="ghost" size="icon" className="h-7 w-7" aria-label={`Edit ${earner.title}`}>
                   <Pencil className="h-3.5 w-3.5" />
                 </Button>
               </DialogTrigger>
@@ -176,6 +177,7 @@ function EarnerCard({ earner }: { earner: AttendanceEarner }) {
               size="icon"
               className="h-7 w-7 text-destructive"
               onClick={() => deleteEarner.mutate(earner.id)}
+              aria-label={`Delete ${earner.title}`}
             >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>

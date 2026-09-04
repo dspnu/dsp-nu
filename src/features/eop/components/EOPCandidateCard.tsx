@@ -178,7 +178,7 @@ export function EOPCandidateCard({ candidate, myVote, voteCounts, isOfficer }: E
               <EditCandidateButton candidate={candidate} />
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-destructive">
+                  <Button variant="ghost" size="icon" className="text-destructive" aria-label={`Delete ${candidate.first_name} ${candidate.last_name}`}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </AlertDialogTrigger>

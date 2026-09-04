@@ -90,18 +90,18 @@ export function CoffeeChatCard({ chat, partnerName, initiatorName, isOfficer }: 
           <div className="flex items-center justify-between">
             <p className="font-medium text-sm text-foreground">Editing Coffee Chat</p>
             <div className="flex gap-1">
-              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleSave} disabled={updateChat.isPending}>
+              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleSave} disabled={updateChat.isPending} aria-label="Save coffee chat">
                 <Check className="h-4 w-4" />
               </Button>
-              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setIsEditing(false)}>
+              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setIsEditing(false)} aria-label="Cancel editing">
                 <X className="h-4 w-4" />
               </Button>
             </div>
           </div>
           <div>
-            <label className="text-xs text-muted-foreground">Status</label>
+            <label htmlFor="coffee-chat-status" className="text-xs text-muted-foreground">Status</label>
             <Select value={editStatus} onValueChange={setEditStatus}>
-              <SelectTrigger className="h-9">
+              <SelectTrigger id="coffee-chat-status" className="h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -112,12 +112,12 @@ export function CoffeeChatCard({ chat, partnerName, initiatorName, isOfficer }: 
             </Select>
           </div>
           <div>
-            <label className="text-xs text-muted-foreground">Date</label>
-            <Input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} className="h-9" />
+            <label htmlFor="coffee-chat-date" className="text-xs text-muted-foreground">Date</label>
+            <Input id="coffee-chat-date" type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} className="h-9" />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground">Notes</label>
-            <Textarea value={editNotes} onChange={(e) => setEditNotes(e.target.value)} rows={2} />
+            <label htmlFor="coffee-chat-notes" className="text-xs text-muted-foreground">Notes</label>
+            <Textarea id="coffee-chat-notes" value={editNotes} onChange={(e) => setEditNotes(e.target.value)} rows={2} />
           </div>
         </CardContent>
       </Card>
@@ -145,14 +145,14 @@ export function CoffeeChatCard({ chat, partnerName, initiatorName, isOfficer }: 
           <div className="flex items-center gap-1">
             <Badge className={config.color}>{config.label}</Badge>
             {canEdit && (
-              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setIsEditing(true)}>
+              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setIsEditing(true)} aria-label="Edit coffee chat">
                 <Edit2 className="h-3.5 w-3.5" />
               </Button>
             )}
             {canDelete && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                  <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive" aria-label="Delete coffee chat">
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </AlertDialogTrigger>
