@@ -208,6 +208,16 @@ const sections: { title: string; icon: React.ReactNode; faqs: FaqItem[] }[] = [
         tags: ['account', 'password', 'settings'],
       },
       {
+        q: 'How do I add an authenticator app?',
+        a: 'Open Settings → Sign-in security → Set up. Scan the QR code with Google Authenticator, Authy, 1Password, or Apple Passwords, then enter the 6-digit code. After that, each sign-in asks for a code from the app. This is optional. If you lose the device, ask an officer to reset it from your People profile.',
+        tags: ['account', 'settings', '2fa', 'authenticator', 'security'],
+      },
+      {
+        q: 'What are passkeys?',
+        a: 'On the website (not the native app), you can add a passkey in Settings and then sign in with Face ID, Touch ID, or a hardware key instead of a password. Passkeys replace the password; they are not a second factor. If you also turned on an authenticator, you will still enter a code after the passkey.',
+        tags: ['account', 'passkey', 'settings', 'security'],
+      },
+      {
         q: 'Can I make text larger or reduce motion?',
         a: 'Yes. Open Settings and use the Accessibility section to enlarge text, reduce motion, increase contrast, or underline links. Dark mode is under Appearance. These stay on this device.',
         tags: ['settings', 'accessibility', 'contrast', 'text size'],
@@ -232,6 +242,11 @@ const sections: { title: string; icon: React.ReactNode; faqs: FaqItem[] }[] = [
         q: 'How are dues tracked?',
         a: 'The President and VP of Finance can record dues payments from their admin dashboards. Members can view their own dues status. Late fees and installment plans are configured per semester.',
         tags: ['admin', 'dues', 'finance'],
+      },
+      {
+        q: 'How do officers reset a lost authenticator?',
+        a: 'Open that member from People. Officers can turn off authenticator 2FA from the profile so the member can sign in and set it up again in Settings.',
+        tags: ['admin', 'officers', '2fa', 'security'],
       },
     ],
   },

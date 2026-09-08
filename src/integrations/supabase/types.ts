@@ -2025,6 +2025,9 @@ export type Database = {
         Returns: Json
       }
       delete_user_account: { Args: never; Returns: Json }
+      admin_reset_mfa: { Args: { p_user_id: string }; Returns: undefined }
+      admin_user_has_mfa: { Args: { p_user_id: string }; Returns: boolean }
+      session_satisfies_mfa: { Args: never; Returns: boolean }
       invite_code_matches: { Args: { p_code: string }; Returns: boolean }
       normalize_invite_code: { Args: { p_code: string }; Returns: string }
       unlock_signup_with_invite: { Args: { p_code: string }; Returns: boolean }

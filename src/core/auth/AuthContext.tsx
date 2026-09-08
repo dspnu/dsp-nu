@@ -138,6 +138,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event: AuthChangeEvent, nextSession) => {
+        if (event === 'MFA_CHALLENGE_VERIFIED') {
+          if (nextSession?.user) {
+            applySession(nextSession);
+          }
+          setLoading(false);
+          return;
+        }
+
         if (event === 'TOKEN_REFRESHED') {
           // Refresh blips must never wipe profile/roles
           if (nextSession?.user) {
