@@ -207,6 +207,11 @@ const sections: { title: string; icon: React.ReactNode; faqs: FaqItem[] }[] = [
         a: 'Go to Settings and use the password reset option. You\'ll receive a confirmation email to complete the change.',
         tags: ['account', 'password', 'settings'],
       },
+      {
+        q: 'Can I make text larger or reduce motion?',
+        a: 'Yes. Open Settings and use the Accessibility section to enlarge text, reduce motion, increase contrast, or underline links. Dark mode is under Appearance. These stay on this device.',
+        tags: ['settings', 'accessibility', 'contrast', 'text size'],
+      },
     ],
   },
   {

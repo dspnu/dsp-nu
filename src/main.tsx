@@ -2,6 +2,9 @@ import { createRoot } from "react-dom/client";
 import { Capacitor } from "@capacitor/core";
 import App from "./App.tsx";
 import "./index.css";
+import { applyStoredA11yPrefs } from "@/lib/a11yPreferences";
+
+applyStoredA11yPrefs();
 
 async function bootstrap() {
   // Service workers are unreliable in Capacitor WKWebView — keep PWA SW for web only.

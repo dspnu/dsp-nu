@@ -13,7 +13,8 @@ import { uploadCroppedAvatar } from '@/core/members/lib/uploadCroppedAvatar';
 import { useNotificationPreferences, useUpdateNotificationPreferences } from '@/features/notifications/hooks/useNotifications';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { LogOut, Bell, Palette, ExternalLink, ChevronRight, Download, Trash2, Shield, ShieldCheck, Loader2, Upload, Award, Clock, DollarSign, Coffee, Crop, Smartphone, RefreshCw } from 'lucide-react';
+import { AccessibilityControls } from '@/components/a11y/AccessibilityControls';
+import { LogOut, Bell, Palette, Accessibility, ExternalLink, ChevronRight, Download, Trash2, Shield, ShieldCheck, Loader2, Upload, Award, Clock, DollarSign, Coffee, Crop, Smartphone, RefreshCw } from 'lucide-react';
 import { legal } from '@/config/legal';
 import { ExternalLink as ExternalAnchor } from '@/components/ExternalLink';
 import { supabase } from '@/integrations/supabase/client';
@@ -584,6 +585,17 @@ function SettingsPageContent() {
           <SectionLabel icon={Palette} label="Appearance" />
           <div className="rounded-xl border bg-card p-4">
             <ThemeToggle />
+          </div>
+        </section>
+
+        {/* ── Accessibility ── */}
+        <section>
+          <SectionLabel icon={Accessibility} label="Accessibility" />
+          <div className="rounded-xl border bg-card p-4">
+            <p className="text-xs text-muted-foreground mb-4">
+              These stay on this device and work with the chapter portal. Dark mode is under Appearance.
+            </p>
+            <AccessibilityControls />
           </div>
         </section>
 

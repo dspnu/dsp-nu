@@ -186,14 +186,57 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  html:not(.allow-motion) *,
+  html:not(.allow-motion) *::before,
+  html:not(.allow-motion) *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+html[data-a11y-text="large"] {
+  font-size: 112.5%;
+}
+
+html[data-a11y-text="xlarge"] {
+  font-size: 125%;
+}
+
+html.underline-links a[href] {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+html.high-contrast {
+  --foreground: 270 35% 8%;
+  --muted-foreground: 270 20% 22%;
+  --border: 270 18% 48%;
+  --input: 270 18% 48%;
+  --ring: 270 70% 28%;
+}
+
+html.dark.high-contrast {
+  --foreground: 45 20% 99%;
+  --muted-foreground: 45 10% 88%;
+  --border: 0 0% 64%;
+  --input: 0 0% 64%;
+  --ring: 270 80% 74%;
+}
+
+html.high-contrast :focus-visible {
+  outline-width: 3px;
+  outline-offset: 3px;
 }
 
 @layer utilities {
@@ -251,7 +294,7 @@
   /* Mobile-friendly form inputs */
   @media (max-width: 768px) {
     input, select, textarea, button {
-      font-size: 16px !important; /* Prevent iOS zoom on focus */
+      font-size: max(16px, 1em) !important; /* Prevent iOS zoom; still honor larger text size */
     }
   }
 }
