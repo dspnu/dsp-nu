@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Fingerprint } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { org } from '@/config/org';
@@ -23,8 +23,9 @@ import { Badge } from '@/components/ui/badge';
 import { AppLogo } from '@/components/branding/AppLogo';
 import { PENDING_INVITE_KEY } from '@/core/auth/inviteUnlock';
 import { canUseNativeAppleSignIn, signInWithNativeApple } from '@/core/auth/appleSignIn';
+import { canUsePasskeys, isPasskeyCancellation, passkeyErrorMessage } from '@/core/auth/webauthnSupport';
 
-type LastUsedLoginMethod = 'google' | 'apple' | 'email';
+type LastUsedLoginMethod = 'google' | 'apple' | 'email' | 'passkey';
 
 const LAST_USED_LOGIN_METHOD_KEY = 'dsp:last-login-method';
 
@@ -32,6 +33,7 @@ export default function AuthPage() {
   const { user, loading, signIn, signUp, requestPasswordReset, profile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [oauthProviderLoading, setOauthProviderLoading] = useState<'google' | 'apple' | null>(null);
+  const [passkeyLoading, setPasskeyLoading] = useState(false);
   const [isResetSubmitting, setIsResetSubmitting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [lastUsedLoginMethod, setLastUsedLoginMethod] = useState<LastUsedLoginMethod | null>(null);
@@ -39,7 +41,7 @@ export default function AuthPage() {
 
   useEffect(() => {
     const savedMethod = window.localStorage.getItem(LAST_USED_LOGIN_METHOD_KEY);
-    if (savedMethod === 'google' || savedMethod === 'apple' || savedMethod === 'email') {
+    if (savedMethod === 'google' || savedMethod === 'apple' || savedMethod === 'email' || savedMethod === 'passkey') {
       setLastUsedLoginMethod(savedMethod);
     }
   }, []);
@@ -138,7 +140,27 @@ export default function AuthPage() {
     }
   };
 
-  const oauthBusy = oauthProviderLoading !== null;
+  const oauthBusy = oauthProviderLoading !== null || passkeyLoading;
+  const passkeysAvailable = canUsePasskeys();
+
+  const signInWithPasskey = async () => {
+    setPasskeyLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPasskey();
+      if (error) throw error;
+      persistLastUsedLoginMethod('passkey');
+      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (!(aal?.nextLevel === 'aal2' && aal.currentLevel !== 'aal2')) {
+        toast.success('Welcome back!');
+      }
+    } catch (error) {
+      if (!isPasskeyCancellation(error)) {
+        toast.error(passkeyErrorMessage(error));
+      }
+    } finally {
+      setPasskeyLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -168,7 +190,10 @@ export default function AuthPage() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Welcome back!');
+      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (!(aal?.nextLevel === 'aal2' && aal.currentLevel !== 'aal2')) {
+        toast.success('Welcome back!');
+      }
     }
     setIsSubmitting(false);
   };
@@ -289,6 +314,33 @@ export default function AuthPage() {
                       </Badge>
                     )}
                   </Button>
+                  {passkeysAvailable && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        'relative w-full',
+                        lastUsedLoginMethod === 'passkey' && 'border-primary/50 bg-primary/5 ring-1 ring-primary/30'
+                      )}
+                      onClick={() => void signInWithPasskey()}
+                      disabled={oauthBusy}
+                    >
+                      {passkeyLoading ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Fingerprint className="mr-2 h-4 w-4" />
+                      )}
+                      Continue with a passkey
+                      {lastUsedLoginMethod === 'passkey' && (
+                        <Badge
+                          variant="default"
+                          className="pointer-events-none absolute -right-2 -top-2 border border-primary/40 bg-primary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary-foreground shadow-sm"
+                        >
+                          Last used
+                        </Badge>
+                      )}
+                    </Button>
+                  )}
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
                       <Separator />

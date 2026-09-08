@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { AppLayout } from '@/core/layout/AppLayout';
 import { PageHeader } from '@/components/ui/page-header';
@@ -12,24 +13,38 @@ import { org, categoryLabels } from '@/config/org';
 import { EmptyState } from '@/components/ui/empty-state';
 import { 
   Mail, Phone, GraduationCap, Linkedin, MapPin, Users, Heart, 
-  ArrowLeft, Coffee, Calendar, Award, Clock, User, CheckCircle
+  ArrowLeft, Coffee, Calendar, Award, Clock, User, CheckCircle, Shield
 } from 'lucide-react';
 import { ExternalLink } from '@/components/ExternalLink';
 import { useMembers, useMemberPoints } from '@/core/members/hooks/useMembers';
 import { useServiceHours } from '@/features/service-hours/hooks/useServiceHours';
 import { useAuth } from '@/core/auth/AuthContext';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { Tables } from '@/integrations/supabase/types';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 type Profile = Tables<'profiles'>;
 
 export default function MemberProfilePage() {
   const { id } = useParams<{ id: string }>();
   const { user, isAdminOrOfficer } = useAuth();
+  const queryClient = useQueryClient();
   const { data: members } = useMembers();
-  
+  const [resetMfaOpen, setResetMfaOpen] = useState(false);
+  const [resettingMfa, setResettingMfa] = useState(false);
+
   const member = members?.find(m => m.id === id);
   
   const canViewDetails = isAdminOrOfficer || user?.id === member?.user_id;
@@ -81,6 +96,20 @@ export default function MemberProfilePage() {
     enabled: !!member?.user_id,
   });
 
+  const canResetMfa = isAdminOrOfficer && !!member?.user_id && user?.id !== member.user_id;
+
+  const { data: hasMfa } = useQuery({
+    queryKey: ['member-mfa', member?.user_id],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('admin_user_has_mfa', {
+        p_user_id: member!.user_id,
+      });
+      if (error) throw error;
+      return data === true;
+    },
+    enabled: canResetMfa,
+  });
+
   if (!member) {
     return (
       <AppLayout>
@@ -116,6 +145,22 @@ export default function MemberProfilePage() {
     const partnerId = chat.initiator_id === member.user_id ? chat.partner_id : chat.initiator_id;
     const partner = members?.find(m => m.user_id === partnerId);
     return partner ? `${partner.first_name} ${partner.last_name}` : 'Unknown';
+  };
+
+  const resetMemberMfa = async () => {
+    if (!member) return;
+    setResettingMfa(true);
+    try {
+      const { error } = await supabase.rpc('admin_reset_mfa', { p_user_id: member.user_id });
+      if (error) throw error;
+      toast.success(`Authenticator turned off for ${member.first_name}.`);
+      setResetMfaOpen(false);
+      await queryClient.invalidateQueries({ queryKey: ['member-mfa', member.user_id] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Could not reset authenticator');
+    } finally {
+      setResettingMfa(false);
+    }
   };
 
   return (
@@ -190,6 +235,25 @@ export default function MemberProfilePage() {
           </div>
         </CardContent>
       </Card>
+
+      {canResetMfa && hasMfa && (
+        <Card className="mb-6">
+          <CardContent className="pt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <Shield className="h-4 w-4 text-muted-foreground mt-0.5" />
+              <div>
+                <p className="text-sm font-medium">Authenticator is on</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Reset this if they lost the device and cannot sign in.
+                </p>
+              </div>
+            </div>
+            <Button type="button" variant="outline" size="sm" onClick={() => setResetMfaOpen(true)}>
+              Reset authenticator
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Tabs */}
       <Tabs defaultValue="contact" className="space-y-6">
@@ -460,6 +524,24 @@ export default function MemberProfilePage() {
           </TabsContent>
         )}
       </Tabs>
+
+      <AlertDialog open={resetMfaOpen} onOpenChange={setResetMfaOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset authenticator?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {member.first_name} will be able to sign in with only their password or Google/Apple, then set up a new
+              authenticator in Settings.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={resettingMfa}>Cancel</AlertDialogCancel>
+            <AlertDialogAction disabled={resettingMfa} onClick={() => void resetMemberMfa()}>
+              Reset
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }

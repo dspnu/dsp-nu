@@ -14,6 +14,7 @@ import { useNotificationPreferences, useUpdateNotificationPreferences } from '@/
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { AccessibilityControls } from '@/components/a11y/AccessibilityControls';
+import { SecuritySectionLabel, SecuritySettingsCard } from '@/core/auth/SecuritySettingsCard';
 import { LogOut, Bell, Palette, Accessibility, ExternalLink, ChevronRight, Download, Trash2, Shield, ShieldCheck, Loader2, Upload, Award, Clock, DollarSign, Coffee, Crop, Smartphone, RefreshCw } from 'lucide-react';
 import { legal } from '@/config/legal';
 import { ExternalLink as ExternalAnchor } from '@/components/ExternalLink';
@@ -579,6 +580,12 @@ function SettingsPageContent() {
             </div>
           )}
         </div>
+
+        {/* ── Sign-in security ── */}
+        <section>
+          <SecuritySectionLabel />
+          <SecuritySettingsCard />
+        </section>
 
         {/* ── Appearance ── */}
         <section>

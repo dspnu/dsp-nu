@@ -20,6 +20,7 @@ import AuthCallbackPage from "@/core/auth/AuthCallbackPage";
 import ResetPasswordPage from "@/core/auth/ResetPasswordPage";
 import InviteGatePage from "@/core/auth/InviteGatePage";
 import { NativeAuthBridge } from "@/core/auth/NativeAuthBridge";
+import { MfaGate } from "@/core/auth/MfaGate";
 import HomePage from "./pages/HomePage";
 import { NativePushBridge } from "@/components/native/NativePushBridge";
 import { NativeChromeBridge } from "@/components/native/NativeChromeBridge";
@@ -81,32 +82,34 @@ const App = () => (
               <NativePushBridge />
               <RouteAnnouncer />
               <ConnectivityBanner />
-              <Suspense fallback={<RouteFallback />}>
-                <Routes>
-                  <Route path="/auth" element={<AuthPage />} />
-                  <Route path="/auth/callback" element={<AuthCallbackPage />} />
-                  <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
-                  <Route path="/auth/invite" element={<InviteGatePage />} />
-                  <Route path="/onboarding" element={<OnboardingPage />} />
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/people" element={<PeoplePage />} />
-                  <Route path="/people/:id" element={<MemberProfilePage />} />
-                  <Route path="/events" element={<EventsPage />} />
-                  <Route path="/chapter" element={<ChapterPage />} />
-                  <Route path="/settings" element={<SettingsPage />} />
-                  <Route path="/notifications" element={<NotificationsPage />} />
-                  <Route path="/help" element={<HelpPage />} />
-                  <Route path="/pwa-open" element={<PwaOpenPage />} />
-                  <Route path="/pwa-protocol" element={<PwaProtocolPage />} />
+              <MfaGate>
+                <Suspense fallback={<RouteFallback />}>
+                  <Routes>
+                    <Route path="/auth" element={<AuthPage />} />
+                    <Route path="/auth/callback" element={<AuthCallbackPage />} />
+                    <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+                    <Route path="/auth/invite" element={<InviteGatePage />} />
+                    <Route path="/onboarding" element={<OnboardingPage />} />
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/people" element={<PeoplePage />} />
+                    <Route path="/people/:id" element={<MemberProfilePage />} />
+                    <Route path="/events" element={<EventsPage />} />
+                    <Route path="/chapter" element={<ChapterPage />} />
+                    <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/notifications" element={<NotificationsPage />} />
+                    <Route path="/help" element={<HelpPage />} />
+                    <Route path="/pwa-open" element={<PwaOpenPage />} />
+                    <Route path="/pwa-protocol" element={<PwaProtocolPage />} />
 
-                  {featureRoutes.map((r) => {
-                    const Comp = r.component as ComponentType;
-                    return <Route key={r.path} path={r.path} element={<Comp />} />;
-                  })}
+                    {featureRoutes.map((r) => {
+                      const Comp = r.component as ComponentType;
+                      return <Route key={r.path} path={r.path} element={<Comp />} />;
+                    })}
 
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </MfaGate>
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>
