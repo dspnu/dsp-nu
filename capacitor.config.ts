@@ -14,6 +14,11 @@ const config: CapacitorConfig = {
     androidScheme: 'https',
   },
   plugins: {
+    CapacitorUpdater: {
+      autoUpdate: true,
+      // Keep in sync with native marketing version when shipping a new binary
+      version: '1.0.0',
+    },
     SplashScreen: {
       launchAutoHide: true,
       launchShowDuration: 1400,
