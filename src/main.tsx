@@ -1,10 +1,16 @@
 import { createRoot } from "react-dom/client";
 import { Capacitor } from "@capacitor/core";
+import { CapacitorUpdater } from "@capgo/capacitor-updater";
 import App from "./App.tsx";
 import "./index.css";
 import { applyStoredA11yPrefs } from "@/lib/a11yPreferences";
 
 applyStoredA11yPrefs();
+
+if (Capacitor.isNativePlatform()) {
+  // Tell Capgo the JS bundle is healthy; without this, OTA updates roll back.
+  void CapacitorUpdater.notifyAppReady();
+}
 
 async function bootstrap() {
   // Service workers are unreliable in Capacitor WKWebView — keep PWA SW for web only.

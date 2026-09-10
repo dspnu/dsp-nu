@@ -2,6 +2,27 @@
 
 Use this when preparing TestFlight / App Store Connect for **DSP Nu** (`com.jacobtartabini.dspapp`).
 
+## OTA (Capgo) vs App Store
+
+**Use OTA** for JS/CSS/HTML-only fixes (UI tweaks, logic bugs, copy). Bump `package.json` `version` (e.g. `1.0.1`), then:
+
+```bash
+npm run ota:upload
+```
+
+Devices on the `production` channel download in the background and apply on the next launch.
+
+**Use App Store / TestFlight** when you change native plugins, permissions, entitlements, Capgo itself, or other Xcode/native config. Also required once to ship the first binary that includes Capgo.
+
+### Capgo cloud setup (one-time)
+
+1. Create an account at [capgo.app](https://capgo.app) and an API key (keep it out of git).
+2. `npx @capgo/cli@latest login <API_KEY>`
+3. `npx @capgo/cli@latest app add` (uses `com.jacobtartabini.dspapp` from Capacitor config)
+4. `npx @capgo/cli@latest channel set production -s default`
+5. `npm run ota:upload` for the baseline bundle
+6. Archive → TestFlight with Capgo in the binary, then verify a tiny OTA lands after kill/reopen
+
 ## Build
 
 - [ ] `npm run cap:sync:ios`
