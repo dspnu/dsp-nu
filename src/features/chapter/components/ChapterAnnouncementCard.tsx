@@ -8,6 +8,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
+import {
+  audienceHasSelection,
+  audienceRpcArgs,
+  ChapterAnnouncementAudience,
+  EMPTY_AUDIENCE,
+  type AnnouncementAudience,
+} from '@/features/chapter/components/ChapterAnnouncementAudience';
 
 function normalizeAnnouncementLink(raw: string): string | null {
   const t = raw.trim();
@@ -23,6 +30,7 @@ export function ChapterAnnouncementCard() {
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
   const [link, setLink] = useState('');
+  const [audience, setAudience] = useState<AnnouncementAudience>(EMPTY_AUDIENCE);
   const [sending, setSending] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -35,6 +43,10 @@ export function ChapterAnnouncementCard() {
       toast({ title: 'Add a title and message', variant: 'destructive' });
       return;
     }
+    if (!audienceHasSelection(audience)) {
+      toast({ title: 'Choose who should receive this', variant: 'destructive' });
+      return;
+    }
     setSending(true);
     try {
       const p_link = normalizeAnnouncementLink(link);
@@ -42,12 +54,19 @@ export function ChapterAnnouncementCard() {
         p_title: t,
         p_message: m,
         p_link,
+        ...audienceRpcArgs(audience),
       });
       if (error) throw error;
-      toast({ title: 'Announcement sent', description: 'Members who allow announcements were notified.' });
+      toast({
+        title: 'Announcement sent',
+        description: audience.everyone
+          ? 'Members who allow announcements were notified.'
+          : 'Selected members who allow announcements were notified.',
+      });
       setTitle('');
       setMessage('');
       setLink('');
+      setAudience(EMPTY_AUDIENCE);
     } catch (e: unknown) {
       const err = e as { message?: string };
       toast({
@@ -74,7 +93,7 @@ export function ChapterAnnouncementCard() {
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-foreground">Chapter announcement</p>
               <p className="text-xs text-muted-foreground line-clamp-1 sm:line-clamp-none">
-                Notify members who allow announcements in Settings
+                Choose who is notified, then send
               </p>
             </div>
             <ChevronDown
@@ -114,6 +133,7 @@ export function ChapterAnnouncementCard() {
                 className="resize-y min-h-[80px]"
               />
             </div>
+            <ChapterAnnouncementAudience audience={audience} onChange={setAudience} />
             <div className="space-y-1.5">
               <Label htmlFor="announcement-link" className="text-xs">
                 Link <span className="font-normal text-muted-foreground">(optional)</span>
@@ -129,7 +149,7 @@ export function ChapterAnnouncementCard() {
             </div>
             <Button type="button" onClick={handleSend} disabled={sending} className="gap-2">
               {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              Send to chapter
+              {audience.everyone ? 'Send to chapter' : 'Send to selected'}
             </Button>
           </div>
         </CollapsibleContent>
