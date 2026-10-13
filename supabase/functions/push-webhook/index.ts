@@ -309,18 +309,31 @@ Deno.serve(async (req) => {
   try {
     if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
 
-    const expectedSecret = Deno.env.get('WEBHOOK_SECRET');
-    if (!expectedSecret) {
-      console.error('[push-webhook] WEBHOOK_SECRET not configured');
-      return new Response(JSON.stringify({ ok: false, error: 'server_misconfigured' }), {
-        status: 500,
-        headers: { 'content-type': 'application/json' },
-      });
-    }
+    const supabaseUrl = mustGetEnv('SUPABASE_URL');
+    const serviceRoleKey = mustGetEnv('SUPABASE_SERVICE_ROLE_KEY');
+    const supabase = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false },
+    });
+
     const providedSecret = req.headers.get('x-webhook-secret') ?? '';
-    if (!timingSafeEqual(providedSecret, expectedSecret)) {
-      return new Response(JSON.stringify({ ok: false, error: 'unauthorized' }), {
-        status: 401,
+    const envSecret = Deno.env.get('WEBHOOK_SECRET') ?? '';
+    let secretConfigured = envSecret.length > 0;
+    let authorized = secretConfigured && timingSafeEqual(providedSecret, envSecret);
+
+    if (!authorized) {
+      const { data: dbSecret, error: secretError } = await supabase.rpc('push_webhook_expected_secret');
+      if (secretError) {
+        console.error('[push-webhook] secret lookup failed');
+      } else if (typeof dbSecret === 'string' && dbSecret.length > 0) {
+        secretConfigured = true;
+        authorized = timingSafeEqual(providedSecret, dbSecret);
+      }
+    }
+
+    if (!authorized) {
+      const status = secretConfigured ? 401 : 500;
+      return new Response(JSON.stringify({ ok: false, error: status === 401 ? 'unauthorized' : 'server_misconfigured' }), {
+        status,
         headers: { 'content-type': 'application/json' },
       });
     }
