@@ -47,7 +47,8 @@ interface AuthContextType {
     firstName: string,
     lastName: string,
     inviteCode: string,
-  ) => Promise<{ error: Error | null }>;
+    emailRedirectTo: string,
+  ) => Promise<{ error: Error | null; needsEmailConfirmation: boolean; alreadyRegistered: boolean }>;
   requestPasswordReset: (email: string, redirectTo: string) => Promise<{ error: Error | null }>;
   updatePassword: (password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -218,23 +219,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     firstName: string,
     lastName: string,
     inviteCode: string,
+    emailRedirectTo: string,
   ) => {
-    const redirectUrl = `${window.location.origin}/`;
     const trimmedCode = inviteCode.trim();
+    const failed = { needsEmailConfirmation: false, alreadyRegistered: false };
 
     const { data: codeOk, error: codeError } = await supabase.rpc('validate_signup_invite', {
       p_code: trimmedCode,
     });
-    if (codeError) return { error: codeError };
+    if (codeError) return { error: codeError, ...failed };
     if (!codeOk) {
-      return { error: new Error('Invalid invite code. Ask a chapter officer for the current code.') };
+      return {
+        error: new Error('Invalid invite code. Ask a chapter officer for the current code.'),
+        ...failed,
+      };
     }
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: redirectUrl,
+        emailRedirectTo,
         data: {
           first_name: firstName,
           last_name: lastName,
@@ -243,7 +248,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
     });
 
-    return { error };
+    if (error) return { error, ...failed };
+
+    // Supabase returns an empty identities list when the email is already registered.
+    const alreadyRegistered = (data.user?.identities?.length ?? 0) === 0;
+    const needsEmailConfirmation = !alreadyRegistered && !data.session;
+    return { error: null, needsEmailConfirmation, alreadyRegistered };
   };
 
   const requestPasswordReset = async (email: string, redirectTo: string) => {

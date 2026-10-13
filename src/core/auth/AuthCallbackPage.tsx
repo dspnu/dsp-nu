@@ -4,8 +4,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { AppCopyrightFooter } from '@/components/layout/AppCopyrightFooter';
 import { LoadingStatus } from '@/components/a11y/LoadingStatus';
-import { resolveInviteUnlockAfterAuth } from '@/core/auth/inviteUnlock';
-import { syncProfileIdentityFromUser } from '@/core/auth/authIdentity';
+import { resolvePostAuthDestination } from '@/core/auth/postAuthDestination';
 
 async function finishAuthRedirect(
   navigate: ReturnType<typeof useNavigate>,
@@ -16,13 +15,7 @@ async function finishAuthRedirect(
     return;
   }
 
-  const { data } = await supabase.auth.getUser();
-  if (data.user) {
-    await syncProfileIdentityFromUser(data.user);
-  }
-
-  const unlock = await resolveInviteUnlockAfterAuth();
-  navigate(unlock === 'locked' ? '/auth/invite' : '/', { replace: true });
+  navigate(await resolvePostAuthDestination(), { replace: true });
 }
 
 export default function AuthCallbackPage() {
