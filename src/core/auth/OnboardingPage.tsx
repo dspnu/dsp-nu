@@ -26,8 +26,9 @@ import { AppCopyrightFooter } from '@/components/layout/AppCopyrightFooter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppLogo } from '@/components/branding/AppLogo';
 import { useMembers } from '@/core/members/hooks/useMembers';
+import { useChapterFamilies } from '@/hooks/useChapterFamilies';
 
-const FAMILY_OPTIONS = ['Baggio', 'Corleone', 'Conway', 'Sinatra', 'Conrad'] as const;
+const NO_LITTLE = '__none__';
 
 const TOTAL_STEPS = 5;
 const currentYear = new Date().getFullYear();
@@ -121,7 +122,9 @@ export default function OnboardingPage() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
   const { data: members, isPending: membersLoading } = useMembers();
+  const { families, isPending: familiesLoading } = useChapterFamilies();
   const otherMembers = members?.filter((m) => m.id !== profile?.id) ?? [];
+  const familyOptions = family && !families.includes(family) ? [...families, family] : families;
 
   useEffect(() => {
     if (!user) return;
@@ -174,15 +177,8 @@ export default function OnboardingPage() {
       return;
     }
 
-    if (
-      !trimmedPhone ||
-      !trimmedMajor ||
-      !gradYear ||
-      !trimmedFamily ||
-      !trimmedBig ||
-      !trimmedLittle
-    ) {
-      toast.error('Please fill out all required fields, including family, big, and little.');
+    if (!trimmedPhone || !trimmedMajor || !gradYear || !trimmedFamily || !trimmedBig) {
+      toast.error('Please fill out all required fields, including family and big.');
       return;
     }
 
@@ -213,7 +209,7 @@ export default function OnboardingPage() {
           hometown: trimmedHometown || null,
           family: trimmedFamily,
           big: trimmedBig,
-          little: trimmedLittle,
+          little: trimmedLittle && trimmedLittle !== NO_LITTLE ? trimmedLittle : null,
           avatar_url: finalAvatarUrl,
         })
         .eq('user_id', user.id);
@@ -394,12 +390,16 @@ export default function OnboardingPage() {
                           <Label htmlFor="onboarding-family">
                             Family <span className="text-destructive">*</span>
                           </Label>
-                          <Select value={family || undefined} onValueChange={setFamily}>
+                          <Select
+                            value={family || undefined}
+                            onValueChange={setFamily}
+                            disabled={familiesLoading}
+                          >
                             <SelectTrigger id="onboarding-family">
-                              <SelectValue placeholder="Select family" />
+                              <SelectValue placeholder={familiesLoading ? 'Loading…' : 'Select family'} />
                             </SelectTrigger>
                             <SelectContent>
-                              {FAMILY_OPTIONS.map((f) => (
+                              {familyOptions.map((f) => (
                                 <SelectItem key={f} value={f}>
                                   {f}
                                 </SelectItem>
@@ -429,18 +429,17 @@ export default function OnboardingPage() {
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="onboarding-little">
-                            Little <span className="text-destructive">*</span>
-                          </Label>
+                          <Label htmlFor="onboarding-little">Little</Label>
                           <Select
                             value={little || undefined}
                             onValueChange={setLittle}
                             disabled={membersLoading}
                           >
                             <SelectTrigger id="onboarding-little">
-                              <SelectValue placeholder={membersLoading ? 'Loading…' : 'Select your little'} />
+                              <SelectValue placeholder={membersLoading ? 'Loading…' : 'Optional'} />
                             </SelectTrigger>
                             <SelectContent>
+                              <SelectItem value={NO_LITTLE}>None</SelectItem>
                               {otherMembers.map((m) => (
                                 <SelectItem key={m.id} value={m.id}>
                                   {m.first_name} {m.last_name}
@@ -466,8 +465,7 @@ export default function OnboardingPage() {
                         !major.trim() ||
                         !gradYear ||
                         !family.trim() ||
-                        !big.trim() ||
-                        !little.trim()
+                        !big.trim()
                       }
                       className="gap-2"
                     >
