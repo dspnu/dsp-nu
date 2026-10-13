@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,6 +12,8 @@ import { Plus } from 'lucide-react';
 import { useCreateCoffeeChat } from '@/features/coffee-chats/hooks/useCoffeeChats';
 import { useApprovedMembers } from '@/features/coffee-chats/hooks/useApprovedMembers';
 import { ApprovedMemberProfile } from '@/features/coffee-chats/components/ApprovedMemberProfile';
+import { useChapterSetting } from '@/hooks/useChapterSettings';
+import { COFFEE_CHAT_REQUIRES_CONFIRMATION_KEY, coffeeChatsRequireConfirmation } from '@/features/coffee-chats/coffeeChatSettings';
 
 const coffeeChatSchema = z.object({
   partner_id: z.string().min(1, 'Please select a member'),
@@ -26,6 +28,11 @@ export function CoffeeChatForm() {
   const [open, setOpen] = useState(false);
   const createChat = useCreateCoffeeChat();
   const { data: approvedMembers } = useApprovedMembers();
+  const { data: requiresConfirmationSetting } = useChapterSetting<boolean>(
+    COFFEE_CHAT_REQUIRES_CONFIRMATION_KEY,
+    { whenMissing: true },
+  );
+  const requiresConfirmation = coffeeChatsRequireConfirmation(requiresConfirmationSetting);
 
   const form = useForm<CoffeeChatFormValues>({
     resolver: zodResolver(coffeeChatSchema),
@@ -40,14 +47,25 @@ export function CoffeeChatForm() {
   const selectedMemberId = form.watch('partner_id');
   const selectedMember = approvedMembers?.find(m => m.id === selectedMemberId);
 
+  useEffect(() => {
+    if (!open) return;
+    form.setValue('status', requiresConfirmation ? 'emailed' : 'scheduled');
+  }, [open, requiresConfirmation, form]);
+
   const onSubmit = async (values: CoffeeChatFormValues) => {
+    const status = !requiresConfirmation && values.status === 'emailed' ? 'scheduled' : values.status;
     await createChat.mutateAsync({
       partner_id: values.partner_id,
       chat_date: values.chat_date,
-      status: values.status as any,
+      status: status as any,
       notes: values.notes || null,
     });
-    form.reset();
+    form.reset({
+      partner_id: '',
+      chat_date: new Date().toISOString().split('T')[0],
+      status: requiresConfirmation ? 'emailed' : 'scheduled',
+      notes: '',
+    });
     setOpen(false);
   };
 
@@ -62,6 +80,11 @@ export function CoffeeChatForm() {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Log Coffee Chat</DialogTitle>
+          <p className="text-sm text-muted-foreground">
+            {requiresConfirmation
+              ? 'The other person will need to confirm this chat.'
+              : 'This chat is saved immediately. The other person does not need to confirm it.'}
+          </p>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -112,7 +135,7 @@ export function CoffeeChatForm() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="emailed">Emailed</SelectItem>
+                      {requiresConfirmation && <SelectItem value="emailed">Emailed</SelectItem>}
                       <SelectItem value="scheduled">Scheduled</SelectItem>
                       <SelectItem value="completed">Completed</SelectItem>
                     </SelectContent>

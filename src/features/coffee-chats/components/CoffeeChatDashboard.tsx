@@ -9,11 +9,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Mail, CalendarCheck, CheckCircle2, Plus, Trash2, Target, Clock, TrendingUp, ArrowUpDown, Users, ChevronDown } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
+import { Switch } from '@/components/ui/switch';
 import { useCoffeeChats } from '@/features/coffee-chats/hooks/useCoffeeChats';
 import { useMembers } from '@/core/members/hooks/useMembers';
 import { useAuth } from '@/core/auth/AuthContext';
 import { isPDPOfficer } from '@/config/org';
 import { useCoffeeChatMilestones, useCreateMilestone, useDeleteMilestone } from '@/features/coffee-chats/hooks/useCoffeeChatMilestones';
+import { useChapterSetting, useUpdateChapterSetting } from '@/hooks/useChapterSettings';
+import { COFFEE_CHAT_REQUIRES_CONFIRMATION_KEY, coffeeChatsRequireConfirmation } from '@/features/coffee-chats/coffeeChatSettings';
 
 const REQUIRED_CHATS = 50;
 
@@ -56,7 +59,13 @@ type CoffeeChatDashboardProps = {
 };
 
 export function CoffeeChatDashboard({ collapsibleEngagement = false }: CoffeeChatDashboardProps) {
-  const { profile } = useAuth();
+  const { profile, isAdminOrOfficer, isExecBoard } = useAuth();
+  const { data: requiresConfirmationSetting } = useChapterSetting<boolean>(
+    COFFEE_CHAT_REQUIRES_CONFIRMATION_KEY,
+    { whenMissing: true },
+  );
+  const updateSetting = useUpdateChapterSetting();
+  const requiresConfirmation = coffeeChatsRequireConfirmation(requiresConfirmationSetting);
   const { data: allChats, isLoading } = useCoffeeChats();
   const { data: members } = useMembers();
   const { data: milestones } = useCoffeeChatMilestones();
@@ -70,6 +79,7 @@ export function CoffeeChatDashboard({ collapsibleEngagement = false }: CoffeeCha
   const [sortAsc, setSortAsc] = useState(false);
 
   const isVP = isPDPOfficer(profile);
+  const canManageCoffeeSettings = isVP || isAdminOrOfficer || isExecBoard;
 
   const newMembers = useMemo(() => {
     return members?.filter(m => m.status === 'new_member') || [];
@@ -260,6 +270,25 @@ export function CoffeeChatDashboard({ collapsibleEngagement = false }: CoffeeCha
 
   return (
     <div className="space-y-6">
+      {canManageCoffeeSettings && (
+        <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
+          <div>
+            <p className="text-sm font-medium">Require partner confirmation</p>
+            <p className="text-xs text-muted-foreground">
+              When off, a coffee chat is saved as soon as it is logged. The other person does not need to confirm it.
+            </p>
+          </div>
+          <Switch
+            checked={requiresConfirmation}
+            onCheckedChange={(checked) =>
+              updateSetting.mutate({ key: COFFEE_CHAT_REQUIRES_CONFIRMATION_KEY, value: checked })
+            }
+            disabled={updateSetting.isPending}
+            aria-label="Require partner confirmation for coffee chats"
+          />
+        </div>
+      )}
+
       {/* Compact Summary Bar — replaces large KPI cards */}
       {isVP && (
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
