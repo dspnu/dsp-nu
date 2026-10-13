@@ -1,0 +1,11 @@
+{
+  "name": "@dsp-nu/capacitor-apple-wallet",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Presents a signed .pkpass with PassKit so it can be added to Apple Wallet.",
+  "capacitor": {
+    "ios": {
+      "src": "ios"
+    }
+  }
+}
