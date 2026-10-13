@@ -6,38 +6,34 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   bundledWebRuntime: false,
   ios: {
-    // 'never' keeps position:fixed (bottom nav / headers) stable.
-    // Safe areas are handled in CSS via env(safe-area-inset-*).
-    contentInset: 'never',
+    contentInset: 'never'
   },
   server: {
-    androidScheme: 'https',
+    androidScheme: 'https'
   },
   plugins: {
     CapacitorUpdater: {
-      autoUpdate: true,
-      // Keep in sync with native marketing version when shipping a new binary
-      version: '1.0.0',
+      autoUpdate: 'always',
+      version: '0.0.0',
+      appId: 'com.jacobtartabini.dspapp',
+      autoSplashscreen: true
     },
     SplashScreen: {
-      launchAutoHide: true,
+      launchAutoHide: false,
       launchShowDuration: 1400,
       launchFadeOutDuration: 350,
       backgroundColor: '#faf9f7',
-      showSpinner: false,
+      showSpinner: false
     },
     StatusBar: {
-      // Capacitor: LIGHT = dark icons (for light splash/bg); DARK = light icons.
-      // NativeChromeBridge overrides this once the app theme resolves.
       style: 'LIGHT',
       backgroundColor: '#faf9f7',
-      overlaysWebView: true,
+      overlaysWebView: true
     },
     Keyboard: {
-      // Native resize avoids shifting the fixed bottom nav with the page.
-      resize: 'native',
-    },
-  },
+      resize: 'native'
+    }
+  }
 };
 
 export default config;

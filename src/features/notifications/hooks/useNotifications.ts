@@ -76,8 +76,11 @@ export function useNotifications(limit = 100) {
       queryClient.invalidateQueries({ queryKey: ['notifications-unread-count', user.id] });
     };
 
+    // A reused topic is already subscribed when this effect runs twice
+    // (React Strict Mode, or the bell and notifications page together).
+    // postgres_changes listeners cannot be added after subscribe().
     const channel = supabase
-      .channel('notifications-realtime')
+      .channel(`notifications-realtime-${user.id}-${crypto.randomUUID()}`)
       .on(
         'postgres_changes',
         {
