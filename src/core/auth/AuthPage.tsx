@@ -9,7 +9,16 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Loader2, Fingerprint } from 'lucide-react';
+import { createLucideIcon, Loader2 } from 'lucide-react';
+
+/** Lucide `user-key` — not in the installed icon set yet. */
+const UserKey = createLucideIcon('user-key', [
+  ['path', { d: 'M20 11v6' }],
+  ['path', { d: 'M20 13h2' }],
+  ['path', { d: 'M3 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 2.072.578' }],
+  ['circle', { cx: '10', cy: '7', r: '4' }],
+  ['circle', { cx: '20', cy: '19', r: '2' }],
+]);
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { org } from '@/config/org';
@@ -310,7 +319,7 @@ export default function AuthPage() {
                       {passkeyLoading ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       ) : (
-                        <Fingerprint className="mr-2 h-4 w-4" />
+                        <UserKey className="mr-2 h-4 w-4" />
                       )}
                       Continue with a passkey
                       {lastUsedLoginMethod === 'passkey' && (
