@@ -15,6 +15,7 @@ import { useAuth } from '@/core/auth/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { AvatarCropDialog } from './AvatarCropDialog';
 import { uploadCroppedAvatar } from '@/core/members/lib/uploadCroppedAvatar';
+import { useChapterFamilies } from '@/hooks/useChapterFamilies';
 
 const formSchema = z.object({
   first_name: z.string().min(1, 'First name is required'),
@@ -38,8 +39,6 @@ interface ProfileEditDialogProps {
   trigger?: React.ReactNode;
 }
 
-const FAMILY_OPTIONS = ['Baggio', 'Corleone', 'Conway', 'Sinatra', 'Conrad'] as const;
-
 export function ProfileEditDialog({ profile, trigger }: ProfileEditDialogProps) {
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -50,6 +49,7 @@ export function ProfileEditDialog({ profile, trigger }: ProfileEditDialogProps) 
   const updateMember = useUpdateMember();
   const { refreshProfile, user } = useAuth();
   const { data: members } = useMembers();
+  const { families } = useChapterFamilies();
   const { toast } = useToast();
 
   const form = useForm<FormData>({
@@ -68,6 +68,10 @@ export function ProfileEditDialog({ profile, trigger }: ProfileEditDialogProps) 
       hometown: (profile as any).hometown || '',
     },
   });
+
+  const selectedFamily = form.watch('family');
+  const familyOptions =
+    selectedFamily && !families.includes(selectedFamily) ? [...families, selectedFamily] : families;
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -287,7 +291,7 @@ export function ProfileEditDialog({ profile, trigger }: ProfileEditDialogProps) 
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="__none__">None</SelectItem>
-                        {FAMILY_OPTIONS.map((family) => (
+                        {familyOptions.map((family) => (
                           <SelectItem key={family} value={family}>
                             {family}
                           </SelectItem>

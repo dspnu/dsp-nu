@@ -4,7 +4,7 @@ export type ProfileOnboardingCheck = {
   graduation_year: number | null;
   family: string | null;
   big: string | null;
-  little: string | null;
+  little?: string | null;
 };
 
 export function profileNeedsOnboarding(profile: ProfileOnboardingCheck | null | undefined): boolean {
@@ -13,6 +13,5 @@ export function profileNeedsOnboarding(profile: ProfileOnboardingCheck | null | 
   if (profile.graduation_year == null || profile.graduation_year <= 0) return true;
   if (!String(profile.family ?? '').trim()) return true;
   if (!String(profile.big ?? '').trim()) return true;
-  if (!String(profile.little ?? '').trim()) return true;
   return false;
 }
