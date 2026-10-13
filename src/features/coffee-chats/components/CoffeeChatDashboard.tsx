@@ -97,7 +97,9 @@ export function CoffeeChatDashboard({ collapsibleEngagement = false }: CoffeeCha
         c => c.initiator_id === member.user_id || c.partner_id === member.user_id
       );
 
-      const emailed = memberChats.filter(c => c.status === 'emailed').length;
+      const emailed = allChats.filter(
+        c => c.initiator_id === member.user_id && c.status === 'emailed'
+      ).length;
       const scheduled = memberChats.filter(c => c.status === 'scheduled').length;
       const completed = memberChats.filter(c => c.status === 'completed').length;
       const progress = Math.round((completed / REQUIRED_CHATS) * 100);
@@ -275,7 +277,7 @@ export function CoffeeChatDashboard({ collapsibleEngagement = false }: CoffeeCha
           <div>
             <p className="text-sm font-medium">Require partner confirmation</p>
             <p className="text-xs text-muted-foreground">
-              When off, a coffee chat is saved as soon as it is logged. The other person does not need to confirm it.
+              When off, a new member can log an email they sent and it counts as sent. Nobody has to confirm it.
             </p>
           </div>
           <Switch

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -47,25 +47,14 @@ export function CoffeeChatForm() {
   const selectedMemberId = form.watch('partner_id');
   const selectedMember = approvedMembers?.find(m => m.id === selectedMemberId);
 
-  useEffect(() => {
-    if (!open) return;
-    form.setValue('status', requiresConfirmation ? 'emailed' : 'scheduled');
-  }, [open, requiresConfirmation, form]);
-
   const onSubmit = async (values: CoffeeChatFormValues) => {
-    const status = !requiresConfirmation && values.status === 'emailed' ? 'scheduled' : values.status;
     await createChat.mutateAsync({
       partner_id: values.partner_id,
       chat_date: values.chat_date,
-      status: status as any,
+      status: values.status as any,
       notes: values.notes || null,
     });
-    form.reset({
-      partner_id: '',
-      chat_date: new Date().toISOString().split('T')[0],
-      status: requiresConfirmation ? 'emailed' : 'scheduled',
-      notes: '',
-    });
+    form.reset();
     setOpen(false);
   };
 
@@ -82,8 +71,8 @@ export function CoffeeChatForm() {
           <DialogTitle>Log Coffee Chat</DialogTitle>
           <p className="text-sm text-muted-foreground">
             {requiresConfirmation
-              ? 'The other person will need to confirm this chat.'
-              : 'This chat is saved immediately. The other person does not need to confirm it.'}
+              ? 'The other person will need to confirm this email.'
+              : 'This logs that an email was sent. Nobody needs to confirm it.'}
           </p>
         </DialogHeader>
         <Form {...form}>
@@ -135,7 +124,7 @@ export function CoffeeChatForm() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {requiresConfirmation && <SelectItem value="emailed">Emailed</SelectItem>}
+                      <SelectItem value="emailed">Emailed</SelectItem>
                       <SelectItem value="scheduled">Scheduled</SelectItem>
                       <SelectItem value="completed">Completed</SelectItem>
                     </SelectContent>
