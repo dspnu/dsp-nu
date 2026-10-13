@@ -8,12 +8,19 @@ import { useMembers } from '@/core/members/hooks/useMembers';
 import { useMyCoffeeChats, useCoffeeChats } from '@/features/coffee-chats/hooks/useCoffeeChats';
 import { CoffeeChatCard } from '@/features/coffee-chats/components/CoffeeChatCard';
 import { CoffeeChatDashboard } from '@/features/coffee-chats/components/CoffeeChatDashboard';
+import { useChapterSetting } from '@/hooks/useChapterSettings';
+import { COFFEE_CHAT_REQUIRES_CONFIRMATION_KEY, coffeeChatsRequireConfirmation } from '@/features/coffee-chats/coffeeChatSettings';
 
 export function CoffeeChatsTab() {
   const { user, isAdminOrOfficer } = useAuth();
   const { data: members } = useMembers();
   const { data: myChats, isLoading: chatsLoading } = useMyCoffeeChats();
   const { data: allChats } = useCoffeeChats();
+  const { data: requiresConfirmationSetting } = useChapterSetting<boolean>(
+    COFFEE_CHAT_REQUIRES_CONFIRMATION_KEY,
+    { whenMissing: true },
+  );
+  const requiresConfirmation = coffeeChatsRequireConfirmation(requiresConfirmationSetting);
 
   const getMemberName = (userId: string) => {
     const member = members?.find(m => m.user_id === userId);
@@ -21,8 +28,10 @@ export function CoffeeChatsTab() {
   };
 
   const pendingConfirmations = useMemo(
-    () => myChats?.filter(c => c.status === 'emailed' && c.partner_id === user?.id) || [],
-    [myChats, user?.id]
+    () => requiresConfirmation
+      ? myChats?.filter(c => c.status === 'emailed' && c.partner_id === user?.id) || []
+      : [],
+    [myChats, requiresConfirmation, user?.id]
   );
 
   return (

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { MoreHorizontal, Shield, ShieldCheck } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -15,12 +16,14 @@ interface MemberAdminActionsProps {
   member: Tables<'profiles'>;
   canManageAdminRoles: boolean;
   canManagePositions: boolean;
+  className?: string;
 }
 
 export function MemberAdminActions({
   member,
   canManageAdminRoles,
   canManagePositions,
+  className,
 }: MemberAdminActionsProps) {
   const [adminOpen, setAdminOpen] = useState(false);
   const [positionsOpen, setPositionsOpen] = useState(false);
@@ -30,7 +33,7 @@ export function MemberAdminActions({
   return (
     <>
       <div
-        className="absolute top-2 right-2"
+        className={cn('absolute top-2 right-2 z-10 transition-[right]', className)}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();

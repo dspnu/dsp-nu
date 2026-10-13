@@ -13,6 +13,8 @@ import { CoffeeChatCard } from '@/features/coffee-chats/components/CoffeeChatCar
 import { CoffeeChatDashboard } from '@/features/coffee-chats/components/CoffeeChatDashboard';
 import { ApprovedMembersImport } from '@/features/coffee-chats/components/ApprovedMembersImport';
 import { useApprovedMembers } from '@/features/coffee-chats/hooks/useApprovedMembers';
+import { useChapterSetting } from '@/hooks/useChapterSettings';
+import { COFFEE_CHAT_REQUIRES_CONFIRMATION_KEY, coffeeChatsRequireConfirmation } from '@/features/coffee-chats/coffeeChatSettings';
 
 interface Props {
   isVP: boolean;
@@ -26,6 +28,11 @@ export function PDPCoffeeChats({ isVP, isNewMember }: Props) {
   const { data: allChats } = useCoffeeChats();
   const { data: members } = useMembers();
   const { data: approvedMembers } = useApprovedMembers();
+  const { data: requiresConfirmationSetting } = useChapterSetting<boolean>(
+    COFFEE_CHAT_REQUIRES_CONFIRMATION_KEY,
+    { whenMissing: true },
+  );
+  const requiresConfirmation = coffeeChatsRequireConfirmation(requiresConfirmationSetting);
 
   if (!coffeeChatsEnabled) {
     return <EmptyState icon={Coffee} title="Coffee Chats Unavailable" description="This feature is not enabled for your organization." />;
@@ -45,9 +52,9 @@ export function PDPCoffeeChats({ isVP, isNewMember }: Props) {
     return member ? `${member.first_name} ${member.last_name}` : 'Unknown';
   };
 
-  const pendingConfirmations = myChats?.filter(
-    c => c.status === 'emailed' && c.partner_id === user?.id
-  ) || [];
+  const pendingConfirmations = requiresConfirmation
+    ? myChats?.filter(c => c.status === 'emailed' && c.partner_id === user?.id) || []
+    : [];
 
   return (
     <div className="space-y-8">

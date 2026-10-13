@@ -3,10 +3,19 @@ import { Vote, Coffee, ChevronRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useMyCoffeeChats } from '@/features/coffee-chats/hooks/useCoffeeChats';
+import { useChapterSetting } from '@/hooks/useChapterSettings';
+import { COFFEE_CHAT_REQUIRES_CONFIRMATION_KEY, coffeeChatsRequireConfirmation } from '@/features/coffee-chats/coffeeChatSettings';
 
 export function AlertsSection() {
   const { data: myCoffeeChats } = useMyCoffeeChats();
-  const pendingCoffeeChats = myCoffeeChats?.filter(c => c.status === 'emailed') || [];
+  const { data: requiresConfirmationSetting } = useChapterSetting<boolean>(
+    COFFEE_CHAT_REQUIRES_CONFIRMATION_KEY,
+    { whenMissing: true },
+  );
+  const requiresConfirmation = coffeeChatsRequireConfirmation(requiresConfirmationSetting);
+  const pendingCoffeeChats = requiresConfirmation
+    ? myCoffeeChats?.filter(c => c.status === 'emailed') || []
+    : [];
   
   const { data: eopCandidates } = useQuery({
     queryKey: ['eop-voting-open'],
