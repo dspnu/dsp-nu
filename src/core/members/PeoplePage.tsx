@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, Search, Download, GraduationCap } from 'lucide-react';
+import { Users, Search, Download, GraduationCap, Check } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { cn } from '@/lib/utils';
 import { MemberCard } from '@/core/members/components/MemberCard';
 import { ProfileEditDialog } from '@/core/members/components/ProfileEditDialog';
 import { MemberAdminActions } from '@/core/members/components/MemberAdminActions';
@@ -124,6 +125,11 @@ export default function PeoplePage() {
     });
   };
 
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+    setBatchStatus('');
+  };
+
   const applyBatchStatus = async () => {
     if (!batchStatus) return;
     const selectedMembers = directoryMembers.filter((member) => selectedIds.has(member.id));
@@ -136,8 +142,7 @@ export default function PeoplePage() {
     } catch {
       return;
     }
-    setSelectedIds(new Set());
-    setBatchStatus('');
+    clearSelection();
     if (batchStatus === 'alumni') setActiveTab('alumni');
   };
 
@@ -207,9 +212,9 @@ export default function PeoplePage() {
             </div>
           </div>
 
-          {canBatchManage && filteredMembers.length > 0 && (
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-2 text-sm">
+          {canBatchManage && selectedIds.size > 0 && (
+            <div className="flex flex-col gap-2 rounded-lg border bg-muted/40 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
                 <Checkbox
                   checked={
                     allVisibleSelected
@@ -229,44 +234,34 @@ export default function PeoplePage() {
                   Select all
                 </button>
               </div>
-              {selectedIds.size > 0 && (
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm text-muted-foreground">
-                    {selectedIds.size} selected
-                  </span>
-                  <Select value={batchStatus || undefined} onValueChange={setBatchStatus}>
-                    <SelectTrigger className="w-40 h-9 text-sm" aria-label="Batch status">
-                      <SelectValue placeholder="Set status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MEMBER_STATUSES.map((status) => (
-                        <SelectItem key={status} value={status}>
-                          {formatStatusLabel(status)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    size="sm"
-                    className="h-9"
-                    disabled={!batchStatus || bulkSetStatus.isPending}
-                    onClick={applyBatchStatus}
-                  >
-                    {bulkSetStatus.isPending ? 'Updating...' : 'Apply'}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-9"
-                    onClick={() => {
-                      setSelectedIds(new Set());
-                      setBatchStatus('');
-                    }}
-                  >
-                    Clear
-                  </Button>
-                </div>
-              )}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {selectedIds.size} selected
+                </span>
+                <Select value={batchStatus || undefined} onValueChange={setBatchStatus}>
+                  <SelectTrigger className="w-40 h-9 text-sm" aria-label="Batch status">
+                    <SelectValue placeholder="Set status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MEMBER_STATUSES.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {formatStatusLabel(status)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  size="sm"
+                  className="h-9"
+                  disabled={!batchStatus || bulkSetStatus.isPending}
+                  onClick={applyBatchStatus}
+                >
+                  {bulkSetStatus.isPending ? 'Updating...' : 'Apply'}
+                </Button>
+                <Button size="sm" variant="ghost" className="h-9" onClick={clearSelection}>
+                  Clear
+                </Button>
+              </div>
             </div>
           )}
 
@@ -284,40 +279,51 @@ export default function PeoplePage() {
             </div>
           ) : filteredMembers.length > 0 ? (
             <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredMembers.map((member) => (
-                <div key={member.id} className="relative">
-                  {canBatchManage && (
-                    <div
-                      className="absolute left-2.5 top-1/2 z-10 -translate-y-1/2"
-                      onClick={(event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
-                      }}
-                    >
-                      <Checkbox
-                        checked={selectedIds.has(member.id)}
-                        onCheckedChange={(checked) => toggleMember(member.id, checked === true)}
-                        aria-label={`Select ${member.first_name} ${member.last_name}`}
-                      />
-                    </div>
-                  )}
+              {filteredMembers.map((member) => {
+                const selected = selectedIds.has(member.id);
+                const selectionActive = selectedIds.size > 0;
+                const showAdminActions = !selectionActive && (canManageAdminRoles || isDeveloper);
+                return (
+                <div key={member.id} className="group relative">
                   <Link
                     to={`/people/${member.id}`}
                     className="block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.99] transition-transform"
                   >
                     <MemberCard
                       member={member}
-                      reserveActionSpace={isDeveloper || canManageAdminRoles}
-                      className={canBatchManage ? 'pl-9' : undefined}
+                      reserveActionSpace={showAdminActions || (canBatchManage && selectionActive)}
+                      className={cn(selected && 'border-primary/40 bg-primary/5 hover:bg-primary/10')}
                     />
                   </Link>
-                  <MemberAdminActions
-                    member={member}
-                    canManageAdminRoles={canManageAdminRoles}
-                    canManagePositions={isDeveloper}
-                  />
+                  {canBatchManage && (
+                    <button
+                      type="button"
+                      aria-pressed={selected}
+                      aria-label={`${selected ? 'Deselect' : 'Select'} ${member.first_name} ${member.last_name}`}
+                      onClick={() => toggleMember(member.id, !selected)}
+                      className={cn(
+                        'absolute top-2 right-2 z-20 flex h-5 w-5 items-center justify-center rounded-full border shadow-sm transition-opacity',
+                        'border-foreground/20 bg-background/95 text-primary-foreground',
+                        'pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100 focus-visible:pointer-events-auto focus-visible:opacity-100',
+                        '[@media(hover:none)]:pointer-events-auto [@media(hover:none)]:opacity-100',
+                        selectionActive && 'pointer-events-auto opacity-100',
+                        selected ? 'border-primary bg-primary' : 'hover:border-foreground/40',
+                      )}
+                    >
+                      {selected && <Check className="h-3 w-3" strokeWidth={3} />}
+                    </button>
+                  )}
+                  {showAdminActions && (
+                    <MemberAdminActions
+                      member={member}
+                      canManageAdminRoles={canManageAdminRoles}
+                      canManagePositions={isDeveloper}
+                      className={canBatchManage ? 'group-hover:right-9' : undefined}
+                    />
+                  )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           ) : directoryMembers.length > 0 ? (
             <EmptyState icon={Search} title="No results found" description="Try adjusting your search or filters." />
