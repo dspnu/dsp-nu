@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/core/auth/AuthContext';
 import { profileNeedsInviteUnlock } from '@/core/auth/profileNeedsInviteUnlock';
 import { profileNeedsOnboarding } from '@/core/auth/profileNeedsOnboarding';
@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { AppLogo } from '@/components/branding/AppLogo';
 import { PENDING_INVITE_KEY } from '@/core/auth/inviteUnlock';
+import { getAuthRedirectUrl } from '@/core/auth/authRedirect';
 import { canUseNativeAppleSignIn, signInWithNativeApple } from '@/core/auth/appleSignIn';
 import { canUsePasskeys, isPasskeyCancellation, passkeyErrorMessage } from '@/core/auth/webauthnSupport';
 
@@ -30,12 +31,11 @@ type LastUsedLoginMethod = 'google' | 'apple' | 'email' | 'passkey';
 const LAST_USED_LOGIN_METHOD_KEY = 'dsp:last-login-method';
 
 export default function AuthPage() {
-  const { user, loading, signIn, signUp, requestPasswordReset, profile } = useAuth();
+  const { user, loading, signIn, signUp, profile } = useAuth();
+  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [oauthProviderLoading, setOauthProviderLoading] = useState<'google' | 'apple' | null>(null);
   const [passkeyLoading, setPasskeyLoading] = useState(false);
-  const [isResetSubmitting, setIsResetSubmitting] = useState(false);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [lastUsedLoginMethod, setLastUsedLoginMethod] = useState<LastUsedLoginMethod | null>(null);
   const [signupInviteCode, setSignupInviteCode] = useState('');
 
@@ -50,16 +50,6 @@ export default function AuthPage() {
     setLastUsedLoginMethod(method);
     window.localStorage.setItem(LAST_USED_LOGIN_METHOD_KEY, method);
   };
-
-  const getRedirectUrl = () => {
-    if (Capacitor.isNativePlatform()) return 'dspnu://auth/callback';
-    const origin = window.location.origin.replace(/\/$/, '');
-    const isLocal = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
-    return isLocal ? `${origin}/auth/callback` : `https://${org.domain}/auth/callback`;
-  };
-
-  /** Same deep link as OAuth so recovery emails open the native app. */
-  const getPasswordResetRedirectUrl = () => getRedirectUrl();
 
   const prepareInviteForOAuth = async (requireInvite?: boolean): Promise<boolean> => {
     if (!requireInvite) return true;
@@ -101,7 +91,7 @@ export default function AuthPage() {
         return;
       }
 
-      const redirectTo = getRedirectUrl();
+      const redirectTo = getAuthRedirectUrl();
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -208,32 +198,24 @@ export default function AuthPage() {
     const lastName = formData.get('lastName') as string;
     const inviteCode = String(formData.get('inviteCode') ?? signupInviteCode).trim();
 
-    const { error } = await signUp(email, password, firstName, lastName, inviteCode);
+    const { error, needsEmailConfirmation, alreadyRegistered } = await signUp(
+      email,
+      password,
+      firstName,
+      lastName,
+      inviteCode,
+      getAuthRedirectUrl(),
+    );
     if (error) {
       toast.error(error.message);
+    } else if (alreadyRegistered) {
+      toast.error('An account with this email already exists. Sign in instead.');
+    } else if (needsEmailConfirmation) {
+      navigate('/auth/confirm-email', { replace: true, state: { email: email.trim() } });
     } else {
-      toast.success('Account created! You can now sign in.');
+      toast.success('Account created!');
     }
     setIsSubmitting(false);
-  };
-
-  const handleForgotPassword = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsResetSubmitting(true);
-
-    const formData = new FormData(e.currentTarget);
-    const email = String(formData.get('resetEmail') ?? '').trim();
-    const redirectTo = getPasswordResetRedirectUrl();
-
-    const { error } = await requestPasswordReset(email, redirectTo);
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success('Password reset email sent. Check your inbox.');
-      setShowForgotPassword(false);
-    }
-
-    setIsResetSubmitting(false);
   };
 
   return (
@@ -373,13 +355,9 @@ export default function AuthPage() {
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <Label htmlFor="signin-password">Password</Label>
-                          <button
-                            type="button"
-                            onClick={() => setShowForgotPassword((current) => !current)}
-                            className="text-xs font-medium text-primary hover:underline"
-                          >
-                            {showForgotPassword ? 'Cancel password reset' : 'Forgot password?'}
-                          </button>
+                          <Link to="/auth/forgot-password" className="text-xs font-medium text-primary hover:underline">
+                            Forgot password?
+                          </Link>
                         </div>
                         <Input id="signin-password" name="password" type="password" required autoComplete="current-password" placeholder="••••••••" />
                       </div>
@@ -395,24 +373,6 @@ export default function AuthPage() {
                       Sign In
                     </Button>
                   </form>
-                  {showForgotPassword && (
-                    <form onSubmit={handleForgotPassword} className="space-y-3 rounded-md border border-border bg-muted/30 p-3">
-                      <div className="space-y-2">
-                        <Label htmlFor="forgot-password-email">Reset email</Label>
-                        <Input
-                          id="forgot-password-email"
-                          name="resetEmail"
-                          type="email"
-                          required
-                          placeholder={org.auth.emailPlaceholder}
-                        />
-                      </div>
-                      <Button type="submit" variant="secondary" className="w-full" disabled={isResetSubmitting}>
-                        {isResetSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Send Reset Link
-                      </Button>
-                    </form>
-                  )}
                 </div>
               </TabsContent>
               <TabsContent value="signup" className="mt-0">

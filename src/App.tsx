@@ -17,6 +17,8 @@ import { AccessibilityProvider } from "@/components/a11y/AccessibilityProvider";
 
 import AuthPage from "@/core/auth/AuthPage";
 import AuthCallbackPage from "@/core/auth/AuthCallbackPage";
+import ConfirmEmailPage from "@/core/auth/ConfirmEmailPage";
+import ForgotPasswordPage from "@/core/auth/ForgotPasswordPage";
 import ResetPasswordPage from "@/core/auth/ResetPasswordPage";
 import InviteGatePage from "@/core/auth/InviteGatePage";
 import { NativeAuthBridge } from "@/core/auth/NativeAuthBridge";
@@ -87,6 +89,8 @@ const App = () => (
                   <Routes>
                     <Route path="/auth" element={<AuthPage />} />
                     <Route path="/auth/callback" element={<AuthCallbackPage />} />
+                    <Route path="/auth/confirm-email" element={<ConfirmEmailPage />} />
+                    <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
                     <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
                     <Route path="/auth/invite" element={<InviteGatePage />} />
                     <Route path="/onboarding" element={<OnboardingPage />} />
