@@ -16,13 +16,9 @@ export async function enableNativePush(): Promise<void> {
   const permStatus = await PushNotifications.requestPermissions();
   if (permStatus.receive !== 'granted') throw new Error('Notifications permission not granted.');
 
-  await PushNotifications.register();
-
   await new Promise<void>((resolve, reject) => {
-    const timeout = setTimeout(() => {
-      cleanup();
-      reject(new Error('Timed out while registering for push notifications.'));
-    }, 15000);
+    let settled = false;
+    let timeout: ReturnType<typeof setTimeout>;
 
     const tokenSubPromise = PushNotifications.addListener('registration', async (token: Token) => {
       try {
@@ -42,24 +38,38 @@ export async function enableNativePush(): Promise<void> {
           );
 
         if (error) throw error;
-        cleanup();
-        resolve();
+        finish(() => resolve());
       } catch (e) {
-        cleanup();
-        reject(e);
+        finish(() => reject(e));
       }
     });
 
     const errSubPromise = PushNotifications.addListener('registrationError', (err) => {
-      cleanup();
-      reject(new Error(typeof err === 'string' ? err : JSON.stringify(err)));
+      const message =
+        typeof err === 'string'
+          ? err
+          : typeof err?.error === 'string'
+            ? err.error
+            : 'Apple could not register this phone for push notifications.';
+      finish(() => reject(new Error(message)));
     });
 
-    const cleanup = () => {
+    const finish = (settle: () => void) => {
+      if (settled) return;
+      settled = true;
       clearTimeout(timeout);
       void tokenSubPromise.then((s) => s.remove()).catch(() => {});
       void errSubPromise.then((s) => s.remove()).catch(() => {});
+      settle();
     };
+
+    timeout = setTimeout(() => {
+      finish(() => reject(new Error('Timed out while registering for push notifications.')));
+    }, 15000);
+
+    void Promise.all([tokenSubPromise, errSubPromise])
+      .then(() => PushNotifications.register())
+      .catch((e) => finish(() => reject(e)));
   });
 }
 

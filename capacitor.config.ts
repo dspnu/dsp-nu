@@ -12,14 +12,8 @@ const config: CapacitorConfig = {
     androidScheme: 'https'
   },
   plugins: {
-    CapacitorUpdater: {
-      autoUpdate: 'always',
-      version: '0.0.0',
-      appId: 'com.jacobtartabini.dspapp',
-      autoSplashscreen: true
-    },
     SplashScreen: {
-      launchAutoHide: false,
+      launchAutoHide: true,
       launchShowDuration: 1400,
       launchFadeOutDuration: 350,
       backgroundColor: '#faf9f7',
