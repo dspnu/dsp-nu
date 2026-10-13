@@ -1,21 +1,27 @@
 import { Browser } from '@capacitor/browser';
-import { Capacitor } from '@capacitor/core';
-import { Directory, Filesystem } from '@capacitor/filesystem';
-import { Share } from '@capacitor/share';
+import { Capacitor, registerPlugin } from '@capacitor/core';
+import { org } from '@/config/org';
 import { supabase } from '@/integrations/supabase/client';
 
-function walletPassBaseUrl(): string | null {
+interface AppleWalletPlugin {
+  addPass(options: { base64: string }): Promise<void>;
+}
+
+const AppleWallet = registerPlugin<AppleWalletPlugin>('AppleWallet');
+
+function walletPassBaseUrl(): string {
   const raw = import.meta.env.VITE_WALLET_PASS_URL?.trim();
-  if (!raw) return null;
-  return raw.replace(/\/$/, '');
+  if (raw) return raw.replace(/\/$/, '');
+  return `https://${org.domain}/pass`;
 }
 
 export function isAppleWalletPassConfigured(): boolean {
-  return walletPassBaseUrl() !== null;
+  return true;
 }
 
-/** Rough check for iPhone / iPad (including iPadOS desktop UA). */
+/** Rough check for iPhone / iPad (including iPadOS desktop UA) and the native iOS shell. */
 export function isLikelyIos(): boolean {
+  if (Capacitor.getPlatform() === 'ios') return true;
   if (typeof navigator === 'undefined') return false;
   const ua = navigator.userAgent;
   if (/iPad|iPhone|iPod/.test(ua)) return true;
@@ -35,7 +41,7 @@ async function blobToBase64(blob: Blob): Promise<string> {
 
 /**
  * Fetch a ticket .pkpass and hand it to Wallet.
- * Native Capacitor: write temp file + Share sheet (WKWebView cannot open blob .pkpass reliably).
+ * Native iOS: PassKit add-pass sheet.
  * Web: navigate to a blob URL (Safari/PWA).
  */
 export async function downloadBrotherhoodTicketPass(ticketId: string): Promise<void> {
@@ -52,7 +58,7 @@ export async function downloadBrotherhoodTicketPass(ticketId: string): Promise<v
     throw new Error('You must be signed in to add a pass');
   }
 
-  const url = `${base}/wallet/tickets/${encodeURIComponent(ticketId)}/pass`;
+  const url = `${base}/tickets/${encodeURIComponent(ticketId)}`;
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -70,27 +76,9 @@ export async function downloadBrotherhoodTicketPass(ticketId: string): Promise<v
 
   const blob = await res.blob();
 
-  if (Capacitor.isNativePlatform()) {
+  if (Capacitor.getPlatform() === 'ios') {
     const base64 = await blobToBase64(blob);
-    const fileName = `BrotherhoodTicket-${ticketId}.pkpass`;
-    const written = await Filesystem.writeFile({
-      path: fileName,
-      data: base64,
-      directory: Directory.Cache,
-    });
-    try {
-      await Share.share({
-        title: 'Add to Apple Wallet',
-        url: written.uri,
-        dialogTitle: 'Add pass to Apple Wallet',
-      });
-    } finally {
-      try {
-        await Filesystem.deleteFile({ path: fileName, directory: Directory.Cache });
-      } catch {
-        /* ignore cleanup errors */
-      }
-    }
+    await AppleWallet.addPass({ base64 });
     return;
   }
 

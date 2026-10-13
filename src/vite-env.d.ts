@@ -8,7 +8,7 @@ interface ImportMetaEnv {
   readonly VITE_PUSH_SUBSCRIPTION_URL?: string;
   /** Optional override for app/firmware semantic version */
   readonly VITE_APP_VERSION?: string;
-  /** Base URL of the wallet-pass-service (no trailing slash), e.g. https://wallet.example.com */
+  /** Optional override. Defaults to https://dsp.jacobtartabini.com/pass */
   readonly VITE_WALLET_PASS_URL?: string;
   /** Comma-separated org.features keys to force off at build time (see src/config/capabilities.ts). */
   readonly VITE_DISABLED_FEATURES?: string;

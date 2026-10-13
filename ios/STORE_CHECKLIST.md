@@ -30,7 +30,7 @@ Use this when preparing TestFlight / App Store Connect for **DSP Nu** (`com.jaco
 - [ ] QR / ticket check-in camera
 - [ ] Service-hour photo capture
 - [ ] Clover checkout opens in Browser and balance refreshes after close
-- [ ] Apple Wallet pass share sheet
+- [ ] Add to Apple Wallet (PassKit sheet)
 - [ ] Legal links open externally
 - [ ] Account export + delete
 

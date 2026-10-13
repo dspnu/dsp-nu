@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/pass/health",
+      "destination": "/api/pass/health"
+    },
+    {
+      "source": "/pass/tickets/:ticketId",
+      "destination": "/api/pass/tickets/:ticketId"
+    },
+    {
       "source": "/(.*)",
       "destination": "/"
     }
