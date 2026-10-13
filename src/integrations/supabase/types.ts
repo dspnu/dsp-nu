@@ -2014,7 +2014,18 @@ export type Database = {
         Returns: Json
       }
       broadcast_chapter_announcement: {
-        Args: { p_link?: string; p_message: string; p_title: string }
+        Args: {
+          p_committees?: string[]
+          p_families?: string[]
+          p_link?: string
+          p_message: string
+          p_pledge_classes?: string[]
+          p_positions?: string[]
+          p_roles?: string[]
+          p_statuses?: string[]
+          p_title: string
+          p_user_ids?: string[]
+        }
         Returns: undefined
       }
       can_manage_user_roles: { Args: { _user_id: string }; Returns: boolean }
