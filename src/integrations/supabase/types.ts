@@ -2027,6 +2027,13 @@ export type Database = {
       delete_user_account: { Args: never; Returns: Json }
       admin_reset_mfa: { Args: { p_user_id: string }; Returns: undefined }
       admin_user_has_mfa: { Args: { p_user_id: string }; Returns: boolean }
+      apply_member_statuses: {
+        Args: {
+          p_ids: string[]
+          p_status: Database["public"]["Enums"]["member_status"]
+        }
+        Returns: number
+      }
       session_satisfies_mfa: { Args: never; Returns: boolean }
       invite_code_matches: { Args: { p_code: string }; Returns: boolean }
       normalize_invite_code: { Args: { p_code: string }; Returns: string }

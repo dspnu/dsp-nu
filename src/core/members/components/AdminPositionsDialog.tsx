@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Shield, X, Plus } from 'lucide-react';
-import { useUpdateMember } from '@/core/members/hooks/useMembers';
+import { useEnsureAlumniContacts, useUpdateMember } from '@/core/members/hooks/useMembers';
 import { Tables, Enums } from '@/integrations/supabase/types';
 import { Constants } from '@/integrations/supabase/types';
 import { org } from '@/config/org';
@@ -38,6 +38,7 @@ export function AdminPositionsDialog({
   const [newPosition, setNewPosition] = useState('');
   const [status, setStatus] = useState<MemberStatus>(member.status);
   const updateMember = useUpdateMember();
+  const ensureAlumniContacts = useEnsureAlumniContacts();
   const { data: customExecPositionsSetting } = useChapterSetting('custom_exec_positions', { whenMissing: COMMON_POSITIONS });
   const customPositions = Array.isArray(customExecPositionsSetting)
     ? customExecPositionsSetting.filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
@@ -60,6 +61,9 @@ export function AdminPositionsDialog({
       positions,
       status,
     });
+    if (status === 'alumni') {
+      await ensureAlumniContacts.mutateAsync([{ ...member, status }]);
+    }
     setOpen(false);
   };
 
@@ -164,8 +168,8 @@ export function AdminPositionsDialog({
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={updateMember.isPending}>
-              {updateMember.isPending ? 'Saving...' : 'Save Changes'}
+            <Button onClick={handleSave} disabled={updateMember.isPending || ensureAlumniContacts.isPending}>
+              {updateMember.isPending || ensureAlumniContacts.isPending ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </div>

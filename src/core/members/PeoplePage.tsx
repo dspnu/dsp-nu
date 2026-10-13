@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/core/layout/AppLayout';
 import { PageHeader } from '@/components/ui/page-header';
@@ -8,21 +8,31 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Users, Search, Download, GraduationCap } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { MemberCard } from '@/core/members/components/MemberCard';
 import { ProfileEditDialog } from '@/core/members/components/ProfileEditDialog';
 import { MemberAdminActions } from '@/core/members/components/MemberAdminActions';
 import { AlumniForm } from '@/features/alumni/components/AlumniForm';
 import { AlumniCard } from '@/features/alumni/components/AlumniCard';
 import { AlumniImportDialog } from '@/features/alumni/components/AlumniImportDialog';
-import { useMembers, useMemberByUserId } from '@/core/members/hooks/useMembers';
+import { useMembers, useMemberByUserId, useBulkSetMemberStatus, useSyncAlumniDirectory } from '@/core/members/hooks/useMembers';
 import { useAlumni } from '@/features/alumni/hooks/useAlumni';
 import { useAuth } from '@/core/auth/AuthContext';
 import { org } from '@/config/org';
 import { exportToCSV } from '@/lib/csv';
-import { Tables } from '@/integrations/supabase/types';
+import { Constants, Enums } from '@/integrations/supabase/types';
 import { Card } from '@/components/ui/card';
 
-type Profile = Tables<'profiles'>;
+type MemberStatus = Enums<'member_status'>;
+
+const MEMBER_STATUSES = Constants.public.Enums.member_status;
+
+function formatStatusLabel(value: string) {
+  return value
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
 
 export default function PeoplePage() {
   const { isAdmin, isAdminOrOfficer, isDeveloper, user } = useAuth();
@@ -35,13 +45,23 @@ export default function PeoplePage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [industryFilter, setIndustryFilter] = useState('all');
   const [activeTab, setActiveTab] = useState('members');
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [batchStatus, setBatchStatus] = useState('');
+  const bulkSetStatus = useBulkSetMemberStatus();
 
   const canManageAdminRoles =
     isAdmin || (org.superAdmins as readonly string[]).includes(user?.email?.toLowerCase() ?? '');
+  const canBatchManage = isAdmin || isDeveloper;
+
+  const directoryMembers = useMemo(
+    () => (members ?? []).filter((member) => member.status !== 'alumni'),
+    [members],
+  );
+
+  useSyncAlumniDirectory(members, alumniLoading ? undefined : alumni, canBatchManage);
 
   const filteredMembers = useMemo(() => {
-    if (!members) return [];
-    return members.filter(member => {
+    return directoryMembers.filter(member => {
       const matchesSearch = memberSearch === '' || 
         `${member.first_name} ${member.last_name}`.toLowerCase().includes(memberSearch.toLowerCase()) ||
         member.email.toLowerCase().includes(memberSearch.toLowerCase()) ||
@@ -49,7 +69,11 @@ export default function PeoplePage() {
       const matchesStatus = statusFilter === 'all' || member.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
-  }, [members, memberSearch, statusFilter]);
+  }, [directoryMembers, memberSearch, statusFilter]);
+
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [memberSearch, statusFilter]);
 
   const industries = useMemo(() => {
     if (!alumni) return [];
@@ -68,13 +92,53 @@ export default function PeoplePage() {
     });
   }, [alumni, alumniSearch, industryFilter]);
 
-  const totalMembers = members?.length || 0;
-  const activeMembers = members?.filter(m => m.status === 'active').length || 0;
+  const totalMembers = directoryMembers.length;
+  const activeMembers = directoryMembers.filter(m => m.status === 'active').length;
   const totalAlumni = alumni?.length || 0;
 
   const handleExportMembers = () => {
-    if (!members) return;
-    exportToCSV(members, 'members-directory');
+    if (directoryMembers.length === 0) return;
+    exportToCSV(directoryMembers, 'members-directory');
+  };
+
+  const allVisibleSelected =
+    filteredMembers.length > 0 && filteredMembers.every((member) => selectedIds.has(member.id));
+
+  const toggleMember = (id: string, checked: boolean) => {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  };
+
+  const toggleVisibleMembers = (checked: boolean) => {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      filteredMembers.forEach((member) => {
+        if (checked) next.add(member.id);
+        else next.delete(member.id);
+      });
+      return next;
+    });
+  };
+
+  const applyBatchStatus = async () => {
+    if (!batchStatus) return;
+    const selectedMembers = directoryMembers.filter((member) => selectedIds.has(member.id));
+    if (selectedMembers.length === 0) return;
+    try {
+      await bulkSetStatus.mutateAsync({
+        members: selectedMembers,
+        status: batchStatus as MemberStatus,
+      });
+    } catch {
+      return;
+    }
+    setSelectedIds(new Set());
+    setBatchStatus('');
+    if (batchStatus === 'alumni') setActiveTab('alumni');
   };
 
   const handleExportAlumni = () => {
@@ -143,6 +207,69 @@ export default function PeoplePage() {
             </div>
           </div>
 
+          {canBatchManage && filteredMembers.length > 0 && (
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2 text-sm">
+                <Checkbox
+                  checked={
+                    allVisibleSelected
+                      ? true
+                      : filteredMembers.some((member) => selectedIds.has(member.id))
+                        ? 'indeterminate'
+                        : false
+                  }
+                  onCheckedChange={(checked) => toggleVisibleMembers(checked === true)}
+                  aria-label="Select all visible members"
+                />
+                <button
+                  type="button"
+                  className="text-sm"
+                  onClick={() => toggleVisibleMembers(!allVisibleSelected)}
+                >
+                  Select all
+                </button>
+              </div>
+              {selectedIds.size > 0 && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm text-muted-foreground">
+                    {selectedIds.size} selected
+                  </span>
+                  <Select value={batchStatus || undefined} onValueChange={setBatchStatus}>
+                    <SelectTrigger className="w-40 h-9 text-sm" aria-label="Batch status">
+                      <SelectValue placeholder="Set status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MEMBER_STATUSES.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {formatStatusLabel(status)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    size="sm"
+                    className="h-9"
+                    disabled={!batchStatus || bulkSetStatus.isPending}
+                    onClick={applyBatchStatus}
+                  >
+                    {bulkSetStatus.isPending ? 'Updating...' : 'Apply'}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-9"
+                    onClick={() => {
+                      setSelectedIds(new Set());
+                      setBatchStatus('');
+                    }}
+                  >
+                    Clear
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
           {statusFilter !== 'all' && (
             <p className="text-xs text-muted-foreground">
               Showing {filteredMembers.length} of {totalMembers} · {activeMembers} active
@@ -159,6 +286,21 @@ export default function PeoplePage() {
             <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {filteredMembers.map((member) => (
                 <div key={member.id} className="relative">
+                  {canBatchManage && (
+                    <div
+                      className="absolute left-2.5 top-1/2 z-10 -translate-y-1/2"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                      }}
+                    >
+                      <Checkbox
+                        checked={selectedIds.has(member.id)}
+                        onCheckedChange={(checked) => toggleMember(member.id, checked === true)}
+                        aria-label={`Select ${member.first_name} ${member.last_name}`}
+                      />
+                    </div>
+                  )}
                   <Link
                     to={`/people/${member.id}`}
                     className="block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.99] transition-transform"
@@ -166,6 +308,7 @@ export default function PeoplePage() {
                     <MemberCard
                       member={member}
                       reserveActionSpace={isDeveloper || canManageAdminRoles}
+                      className={canBatchManage ? 'pl-9' : undefined}
                     />
                   </Link>
                   <MemberAdminActions
@@ -176,7 +319,7 @@ export default function PeoplePage() {
                 </div>
               ))}
             </div>
-          ) : members && members.length > 0 ? (
+          ) : directoryMembers.length > 0 ? (
             <EmptyState icon={Search} title="No results found" description="Try adjusting your search or filters." />
           ) : (
             <EmptyState icon={Users} title="No members yet" description="Members will appear here once they sign up and join the chapter." />

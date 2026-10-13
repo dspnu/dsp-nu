@@ -10,14 +10,15 @@ interface MemberCardProps {
   member: Profile;
   /** Extra right padding so absolute admin actions don't cover name/status. */
   reserveActionSpace?: boolean;
+  className?: string;
 }
 
-export function MemberCard({ member, reserveActionSpace = false }: MemberCardProps) {
+export function MemberCard({ member, reserveActionSpace = false, className }: MemberCardProps) {
   return (
     <div
       className={`flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/40 transition-colors ${
         reserveActionSpace ? 'pr-11' : ''
-      }`}
+      } ${className ?? ''}`}
     >
       <Avatar className="h-10 w-10 shrink-0">
         <AvatarImage src={member.avatar_url || ''} />
