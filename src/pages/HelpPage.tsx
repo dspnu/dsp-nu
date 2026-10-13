@@ -98,7 +98,7 @@ const sections: { title: string; icon: React.ReactNode; faqs: FaqItem[] }[] = [
     faqs: [
       {
         q: 'How do I log a coffee chat?',
-        a: 'Go to the Coffee Chat Directory, find the approved member you met with, and submit a coffee chat. You\'ll need to provide the date and can add optional notes. The chat will appear as "emailed" until confirmed.',
+        a: 'Go to the Coffee Chat Directory, find the approved member you emailed, and log the coffee chat as emailed. You\'ll need to provide the date and can add optional notes. Depending on chapter settings, the other person may need to confirm it.',
         tags: ['coffee chats'],
       },
       {
